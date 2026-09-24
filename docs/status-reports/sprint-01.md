@@ -54,9 +54,9 @@ O Front da tela de login e do cadastro de usuário foi concluído.
 
 | User Story ou item | Responsável(is) | Situação final | Observação |
 |---|---|---|---|
-| US01 | Front - Cadastro Usuário | Concluído |  |
-| US02 | Back - Cadastro Usuário | Em Andamento |  |
-| US03 | Banco - Cadastro Usuário | Em Andamento |  |
+| US01 Front - Cadastro Usuário | Gabrieli, Thiago | Concluído |  |
+| US02 Back - Cadastro Usuário | Gabriel | Em Andamento |  |
+| US03 Banco - Cadastro Usuário | Cristiano, Nicolas | Em Andamento |  |
 
 > Inclua somente as User Stories ou os itens principais planejados para a sprint.  
 > Não copie todas as tarefas menores do quadro Kanban.
