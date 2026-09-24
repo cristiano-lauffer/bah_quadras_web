@@ -7,7 +7,7 @@
 - **Número da Sprint:** 1
 - **Período:** 10/09 - 24/09
 - **Integrantes:** CRISTIANO, GABRIEL, GABRIELI, NÍCOLAS, THIAGO
-- **Scrum Master da Sprint:** (SEM SCRUM MASTER)
+- **Scrum Master da Sprint:** X
 
 ### Meta da Sprint
 
@@ -24,12 +24,14 @@ Permitir que um usuário (Empresa/Usuário Final) realize seu cadastro e tenha s
 ### Situação da meta
 
 - [ ] Alcançada
-- [ ] Parcialmente alcançada
+- [X] Parcialmente alcançada
 - [ ] Não alcançada
 
 ### Resultado alcançado
 
 > Descreva brevemente quais funcionalidades ou resultados foram concluídos e estão funcionando ao final da sprint.
+
+O Front da tela de login e do cadastro de usuário foi concluído.
 
 **Resultado:**
 
@@ -37,7 +39,7 @@ Permitir que um usuário (Empresa/Usuário Final) realize seu cadastro e tenha s
 
 > Informe somente a dificuldade ou o impedimento que mais afetou a sprint. Caso não tenha ocorrido, escreva “Nenhum impedimento relevante”.
 
-**Dificuldade ou impedimento:**
+**Dificuldade ou impedimento: Organização e comunicação**
 
 ---
 
@@ -52,9 +54,9 @@ Permitir que um usuário (Empresa/Usuário Final) realize seu cadastro e tenha s
 
 | User Story ou item | Responsável(is) | Situação final | Observação |
 |---|---|---|---|
-| US01 |  |  |  |
-| US02 |  |  |  |
-| US03 |  |  |  |
+| US01 | Front - Cadastro Usuário | Concluído |  |
+| US02 | Back - Cadastro Usuário | Em Andamento |  |
+| US03 | Banco - Cadastro Usuário | Em Andamento |  |
 
 > Inclua somente as User Stories ou os itens principais planejados para a sprint.  
 > Não copie todas as tarefas menores do quadro Kanban.
@@ -65,25 +67,25 @@ Permitir que um usuário (Empresa/Usuário Final) realize seu cadastro e tenha s
 
 ### Evidências
 
-- **Repositório:**
-- **Quadro Kanban:**
+- **Repositório:*https://github.com/cristiano-lauffer/bah_quadras_web/edit/main/docs/status-reports/sprint-01.md*
+- **Quadro Kanban:*https://github.com/users/cristiano-lauffer/projects/3*
 - **Deploy ou instruções para executar o projeto:**
 - **Outras evidências, se necessárias:**
 
 ### Checklist de qualidade
 
-- [ ] Os itens marcados como concluídos atendem aos critérios de aceite.
-- [ ] As funcionalidades entregues foram testadas pela equipe.
-- [ ] O código atualizado está no repositório oficial.
-- [ ] Os problemas conhecidos estão registrados no Kanban ou no repositório.
+- [X] Os itens marcados como concluídos atendem aos critérios de aceite.
+- [X] As funcionalidades entregues foram testadas pela equipe.
+- [X] O código atualizado está no repositório oficial.
+- [X] Os problemas conhecidos estão registrados no Kanban ou no repositório.
 
 ### Problemas conhecidos
 
 > Informe os problemas que permanecem no incremento. Caso não tenham sido identificados, escreva “Nenhum problema conhecido”.
 
-**Registro:**
+**Registro: Nenhum problema conhecido**
 
----
+--- 
 
 ## 5. Retrospectiva da Sprint
 
@@ -91,19 +93,19 @@ Permitir que um usuário (Empresa/Usuário Final) realize seu cadastro e tenha s
 
 > O que funcionou bem e deve continuar?
 
-**Registro:**
+**Registro: Estrutura dos repositórios, Quadro Kanban no Github Projects**
 
 ### Melhorar
 
 > O que precisa mudar na próxima sprint?
 
-**Registro:**
+**Registro: Organização Prévia e Comunicação**
 
 ### Agir
 
 > Qual ação concreta a equipe adotará na próxima sprint?
 
-**Ação:**
+**Ação: Definição de um Scrum Master, reuniões síncronas semanais.**
 
 ---
 
@@ -129,4 +131,4 @@ Permitir que um usuário (Empresa/Usuário Final) realize seu cadastro e tenha s
 
 > Informe os principais fatores que podem dificultar o cumprimento da próxima meta. Caso nenhum risco tenha sido identificado, escreva “Nenhum risco identificado”.
 
-**Riscos:**
+**Riscos:Nenhum risco identificado**
