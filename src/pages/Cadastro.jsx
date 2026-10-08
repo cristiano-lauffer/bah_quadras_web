@@ -24,7 +24,7 @@ export default function Cadastro() {
             <div className="choice-icon">▦</div>
             <h2>Empresa</h2>
             <p>Para proprietários que desejam divulgar e administrar suas quadras.</p>
-            <Link className="btn btn-primary full" to="/cadastro/empresa">Continuar como empresa →</Link>
+            <Link className="btn btn-primary full" to="/cadastro/empresa">Entre em Contato →</Link>
           </article>
         </div>
         <p className="center muted">Já possui uma conta? <Link className="inline-link" to="/login">Entrar</Link></p>

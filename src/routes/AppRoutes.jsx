@@ -7,7 +7,7 @@ import CadastroUsuario from "../pages/CadastroUsuario";
 import CadastroEmpresa from "../pages/CadastroEmpresa";
 import PerfilEmpresa from "../pages/PerfilEmpresa";
 import EditarPerfilEmpresa from "../pages/EditarPerfilEmpresa";
-import Quadras from "../pages/quadras";
+import Quadras from "../pages/Quadras";
 import NotFound from "../pages/NotFound";
 
 export default function AppRoutes() {
