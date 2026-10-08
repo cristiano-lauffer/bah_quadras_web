@@ -1,19 +1,19 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-import Home from "../pages/home";
-import Login from "../pages/login";
-import Cadastro from "../pages/cadastro";
-import CadastroUsuario from "../pages/cadastroUsuario";
-import CadastroEmpresa from "../pages/cadastroEmpresa";
-import PerfilEmpresa from "../pages/perfilEmpresa";
-import EditarPerfilEmpresa from "../pages/editarPerfilEmpresa";
+import Home from "../pages/Home";
+import Login from "../pages/Login";
+import Cadastro from "../pages/Cadastro";
+import CadastroUsuario from "../pages/CadastroUsuario";
+import CadastroEmpresa from "../pages/CadastroEmpresa";
+import PerfilEmpresa from "../pages/PerfilEmpresa";
+import EditarPerfilEmpresa from "../pages/EditarPerfilEmpresa";
+import Quadras from "../pages/quadras";
 import NotFound from "../pages/NotFound";
 
 export default function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
-
         <Route path="/" element={<Home />} />
 
         <Route path="/login" element={<Login />} />
@@ -40,8 +40,17 @@ export default function AppRoutes() {
           element={<EditarPerfilEmpresa />}
         />
 
-        <Route path="*" element={<NotFound />} />
+        <Route
+          path="/empresa/quadras"
+          element={<Quadras />}
+        />
 
+        <Route
+          path="/perfil"
+          element={<Navigate to="/empresa/perfil" replace />}
+        />
+
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );

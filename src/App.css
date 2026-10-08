@@ -220,3 +220,171 @@
   .form-actions { flex-direction: column-reverse; }
   .form-actions .btn { width: 100%; }
 }
+
+/* ================================
+   MINHAS QUADRAS
+================================ */
+
+.courts-management {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.courts-summary {
+  display: flex;
+  gap: 16px;
+}
+
+.courts-summary > div {
+  min-width: 180px;
+  padding: 18px 20px;
+  background: #ffffff;
+  border: 1px solid #e4e9e6;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.courts-summary strong {
+  font-size: 28px;
+  line-height: 1;
+  color: #12372a;
+}
+
+.courts-summary span {
+  color: #718078;
+  font-size: 14px;
+}
+
+.company-courts-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.company-court-card {
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #e4e9e6;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(18, 55, 42, 0.06);
+}
+
+.company-court-image {
+  height: 150px;
+  background: linear-gradient(
+    135deg,
+    #438d61,
+    #195f43
+  );
+
+  display: flex;
+  align-items: flex-end;
+  padding: 14px;
+}
+
+.company-court-image span {
+  background: #ffffff;
+  color: #25513d;
+  padding: 5px 9px;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.company-court-content {
+  padding: 18px;
+}
+
+.company-court-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.court-type {
+  font-size: 13px;
+  color: #718078;
+}
+
+.court-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: #e8f6ed;
+  color: #267345;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.company-court-content h2 {
+  margin: 10px 0 16px;
+  font-size: 20px;
+  color: #12372a;
+}
+
+.company-court-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.company-court-info span {
+  color: #c88300;
+  font-size: 14px;
+}
+
+.company-court-info strong {
+  color: #08745a;
+  font-size: 14px;
+}
+
+.company-court-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.company-court-actions .btn {
+  flex: 1;
+  justify-content: center;
+}
+
+.stats-button {
+  margin-top: 18px;
+  width: 100%;
+  justify-content: center;
+}
+
+
+/* ================================
+   RESPONSIVIDADE
+================================ */
+
+@media (max-width: 1100px) {
+  .company-courts-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .courts-summary {
+    flex-direction: column;
+  }
+
+  .courts-summary > div {
+    width: 100%;
+  }
+
+  .company-courts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .company-court-actions {
+    flex-direction: column;
+  }
+}

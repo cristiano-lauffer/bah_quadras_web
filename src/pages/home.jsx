@@ -3,9 +3,48 @@ import Header from "../components/Header.jsx";
 import Footer from "../components/Footer.jsx";
 
 const quadras = [
-  { nome: "Arena Sport", tipo: "Futebol society", preco: "R$ 80,00/h", nota: "4,8", classe: "field-one" },
-  { nome: "Quadra Center", tipo: "Futsal", preco: "R$ 70,00/h", nota: "4,6", classe: "field-two" },
-  { nome: "Play Sports", tipo: "Vôlei de areia", preco: "R$ 60,00/h", nota: "4,7", classe: "field-three" },
+  {
+    nome: "Arena Sport",
+    tipo: "Futebol society",
+    preco: "R$ 80,00/h",
+    nota: "4,8",
+    classe: "field-one",
+  },
+  {
+    nome: "Quadra Center",
+    tipo: "Futsal",
+    preco: "R$ 70,00/h",
+    nota: "4,6",
+    classe: "field-two",
+  },
+  {
+    nome: "Play Sports",
+    tipo: "Vôlei de areia",
+    preco: "R$ 60,00/h",
+    nota: "4,7",
+    classe: "field-three",
+  },
+  {
+    nome: "Arena Basketball",
+    tipo: "Basquete",
+    preco: "R$ 75,00/h",
+    nota: "4,9",
+    classe: "field-four",
+  },
+  {
+    nome: "Beach Arena",
+    tipo: "Beach Tennis",
+    preco: "R$ 65,00/h",
+    nota: "4,8",
+    classe: "field-five",
+  },
+  {
+    nome: "Gol de Ouro",
+    tipo: "Futebol society",
+    preco: "R$ 90,00/h",
+    nota: "4,5",
+    classe: "field-six",
+  },
 ];
 
 export default function Home() {
