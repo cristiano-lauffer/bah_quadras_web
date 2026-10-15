@@ -1,0 +1,167 @@
+/* RODAPÉ */
+
+.rodape {
+  width: 100%;
+  background: #062f27;
+  color: #e0ebe5;
+}
+
+.rodape-conteudo {
+  display: grid;
+  grid-template-columns: 1.3fr 0.8fr 1fr 1.3fr;
+  gap: 40px;
+
+  width: calc(100% - 48px);
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 42px 0 35px;
+}
+
+/* MARCA */
+
+.rodape-logo {
+  margin-bottom: 16px;
+}
+
+.rodape-marca > p {
+  max-width: 250px;
+  margin: 0;
+
+  color: #b5c9bf;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+/* LINKS */
+
+.rodape-links,
+.rodape-contato {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.rodape-links h3,
+.rodape-contato h3 {
+  margin: 3px 0 17px;
+
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.rodape-links a {
+  margin-bottom: 12px;
+
+  color: #b5c9bf;
+  font-size: 12px;
+  text-decoration: none;
+
+  transition: color 0.2s;
+}
+
+.rodape-links a:hover {
+  color: #51e49a;
+}
+
+.rodape-contato > p {
+  max-width: 270px;
+  margin: 0 0 16px;
+
+  color: #b5c9bf;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.rodape-botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 38px;
+  padding: 0 15px;
+  border: 1px solid #07834e;
+  border-radius: 6px;
+
+  background: #07834e;
+  color: #fff;
+
+  font-size: 11px;
+  font-weight: 800;
+  text-decoration: none;
+
+  transition: background 0.2s;
+}
+
+.rodape-botao:hover {
+  background: #0aa661;
+}
+
+/* LINHA FINAL */
+
+.rodape-final {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+
+  width: calc(100% - 48px);
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 18px 0;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.rodape-final p {
+  margin: 0;
+  color: #a9c0b5;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.rodape-voltar {
+  flex-shrink: 0;
+  color: #61dfa0;
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.rodape-voltar:hover {
+  color: #fff;
+}
+
+/* TABLET */
+
+@media (max-width: 850px) {
+  .rodape-conteudo {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 30px;
+  }
+}
+
+/* CELULAR */
+
+@media (max-width: 520px) {
+  .rodape-conteudo {
+    width: calc(100% - 32px);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px 18px;
+    padding: 32px 0;
+  }
+
+  .rodape-marca,
+  .rodape-contato {
+    grid-column: 1 / -1;
+  }
+
+  .rodape-final {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+
+    width: calc(100% - 32px);
+    padding: 16px 0;
+  }
+}
