@@ -1,0 +1,487 @@
+/* ========================================
+   HOME - BAH QUADRAS
+   ======================================== */
+
+.pagina-inicial {
+  min-height: 100vh;
+  background: #f5f7f6;
+  color: #183037;
+}
+
+/* Banner principal */
+
+.banner {
+  min-height: 310px;
+  display: flex;
+  align-items: center;
+  padding: 40px max(24px, calc((100% - 1200px) / 2));
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(2, 35, 27, 0.92) 0%,
+      rgba(2, 35, 27, 0.75) 48%,
+      rgba(2, 35, 27, 0.2) 100%
+    ),
+    url("https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=2000&q=90")
+      center 55% / cover no-repeat;
+}
+
+.banner-conteudo {
+  width: 100%;
+  max-width: 720px;
+  position: relative;
+  z-index: 1;
+}
+
+.texto-destaque {
+  display: inline-block;
+  margin-bottom: 12px;
+  color: #8be7b2;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+}
+
+.banner h1 {
+  max-width: 680px;
+  margin: 0 0 12px;
+  color: #fff;
+  font-size: clamp(30px, 4vw, 44px);
+  font-weight: 800;
+  line-height: 1.12;
+}
+
+.banner p {
+  max-width: 550px;
+  margin: 0 0 22px;
+  color: #edf4f0;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* Campo de busca */
+
+.busca-quadras {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 650px;
+  min-height: 54px;
+  padding: 6px;
+  border: 1px solid #e2e9e4;
+  border-radius: 9px;
+  background: #fff;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.12);
+}
+
+.busca-quadras > span {
+  padding-left: 10px;
+  color: #75857b;
+  font-size: 25px;
+}
+
+.busca-quadras input {
+  flex: 1;
+  width: 0;
+  min-width: 0;
+  padding: 10px 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #18372c;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.busca-quadras input::placeholder {
+  color: #8a9690;
+}
+
+.busca-quadras button,
+.botao-limpar {
+  padding: 12px 22px;
+  border: none;
+  border-radius: 6px;
+  background: #07834e;
+  color: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.busca-quadras button:hover,
+.botao-limpar:hover {
+  background: #05683e;
+}
+
+/* Seções de conteúdo */
+
+.secao-quadras,
+.secao-beneficios {
+  width: calc(100% - 48px);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.secao-quadras {
+  padding-top: 32px;
+}
+
+.titulo-secao {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 18px;
+}
+
+.titulo-secao h2 {
+  margin: 0 0 6px;
+  color: #163b2c;
+  font-size: 23px;
+  font-weight: 800;
+}
+
+.titulo-secao p {
+  margin: 0;
+  color: #738178;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.link-secao {
+  flex-shrink: 0;
+  color: #07834e;
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.link-secao:hover {
+  text-decoration: underline;
+}
+
+/* Grade de quadras */
+
+.lista-quadras {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.card-quadra {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #e0e8e2;
+  border-radius: 9px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(20, 50, 35, 0.04);
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+.card-quadra:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(20, 50, 35, 0.1);
+}
+
+.foto-quadra {
+  display: block;
+  height: 150px;
+  overflow: hidden;
+  background: #e1e9e3;
+}
+
+.foto-quadra img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.card-quadra:hover .foto-quadra img {
+  transform: scale(1.04);
+}
+
+.dados-quadra {
+  padding: 13px;
+}
+
+.modalidade {
+  display: block;
+  margin-bottom: 5px;
+  color: #718078;
+  font-size: 11px;
+}
+
+.dados-quadra h3 {
+  margin: 0 0 12px;
+  color: #183b2d;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.informacoes-quadra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid #edf1ee;
+}
+
+.avaliacao {
+  color: #44564b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.avaliacao span {
+  color: #f4ad19;
+}
+
+.informacoes-quadra strong {
+  color: #087447;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.botao-detalhes {
+  display: block;
+  margin-top: 12px;
+  padding: 9px;
+  border: 1px solid #cfe4d6;
+  border-radius: 6px;
+  color: #087747;
+  font-size: 11px;
+  font-weight: 800;
+  text-align: center;
+  text-decoration: none;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+
+.botao-detalhes:hover {
+  background: #07834e;
+  color: #fff;
+}
+
+/* Nenhuma quadra encontrada */
+
+.mensagem-vazia {
+  padding: 35px 20px;
+  border: 1px dashed #cbdcd0;
+  border-radius: 9px;
+  background: #fff;
+  text-align: center;
+}
+
+.mensagem-vazia h3 {
+  margin: 0 0 8px;
+  font-size: 17px;
+}
+
+.mensagem-vazia p {
+  margin: 0 0 16px;
+  color: #718078;
+  font-size: 13px;
+}
+
+/* Benefícios */
+
+.secao-beneficios {
+  padding-top: 34px;
+  padding-bottom: 38px;
+}
+
+.lista-beneficios {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.card-beneficio {
+  padding: 18px;
+  border: 1px solid #e0e8e2;
+  border-radius: 9px;
+  background: #fff;
+  transition: border-color 0.2s;
+}
+
+.card-beneficio:hover {
+  border-color: #a5d5b7;
+}
+
+.icone-beneficio {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  margin-bottom: 12px;
+  border-radius: 9px;
+  background: #e8f5ed;
+  font-size: 20px;
+}
+
+.card-beneficio h3 {
+  margin: 0 0 8px;
+  color: #183b2d;
+  font-size: 14px;
+}
+
+.card-beneficio p {
+  margin: 0;
+  color: #718078;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.card-beneficio a {
+  display: inline-block;
+  margin-top: 12px;
+  color: #07834e;
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.card-beneficio a:hover {
+  text-decoration: underline;
+}
+
+/* Tablet */
+
+@media (max-width: 850px) {
+  .banner {
+    min-height: 300px;
+  }
+
+  .lista-quadras {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .lista-beneficios {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .card-beneficio {
+    display: grid;
+    grid-template-columns: 42px 1fr;
+    column-gap: 13px;
+    align-items: start;
+  }
+
+  .icone-beneficio {
+    grid-row: span 3;
+    margin-bottom: 0;
+  }
+}
+
+/* Celular */
+
+@media (max-width: 520px) {
+  .banner {
+    min-height: 310px;
+    padding: 32px 18px;
+    background-position: 60% center;
+  }
+
+  .banner h1 {
+    font-size: 31px;
+  }
+
+  .banner p {
+    font-size: 13px;
+  }
+
+  .busca-quadras {
+    gap: 5px;
+  }
+
+  .busca-quadras input {
+    font-size: 11px;
+  }
+
+  .busca-quadras button {
+    padding: 11px 12px;
+  }
+
+  .secao-quadras,
+  .secao-beneficios {
+    width: calc(100% - 28px);
+  }
+
+  .secao-quadras {
+    padding-top: 25px;
+  }
+
+  .titulo-secao {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .titulo-secao h2 {
+    font-size: 20px;
+  }
+
+  .titulo-secao p {
+    font-size: 11px;
+  }
+
+  .link-secao {
+    padding-top: 5px;
+    font-size: 11px;
+  }
+
+  .lista-quadras {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .foto-quadra {
+    height: 105px;
+  }
+
+  .dados-quadra {
+    padding: 10px;
+  }
+
+  .dados-quadra h3 {
+    font-size: 13px;
+  }
+
+  .modalidade {
+    font-size: 10px;
+  }
+
+  .informacoes-quadra {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .informacoes-quadra strong {
+    font-size: 11px;
+  }
+
+  .botao-detalhes {
+    padding: 8px 4px;
+    font-size: 10px;
+  }
+
+  .secao-beneficios {
+    padding-top: 28px;
+    padding-bottom: 28px;
+  }
+}

@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-
 import Home from "../pages/Home";
 import Login from "../pages/Login";
 import Cadastro from "../pages/Cadastro";
@@ -7,6 +6,7 @@ import CadastroUsuario from "../pages/CadastroUsuario";
 import CadastroEmpresa from "../pages/CadastroEmpresa";
 import PerfilEmpresa from "../pages/PerfilEmpresa";
 import EditarPerfilEmpresa from "../pages/EditarPerfilEmpresa";
+import PerfilUsuario from "../pages/PerfilUsuario";
 import Quadras from "../pages/Quadras";
 import NotFound from "../pages/NotFound";
 
@@ -49,6 +49,8 @@ export default function AppRoutes() {
           path="/perfil"
           element={<Navigate to="/empresa/perfil" replace />}
         />
+
+        <Route path="/usuario/perfil" element={<PerfilUsuario />} />
 
         <Route path="*" element={<NotFound />} />
       </Routes>

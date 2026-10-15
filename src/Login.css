@@ -1,0 +1,570 @@
+/* ========================================
+   LOGIN - BAH QUADRAS
+======================================== */
+
+.login-pagina {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: #ffffff;
+  color: #17332b;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+}
+
+/* ========================================
+   PAINEL ESQUERDO
+======================================== */
+
+.login-lateral {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100vh;
+  overflow: hidden;
+  padding: 42px 9%;
+  color: #ffffff;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(3, 38, 29, 0.82) 0%,
+      rgba(3, 48, 35, 0.76) 50%,
+      rgba(2, 29, 23, 0.95) 100%
+    ),
+    url("https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=1400&q=85")
+      center / cover no-repeat;
+}
+
+.login-logo {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 11px;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.login-logo-icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: #07834e;
+  font-size: 25px;
+}
+
+.login-logo-texto {
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: 1.3px;
+}
+
+.login-logo-texto strong {
+  font-weight: 800;
+}
+
+.login-mensagem {
+  position: relative;
+  z-index: 1;
+  max-width: 530px;
+  margin: 70px 0;
+}
+
+.login-etiqueta {
+  display: inline-block;
+  margin-bottom: 22px;
+  padding: 9px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #d5f5df;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.8px;
+}
+
+.login-mensagem h1 {
+  margin: 0 0 22px;
+  font-size: clamp(34px, 3.5vw, 52px);
+  font-weight: 800;
+  line-height: 1.14;
+  letter-spacing: -1.8px;
+}
+
+.login-mensagem h1 span {
+  color: #76dfa7;
+}
+
+.login-mensagem > p {
+  max-width: 430px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 15px;
+  line-height: 1.9;
+}
+
+.login-vantagens {
+  display: flex;
+  flex-direction: column;
+  gap: 17px;
+  margin-top: 36px;
+}
+
+.login-vantagem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 13px;
+}
+
+.login-vantagem-icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 23px;
+  height: 23px;
+  border-radius: 50%;
+  background: #07834e;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.login-lateral-rodape {
+  position: relative;
+  z-index: 1;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 12px;
+}
+
+/* ========================================
+   PAINEL DIREITO
+======================================== */
+
+.login-conteudo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  min-height: 100vh;
+  padding: 30px 7%;
+}
+
+.login-topo {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  width: 100%;
+  color: #718078;
+  font-size: 12px;
+}
+
+.login-link-cadastro {
+  color: #07834e;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.login-link-cadastro:hover {
+  text-decoration: underline;
+}
+
+.login-formulario-container {
+  width: 100%;
+  max-width: 390px;
+  margin: 38px auto;
+}
+
+.login-icone-usuario {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  margin-bottom: 25px;
+  border-radius: 17px;
+  background: #e8f5ee;
+  color: #07834e;
+}
+
+.login-icone-usuario svg {
+  width: 27px;
+  height: 27px;
+}
+
+.login-boas-vindas {
+  margin: 0 0 9px;
+  color: #17332b;
+  font-size: 29px;
+  font-weight: 800;
+  letter-spacing: -0.9px;
+  line-height: 1.3;
+}
+
+.login-subtitulo {
+  margin: 0 0 30px;
+  color: #7b8982;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+/* ========================================
+   FORMULÁRIO
+======================================== */
+
+.login-formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 21px;
+}
+
+.login-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.login-campo label {
+  color: #294239;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.login-input-container {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  height: 51px;
+  padding: 0 14px;
+  border: 1px solid #dfe7e3;
+  border-radius: 10px;
+  background: #ffffff;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.login-input-container:focus-within {
+  border-color: #07834e;
+  box-shadow: 0 0 0 3px rgba(7, 131, 78, 0.1);
+}
+
+.login-input-icone {
+  flex-shrink: 0;
+  width: 19px;
+  height: 19px;
+  color: #8b9a92;
+}
+
+.login-input-container input {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #17332b;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.login-input-container input::placeholder {
+  color: #a4afa9;
+}
+
+.login-mostrar-senha {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 34px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #87958e;
+  cursor: pointer;
+}
+
+.login-mostrar-senha:hover {
+  color: #07834e;
+}
+
+.login-mostrar-senha svg {
+  width: 19px;
+  height: 19px;
+}
+
+/* ========================================
+   OPÇÕES DO LOGIN
+======================================== */
+
+.login-opcoes {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: -3px;
+}
+
+.login-lembrar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #68786f;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.login-lembrar input {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: #07834e;
+  cursor: pointer;
+}
+
+.login-esqueci-senha {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #07834e;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.login-esqueci-senha:hover {
+  text-decoration: underline;
+}
+
+/* ========================================
+   BOTÕES
+======================================== */
+
+.login-botao-principal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 51px;
+  margin-top: 2px;
+  padding: 13px 18px;
+  border: none;
+  border-radius: 10px;
+  background: #07834e;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 6px 15px rgba(7, 131, 78, 0.14);
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.login-botao-principal span {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.login-botao-principal:hover {
+  background: #066b40;
+  box-shadow: 0 8px 20px rgba(7, 131, 78, 0.22);
+  transform: translateY(-1px);
+}
+
+.login-botao-principal:active {
+  transform: translateY(0);
+}
+
+/* ========================================
+   SEPARADOR
+======================================== */
+
+.login-separador {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 24px 0;
+}
+
+.login-separador span {
+  flex: 1;
+  height: 1px;
+  background: #e8edea;
+}
+
+.login-separador p {
+  flex-shrink: 0;
+  margin: 0;
+  color: #98a39d;
+  font-size: 11px;
+}
+
+/* ========================================
+   BOTÃO GOOGLE
+======================================== */
+
+.login-botao-secundario {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 50px;
+  padding: 12px 18px;
+  border: 1px solid #dfe7e3;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #294239;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 750;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.login-botao-secundario:hover {
+  border-color: #b7c9bf;
+  background: #f8fbf9;
+}
+
+.login-botao-secundario:active {
+  transform: scale(0.99);
+}
+
+.login-google-icone {
+  display: block;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+/* ========================================
+   TERMOS E RODAPÉ
+======================================== */
+
+.login-termos {
+  margin: 25px 0 0;
+  color: #929e97;
+  font-size: 10px;
+  line-height: 1.9;
+  text-align: center;
+}
+
+.login-termos a {
+  color: #07834e;
+  text-decoration: none;
+}
+
+.login-termos a:hover {
+  text-decoration: underline;
+}
+
+.login-rodape {
+  width: 100%;
+  color: #9aa59f;
+  font-size: 10px;
+  line-height: 1.7;
+  text-align: center;
+}
+
+/* ========================================
+   RESPONSIVIDADE
+======================================== */
+
+@media (max-width: 1000px) {
+  .login-pagina {
+    grid-template-columns: 0.9fr 1.1fr;
+  }
+
+  .login-lateral {
+    padding: 35px 7%;
+  }
+
+  .login-conteudo {
+    padding-right: 6%;
+    padding-left: 6%;
+  }
+
+  .login-mensagem h1 {
+    font-size: 38px;
+  }
+
+  .login-mensagem > p {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 760px) {
+  .login-pagina {
+    display: block;
+    min-height: 100vh;
+  }
+
+  .login-lateral {
+    display: none;
+  }
+
+  .login-conteudo {
+    min-height: 100vh;
+    padding: 24px 22px;
+  }
+
+  .login-topo {
+    justify-content: center;
+    padding: 8px 0;
+  }
+
+  .login-formulario-container {
+    max-width: 420px;
+    margin: 48px auto;
+  }
+
+  .login-boas-vindas {
+    font-size: 27px;
+  }
+
+  .login-rodape {
+    padding: 15px 0 4px;
+  }
+}
+
+@media (max-width: 380px) {
+  .login-conteudo {
+    padding-right: 17px;
+    padding-left: 17px;
+  }
+
+  .login-boas-vindas {
+    font-size: 24px;
+  }
+
+  .login-opcoes {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 13px;
+  }
+
+  .login-termos {
+    font-size: 9px;
+  }
+}
