@@ -42,6 +42,8 @@ No frontend, as telas de login e cadastro foram integradas à API. Foi implement
 
 | User Story ou item | Responsável(is) | Situação final | Observação |
 |---|---|---|---|
+| US2 – Empresa faz login e acessa dashboard | BACK + FRONT-B | Em andamento | Aguarda merge da US1 |
+| US3 – Admin cria conta de empresa | BACK | Em andamento | Endpoint implementado; sem tela (via Postman no MVP) |
 |⁠Criar Telas Padrão|Thiago/Gabrielli|Entregue|  |
 |US1 — Cliente cria conta e faz login|Todos|Aguardando code review|  |
 |Sub - US1 - Definir estrutura de banco de dados|Todos|Aguardando code review|  |
@@ -105,7 +107,16 @@ Permitir que a empresa cadastre e gerencie suas quadras e horários disponíveis
 
 | User Story ou item | Responsável(is) | Resultado esperado |
 |---|---|---|
-| | | |
+| US2 – Empresa faz login e acessa dashboard | BACK + FRONT-B | Finalizar |
+| US3 – Admin cria conta de empresa | BACK | Em andamento | Finalizar|
+|US1 — Cliente cria conta e faz login|Todos|Finalizar code review|
+|Sub - US1 - Definir estrutura de banco de dados|Todos|Finalizar code review|
+|Sub - US1 - Criar api|Gabriel|Finalizar code review|
+|Sub - US1 - Integrar com Front-End|A definir|Finalizar code review|
+|US4 — Empresa cadastra, edita e desativa quadras|BACK + FRONT|Finalizar|
+|US5 — Empresa define horários disponíveis por quadra|BACK + FRONT|Finalizar|
+|US6 — Empresa atualiza preço das quadras|BACK + FRONT|Finalizar|
+
 ### Riscos ou impedimentos previstos
 
 **Riscos:**
