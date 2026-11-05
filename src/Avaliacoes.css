@@ -1,0 +1,703 @@
+/* =========================================
+   AVALIAÇÕES — BAH QUADRAS
+========================================= */
+
+.reviews-page {
+  min-height: 70vh;
+  padding: 40px 24px 64px;
+  background: #f4f7f5;
+  color: #17332b;
+}
+
+.reviews-container {
+  width: min(1100px, 100%);
+  margin: 0 auto;
+}
+
+/* Link para voltar */
+
+.reviews-back {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 28px;
+  color: #07834e;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.reviews-back:hover {
+  color: #064b37;
+  text-decoration: underline;
+}
+
+/* Cabeçalho */
+
+.reviews-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 30px;
+}
+
+.reviews-eyebrow {
+  display: inline-block;
+  margin-bottom: 10px;
+  color: #07834e;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+}
+
+.reviews-heading h1 {
+  margin: 0 0 12px;
+  color: #064b37;
+  font-size: clamp(2rem, 4vw, 2.7rem);
+  font-weight: 800;
+  letter-spacing: -0.8px;
+}
+
+.reviews-heading p {
+  margin: 0;
+  color: #6b7b75;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+/* Botões */
+
+.reviews-primary,
+.reviews-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 12px 20px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.reviews-primary {
+  background: #07834e;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(7, 131, 78, 0.15);
+}
+
+.reviews-primary:hover {
+  background: #064b37;
+  box-shadow: 0 6px 16px rgba(6, 75, 55, 0.2);
+  transform: translateY(-1px);
+}
+
+.reviews-secondary {
+  border-color: #d6e2db;
+  background: #ffffff;
+  color: #285b45;
+}
+
+.reviews-secondary:hover {
+  border-color: #07834e;
+  background: #e8f5ee;
+  color: #064b37;
+}
+
+.reviews-primary:focus-visible,
+.reviews-secondary:focus-visible,
+.reviews-breakdown button:focus-visible {
+  outline: 3px solid rgba(7, 131, 78, 0.3);
+  outline-offset: 3px;
+}
+
+/* =========================================
+   RESUMO DAS AVALIAÇÕES
+========================================= */
+
+.reviews-summary {
+  display: grid;
+  grid-template-columns: minmax(230px, 0.8fr) minmax(0, 1.6fr);
+  gap: 24px;
+  margin-bottom: 42px;
+}
+
+.reviews-score,
+.reviews-breakdown {
+  min-width: 0;
+  padding: 28px;
+  border: 1px solid #e0e9e4;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 8px 28px rgba(6, 75, 55, 0.05);
+}
+
+.reviews-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.reviews-score > strong {
+  color: #064b37;
+  font-size: 4rem;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -2px;
+}
+
+.reviews-score > span:last-child {
+  margin-top: 10px;
+  color: #78877f;
+  font-size: 0.9rem;
+}
+
+/* Estrelas */
+
+.reviews-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: #d7ddd9;
+  font-size: 1rem;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.reviews-stars .on {
+  color: #f2b705;
+}
+
+.reviews-stars.large {
+  margin-top: 12px;
+  font-size: 1.6rem;
+  gap: 4px;
+}
+
+/* Distribuição das notas */
+
+.reviews-breakdown {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+}
+
+.reviews-breakdown button {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) 30px;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 7px 9px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: #405c4f;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.reviews-breakdown button:hover {
+  background: #f0f7f3;
+}
+
+.reviews-breakdown button.selected {
+  border-color: #b8ddc8;
+  background: #e8f5ee;
+  color: #064b37;
+}
+
+.reviews-track {
+  display: block;
+  width: 100%;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 20px;
+  background: #e9efeb;
+}
+
+.reviews-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #07834e, #43b77d);
+  transition: width 0.3s ease;
+}
+
+.reviews-breakdown button > span:last-child {
+  color: #78877f;
+  text-align: right;
+}
+
+/* =========================================
+   FORMULÁRIO
+========================================= */
+
+.reviews-form {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 36px;
+  padding: 30px;
+  border: 1px solid #dce8e0;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 8px 28px rgba(6, 75, 55, 0.06);
+  animation: reviews-appear 0.2s ease;
+}
+
+.reviews-form h2 {
+  margin: 0 0 12px;
+  color: #064b37;
+  font-size: 1.45rem;
+  font-weight: 800;
+}
+
+.reviews-form label {
+  margin-top: 6px;
+  color: #23483a;
+  font-size: 0.94rem;
+  font-weight: 700;
+}
+
+.reviews-form input,
+.reviews-form textarea,
+.reviews-form select {
+  width: 100%;
+  min-height: 46px;
+  padding: 12px 14px;
+  border: 1px solid #d6e2db;
+  border-radius: 10px;
+  outline: none;
+  background: #ffffff;
+  color: #17332b;
+  font-family: inherit;
+  font-size: 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.reviews-form textarea {
+  min-height: 120px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.reviews-form input::placeholder,
+.reviews-form textarea::placeholder {
+  color: #9aa9a2;
+}
+
+.reviews-form input:focus,
+.reviews-form textarea:focus,
+.reviews-form select:focus {
+  border-color: #07834e;
+  box-shadow: 0 0 0 4px rgba(7, 131, 78, 0.12);
+}
+
+/* Seleção da nota */
+
+.reviews-picker {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 8px;
+}
+
+.reviews-picker button {
+  padding: 3px;
+  border: none;
+  background: transparent;
+  color: #d7ddd9;
+  font-size: 2rem;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.reviews-picker button.on {
+  color: #f2b705;
+}
+
+.reviews-picker button:hover {
+  transform: scale(1.12);
+}
+
+.reviews-picker span {
+  margin-left: 10px;
+  color: #6b7b75;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* Ações do formulário */
+
+.reviews-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+/* Mensagem de retorno */
+
+.reviews-message {
+  margin: 8px 0;
+  padding: 13px 16px;
+  border: 1px solid #b8e2c9;
+  border-radius: 10px;
+  background: #e8f5ee;
+  color: #064b37;
+  font-size: 0.94rem;
+  line-height: 1.5;
+}
+
+/* =========================================
+   CABEÇALHO DA LISTA
+========================================= */
+
+.reviews-list-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 22px;
+}
+
+.reviews-list-heading h2 {
+  margin: 0;
+  color: #064b37;
+  font-size: 1.55rem;
+  font-weight: 800;
+}
+
+.reviews-list-heading p {
+  margin: 7px 0 0;
+  color: #78877f;
+  font-size: 0.92rem;
+}
+
+.reviews-list-heading > label {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: #52685c;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.reviews-list-heading select {
+  min-height: 40px;
+  padding: 8px 32px 8px 12px;
+  border: 1px solid #d6e2db;
+  border-radius: 9px;
+  outline: none;
+  background: #ffffff;
+  color: #17332b;
+  font-family: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.reviews-list-heading select:focus {
+  border-color: #07834e;
+  box-shadow: 0 0 0 3px rgba(7, 131, 78, 0.1);
+}
+
+/* =========================================
+   CARTÕES DOS COMENTÁRIOS
+========================================= */
+
+.reviews-list {
+  display: grid;
+  gap: 18px;
+}
+
+.review-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 25px;
+  border: 1px solid #e0e9e4;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 5px 20px rgba(6, 75, 55, 0.04);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.review-card:hover {
+  border-color: #c9ded3;
+  box-shadow: 0 9px 26px rgba(6, 75, 55, 0.08);
+  transform: translateY(-2px);
+}
+
+/* Avatar com as iniciais */
+
+.review-avatar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border: 1px solid #d2e9dc;
+  border-radius: 50%;
+  background: #e8f5ee;
+  color: #064b37;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.review-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.review-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 13px;
+}
+
+.review-top h3 {
+  margin: 0 0 7px;
+  color: #17332b;
+  font-size: 1.05rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.review-top time {
+  flex-shrink: 0;
+  padding-top: 2px;
+  color: #89968f;
+  font-size: 0.85rem;
+}
+
+.review-body > p {
+  margin: 0;
+  color: #586a61;
+  font-size: 0.96rem;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+
+/* Nenhum resultado */
+
+.reviews-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 40px 24px;
+  border: 1px dashed #c9ded3;
+  border-radius: 16px;
+  background: #ffffff;
+  text-align: center;
+}
+
+.reviews-empty h3 {
+  margin: 0;
+  color: #064b37;
+  font-size: 1.15rem;
+}
+
+/* Animação */
+
+@keyframes reviews-appear {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================================
+   RESPONSIVIDADE
+========================================= */
+
+@media (max-width: 800px) {
+  .reviews-page {
+    padding: 30px 18px 48px;
+  }
+
+  .reviews-summary {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .reviews-score {
+    padding: 25px;
+  }
+
+  .reviews-breakdown {
+    padding: 22px;
+  }
+
+  .reviews-form {
+    padding: 24px;
+  }
+}
+
+@media (max-width: 600px) {
+  .reviews-page {
+    padding: 24px 14px 36px;
+  }
+
+  .reviews-back {
+    margin-bottom: 22px;
+  }
+
+  .reviews-heading {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 18px;
+    margin-bottom: 24px;
+  }
+
+  .reviews-heading h1 {
+    font-size: 2rem;
+  }
+
+  .reviews-heading p {
+    font-size: 0.94rem;
+  }
+
+  .reviews-heading .reviews-primary {
+    width: 100%;
+  }
+
+  .reviews-score,
+  .reviews-breakdown {
+    padding: 20px 16px;
+    border-radius: 14px;
+  }
+
+  .reviews-score > strong {
+    font-size: 3.5rem;
+  }
+
+  .reviews-stars.large {
+    font-size: 1.4rem;
+  }
+
+  .reviews-breakdown button {
+    grid-template-columns: 42px minmax(0, 1fr) 24px;
+    gap: 8px;
+    padding: 7px 5px;
+  }
+
+  .reviews-list-heading {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .reviews-list-heading h2 {
+    font-size: 1.35rem;
+  }
+
+  .reviews-list-heading > label {
+    justify-content: space-between;
+  }
+
+  .reviews-list-heading select {
+    flex: 1;
+    max-width: 220px;
+  }
+
+  .review-card {
+    gap: 12px;
+    padding: 18px 15px;
+    border-radius: 13px;
+  }
+
+  .review-avatar {
+    width: 42px;
+    height: 42px;
+    font-size: 0.82rem;
+  }
+
+  .review-top {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .review-top time {
+    font-size: 0.8rem;
+  }
+
+  .review-body > p {
+    font-size: 0.92rem;
+    line-height: 1.7;
+  }
+
+  .reviews-form {
+    padding: 20px 16px;
+    border-radius: 14px;
+  }
+
+  .reviews-form h2 {
+    font-size: 1.3rem;
+  }
+
+  .reviews-form input,
+  .reviews-form textarea,
+  .reviews-form select {
+    font-size: 16px;
+  }
+
+  .reviews-form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .reviews-form-actions button {
+    width: 100%;
+  }
+}
+
+/* Acessibilidade */
+
+@media (prefers-reduced-motion: reduce) {
+  .reviews-back,
+  .reviews-primary,
+  .reviews-secondary,
+  .reviews-breakdown button,
+  .reviews-track i,
+  .reviews-picker button,
+  .review-card {
+    animation: none;
+    transition: none;
+  }
+
+  .reviews-form {
+    animation: none;
+  }
+}
