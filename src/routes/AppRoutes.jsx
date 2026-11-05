@@ -8,7 +8,10 @@ import PerfilEmpresa from "../pages/PerfilEmpresa";
 import EditarPerfilEmpresa from "../pages/EditarPerfilEmpresa";
 import PerfilUsuario from "../pages/PerfilUsuario";
 import Quadras from "../pages/Quadras";
+import Avaliacoes from "../pages/Avaliacoes";
+import Agendamento from "../pages/Agendamento";
 import NotFound from "../pages/NotFound";
+import MinhasReservas from "../pages/MinhasReservas";
 
 export default function AppRoutes() {
   return (
@@ -40,9 +43,26 @@ export default function AppRoutes() {
           element={<EditarPerfilEmpresa />}
         />
 
+        <Route 
+          path="/avaliacoes" element={<Avaliacoes />} 
+        />
+
+        <Route 
+          path="/agendamento" element={<Agendamento />} 
+        />
+
+        <Route 
+          path="/agendamento/:id" element={<Agendamento />} 
+        />
+
         <Route
           path="/empresa/quadras"
           element={<Quadras />}
+        />
+
+        <Route
+          path="/usuario/reservas"
+          element={<MinhasReservas />}
         />
 
         <Route
@@ -55,5 +75,6 @@ export default function AppRoutes() {
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
+
   );
 }
