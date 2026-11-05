@@ -23,7 +23,7 @@ Refinamento das primeiras US.
 ### Situação da meta
 
 - [ ] Alcançada
-- [ ] Parcialmente alcançada
+- [X] Parcialmente alcançada
 - [ ] Não alcançada
 
 ### Resultado alcançado
@@ -42,7 +42,12 @@ No frontend, as telas de login e cadastro foram integradas à API. Foi implement
 
 | User Story ou item | Responsável(is) | Situação final | Observação |
 |---|---|---|---|
-|  |  |  |  |
+|⁠Criar Telas Padrão|Thiago/Gabrielli|Entregue|  |
+|US1 — Cliente cria conta e faz login|Todos|Aguardando code review|  |
+|Sub - US1 - Definir estrutura de banco de dados|Todos|Aguardando code review|  |
+|Sub - US1 - Criar api|Gabriel|Aguardando code review| |
+|Sub - US1 - Integrar com Front-End|A definir|Aguardando code review| |
+|US4 — Empresa cadastra, edita e desativa quadras|A definir|Aguardando code review|  |
 
 ---
 
@@ -68,7 +73,7 @@ No frontend, as telas de login e cadastro foram integradas à API. Foi implement
 
 **Registro:**
 
-A US2 (empresa acessa dashboard) e a US3 (admin cria empresa via tela) não foram iniciadas pois dependem do merge da US1. O endpoint de criação de empresa pelo admin está funcional mas acessível apenas via Postman, sem interface no MVP desta sprint.
+Sem registros
 
 ---
 
