@@ -107,15 +107,15 @@ Permitir que a empresa cadastre e gerencie suas quadras e horários disponíveis
 
 | User Story ou item | Responsável(is) | Resultado esperado |
 |---|---|---|
-| US2 – Empresa faz login e acessa dashboard | BACK + FRONT-B | Finalizar |
+| US2 – Empresa faz login e acessa dashboard | BACK + FRONT-B | Finalizar code review |
 | US3 – Admin cria conta de empresa | BACK | Finalizar|
 |US1 — Cliente cria conta e faz login|Todos|Finalizar code review|
 |Sub - US1 - Definir estrutura de banco de dados|Todos|Finalizar code review|
 |Sub - US1 - Criar api|Gabriel|Finalizar code review|
 |Sub - US1 - Integrar com Front-End|A definir|Finalizar code review|
-|US4 — Empresa cadastra, edita e desativa quadras|BACK + FRONT|Finalizar|
-|US5 — Empresa define horários disponíveis por quadra|BACK + FRONT|Finalizar|
-|US6 — Empresa atualiza preço das quadras|BACK + FRONT|Finalizar|
+|US4 — Empresa cadastra, edita e desativa quadras|BACK + FRONT|Finalizar code review|
+|US5 — Empresa define horários disponíveis por quadra|BACK + FRONT|Finalizar code review|
+|US6 — Empresa atualiza preço das quadras|BACK + FRONT|Finalizar code review|
 
 ### Riscos ou impedimentos previstos
 
