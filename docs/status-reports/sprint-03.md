@@ -108,7 +108,7 @@ Permitir que a empresa cadastre e gerencie suas quadras e horários disponíveis
 | User Story ou item | Responsável(is) | Resultado esperado |
 |---|---|---|
 | US2 – Empresa faz login e acessa dashboard | BACK + FRONT-B | Finalizar |
-| US3 – Admin cria conta de empresa | BACK | Em andamento | Finalizar|
+| US3 – Admin cria conta de empresa | BACK | Finalizar|
 |US1 — Cliente cria conta e faz login|Todos|Finalizar code review|
 |Sub - US1 - Definir estrutura de banco de dados|Todos|Finalizar code review|
 |Sub - US1 - Criar api|Gabriel|Finalizar code review|
