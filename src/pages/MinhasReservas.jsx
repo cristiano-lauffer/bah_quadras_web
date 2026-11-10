@@ -1,300 +1,210 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
-import "../MinhasReservas.css";
+import {
+  CalendarDays,
+  CircleCheck,
+  CircleX,
+  Clock,
+  LoaderCircle,
+  MapPin,
+  Plus,
+  RotateCcw,
+  Star,
+  Trophy,
+} from "lucide-react";
+import UsuarioLayout from "../layouts/UsuarioLayout.jsx";
+import Toast from "../components/Toast.jsx";
+import { useDados } from "../hooks/useDados.js";
+import { buscarQuadraPorId } from "../data/quadras.js";
+import { cancelarReserva, fimDaReserva, inicioDaReserva, listarReservas, separarReservas } from "../services/reservasService.js";
+import { formatarData, formatarPreco, paraData, tempoRelativo } from "../utils/formatadores.js";
+import "../css/MinhasReservas.css";
 
+const statusReserva = {
+  confirmada: { texto: "Confirmada", classe: "ok", icone: CircleCheck },
+  concluida: { texto: "Concluída", classe: "info", icone: Trophy },
+  cancelada: { texto: "Cancelada", classe: "erro", icone: CircleX },
+};
 
-const reservasIniciais = [
-  {
-    id: 1,
-    quadra: "Arena Sport",
-    modalidade: "Futebol society",
-    endereco: "Viamão, RS",
-    data: "2026-11-05",
-    hora: "19:00",
-    duracao: 1,
-    valor: 80,
-    status: "confirmada",
-  },
-  {
-    id: 2,
-    quadra: "Beach Arena",
-    modalidade: "Beach tennis",
-    endereco: "Porto Alegre, RS",
-    data: "2026-11-08",
-    hora: "15:00",
-    duracao: 2,
-    valor: 130,
-    status: "confirmada",
-  },
-  {
-    id: 3,
-    quadra: "Arena Basketball",
-    modalidade: "Basquete",
-    endereco: "Porto Alegre, RS",
-    data: "2026-10-20",
-    hora: "18:00",
-    duracao: 1,
-    valor: 75,
-    status: "concluida",
-  },
-];
-
-const filtros = [
-  { valor: "todas", texto: "Todas" },
-  { valor: "confirmada", texto: "Próximas" },
-  { valor: "concluida", texto: "Concluídas" },
-  { valor: "cancelada", texto: "Canceladas" },
-];
-
-function formatarData(data) {
-  return new Date(`${data}T12:00:00`).toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  });
-}
-
-function formatarDinheiro(valor) {
-  return valor.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
-}
+const HORAS_CANCELAMENTO_GRATIS = 24;
 
 export default function MinhasReservas() {
-  const [reservas, setReservas] = useState(reservasIniciais);
-  const [filtro, setFiltro] = useState("todas");
+  const { dados, carregando, recarregar } = useDados(listarReservas);
+  const [aba, setAba] = useState("proximas");
+  const [confirmando, setConfirmando] = useState(null);
+  const [cancelando, setCancelando] = useState(null);
+  const [toast, setToast] = useState("");
 
-  const hoje = new Date();
-  hoje.setHours(0, 0, 0, 0);
+  const { proximas, historico } = separarReservas(dados ?? []);
+  const abas = [
+    { id: "proximas", texto: "Próximas", lista: proximas },
+    { id: "historico", texto: "Histórico", lista: historico },
+  ];
+  const lista = abas.find((a) => a.id === aba).lista;
 
-  const reservasFiltradas = reservas.filter((reserva) => {
-    if (filtro === "todas") return true;
-
-    if (filtro === "confirmada") {
-      return (
-        reserva.status === "confirmada" &&
-        new Date(`${reserva.data}T12:00:00`) >= hoje
-      );
-    }
-
-    return reserva.status === filtro;
-  });
-
-  const proximas = reservas.filter(
-    (reserva) =>
-      reserva.status === "confirmada" &&
-      new Date(`${reserva.data}T12:00:00`) >= hoje
-  ).length;
-
-  const concluidas = reservas.filter(
-    (reserva) => reserva.status === "concluida"
-  ).length;
-
-  function cancelarReserva(id) {
-    const confirmar = window.confirm(
-      "Tem certeza de que deseja cancelar esta reserva?"
-    );
-
-    if (!confirmar) return;
-
-    setReservas((atuais) =>
-      atuais.map((reserva) =>
-        reserva.id === id
-          ? { ...reserva, status: "cancelada" }
-          : reserva
-      )
-    );
+  async function cancelar(reserva) {
+    setConfirmando(null);
+    setCancelando(reserva.id);
+    await cancelarReserva(reserva.id);
+    setCancelando(null);
+    recarregar();
+    setToast(`Reserva na ${reserva.quadra} cancelada.`);
   }
 
   return (
-    <div className="public-page">
-      <Header />
+    <UsuarioLayout
+      titulo="Minhas reservas"
+      subtitulo="Acompanhe seus jogos marcados e o histórico"
+      proximasReservas={proximas.length}
+      acoes={
+        <Link to="/#quadras" className="pn-botao">
+          <Plus size={18} aria-hidden="true" /> Nova reserva
+        </Link>
+      }
+    >
+      <div className="pn-pilha">
+        <div className="mr-abas" role="tablist" aria-label="Tipo de reserva">
+          {abas.map((a) => (
+            <button
+              key={a.id}
+              type="button"
+              role="tab"
+              id={`mr-aba-${a.id}`}
+              aria-selected={aba === a.id}
+              aria-controls="mr-painel"
+              className="mr-aba"
+              onClick={() => setAba(a.id)}
+            >
+              {a.texto}
+              <span>{a.lista.length}</span>
+            </button>
+          ))}
+        </div>
 
-      <main className="reservas-page">
-        <div className="reservas-container">
-          <Link to="/" className="reservas-back">
-            ← Voltar para o início
-          </Link>
-
-          <header className="reservas-heading">
-            <div>
-              <span className="reservas-eyebrow">
-                SUA EXPERIÊNCIA NO BAH QUADRAS
-              </span>
-
-              <h1>Minhas reservas</h1>
-
+        <section id="mr-painel" role="tabpanel" aria-labelledby={`mr-aba-${aba}`}>
+          {carregando && !dados ? (
+            <p className="mr-carregando" role="status">
+              <LoaderCircle size={20} className="mr-girando" aria-hidden="true" /> Carregando reservas...
+            </p>
+          ) : lista.length === 0 ? (
+            <div className="pn-vazio">
+              <CalendarDays size={40} aria-hidden="true" />
+              <h3>{aba === "proximas" ? "Nenhum jogo marcado" : "Seu histórico está vazio"}</h3>
               <p>
-                Consulte seus agendamentos e organize seus próximos jogos.
+                {aba === "proximas"
+                  ? "Encontre uma quadra e garanta o próximo jogo com a galera."
+                  : "Aqui aparecem os jogos que você já fez e as reservas canceladas."}
               </p>
-            </div>
-
-            <Link to="/" className="reservas-nova">
-              + Encontrar quadras
-            </Link>
-          </header>
-
-          <section className="reservas-stats">
-            <article className="reservas-stat">
-              <span className="reservas-stat-icon">📋</span>
-              <div>
-                <span>Total de reservas</span>
-                <strong>{reservas.length}</strong>
-              </div>
-            </article>
-
-            <article className="reservas-stat">
-              <span className="reservas-stat-icon">📅</span>
-              <div>
-                <span>Próximas reservas</span>
-                <strong>{proximas}</strong>
-              </div>
-            </article>
-
-            <article className="reservas-stat">
-              <span className="reservas-stat-icon">✓</span>
-              <div>
-                <span>Jogos concluídos</span>
-                <strong>{concluidas}</strong>
-              </div>
-            </article>
-          </section>
-
-          <section className="reservas-section">
-            <div className="reservas-list-heading">
-              <div>
-                <h2>Seus agendamentos</h2>
-                <p>
-                  {reservasFiltradas.length} reserva(s) encontrada(s)
-                </p>
-              </div>
-            </div>
-
-            <div className="reservas-filtros">
-              {filtros.map((item) => (
-                <button
-                  key={item.valor}
-                  type="button"
-                  className={
-                    filtro === item.valor ? "ativo" : ""
-                  }
-                  onClick={() => setFiltro(item.valor)}
-                >
-                  {item.texto}
-                </button>
-              ))}
-            </div>
-
-            <div className="reservas-lista">
-              {reservasFiltradas.map((reserva) => (
-                <article className="reserva-card" key={reserva.id}>
-                  <div className="reserva-imagem">
-                    <span>🏟️</span>
-                  </div>
-
-                  <div className="reserva-conteudo">
-                    <div className="reserva-topo">
-                      <div>
-                        <h3>{reserva.quadra}</h3>
-                        <p>{reserva.modalidade}</p>
-                      </div>
-
-                      <span
-                        className={`reserva-status ${reserva.status}`}
-                      >
-                        {reserva.status === "confirmada" &&
-                          "Confirmada"}
-
-                        {reserva.status === "concluida" &&
-                          "Concluída"}
-
-                        {reserva.status === "cancelada" &&
-                          "Cancelada"}
-                      </span>
-                    </div>
-
-                    <div className="reserva-informacoes">
-                      <span>
-                        📅 {formatarData(reserva.data)}
-                      </span>
-
-                      <span>
-                        🕒 {reserva.hora} · {reserva.duracao}h
-                      </span>
-
-                      <span>📍 {reserva.endereco}</span>
-                    </div>
-
-                    <div className="reserva-rodape">
-                      <div className="reserva-valor">
-                        <span>Valor total</span>
-                        <strong>
-                          {formatarDinheiro(reserva.valor)}
-                        </strong>
-                      </div>
-
-                      <div className="reserva-acoes">
-                        {reserva.status === "confirmada" && (
-                          <button
-                            type="button"
-                            className="reserva-cancelar"
-                            onClick={() =>
-                              cancelarReserva(reserva.id)
-                            }
-                          >
-                            Cancelar reserva
-                          </button>
-                        )}
-
-                        {reserva.status === "concluida" && (
-                          <Link
-                            to="/avaliacoes"
-                            className="reserva-avaliar"
-                          >
-                            Avaliar quadra
-                          </Link>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </article>
-              ))}
-
-              {reservasFiltradas.length === 0 && (
-                <div className="reservas-vazio">
-                  <span>📅</span>
-
-                  <h3>Nenhuma reserva encontrada</h3>
-
-                  <p>
-                    Não há reservas nesta categoria no momento.
-                  </p>
-
-                  <button
-                    type="button"
-                    onClick={() => setFiltro("todas")}
-                  >
-                    Ver todas as reservas
-                  </button>
-                </div>
+              {aba === "proximas" && (
+                <Link to="/#quadras" className="pn-botao">Encontrar quadras</Link>
               )}
             </div>
-          </section>
+          ) : (
+            <ul className="mr-lista">
+              {lista.map((r) => {
+                const quadra = buscarQuadraPorId(r.quadraId);
+                const status = statusReserva[r.status];
+                const horasAte = (inicioDaReserva(r) - new Date()) / 3_600_000;
+                const data = paraData(r.data);
 
-          <div className="reservas-aviso">
-            <span>ⓘ</span>
-            <p>
-              Esta tela utiliza dados demonstrativos. Os agendamentos
-              ainda não estão conectados ao banco de dados.
-            </p>
-          </div>
-        </div>
-      </main>
+                return (
+                  <li key={r.id} className={`mr-card ${r.status}`}>
+                    <div className="mr-foto">
+                      {quadra && <img src={quadra.imagens[0]} alt="" loading="lazy" />}
+                      <div className="mr-data" aria-hidden="true">
+                        <strong>{data.getDate()}</strong>
+                        <span>{data.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}</span>
+                      </div>
+                    </div>
 
-      <Footer />
-    </div>
+                    <div className="mr-corpo">
+                      <div className="mr-topo">
+                        <div>
+                          <span className="mr-modalidade">{r.modalidade}</span>
+                          <h2>{r.quadra}</h2>
+                        </div>
+                        <span className={`pn-status ${status.classe}`}>
+                          <status.icone size={13} aria-hidden="true" />
+                          {status.texto}
+                        </span>
+                      </div>
+
+                      <ul className="mr-info">
+                        <li>
+                          <CalendarDays size={15} aria-hidden="true" />
+                          {formatarData(r.data, { weekday: "long", day: "numeric", month: "long" })}
+                          {r.status === "confirmada" && <em> · {tempoRelativo(r.data)}</em>}
+                        </li>
+                        <li>
+                          <Clock size={15} aria-hidden="true" /> {r.hora} às {fimDaReserva(r)} ({r.duracao}h)
+                        </li>
+                        <li>
+                          <MapPin size={15} aria-hidden="true" /> {r.endereco}
+                        </li>
+                      </ul>
+
+                      <div className="mr-rodape">
+                        <p className="mr-valor">
+                          <span>Total</span>
+                          <strong>{formatarPreco(r.valor, 2)}</strong>
+                        </p>
+
+                        {confirmando === r.id ? (
+                          <div className="mr-confirmar" role="alert">
+                            <p>
+                              {horasAte >= HORAS_CANCELAMENTO_GRATIS
+                                ? "Cancelar esta reserva? O cancelamento é gratuito."
+                                : "Faltam menos de 24h: pode haver cobrança de 50% do valor. Cancelar mesmo assim?"}
+                            </p>
+                            <div>
+                              <button type="button" className="pn-botao pn-botao-contorno" onClick={() => setConfirmando(null)}>
+                                Manter
+                              </button>
+                              <button type="button" className="pn-botao pn-botao-perigo" onClick={() => cancelar(r)}>
+                                Cancelar reserva
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="mr-acoes">
+                            {r.status === "confirmada" && (
+                              <>
+                                <Link to={`/quadra/${r.quadraId}`} className="pn-botao pn-botao-contorno">
+                                  Ver quadra
+                                </Link>
+                                <button
+                                  type="button"
+                                  className="mr-cancelar"
+                                  disabled={cancelando === r.id}
+                                  onClick={() => setConfirmando(r.id)}
+                                >
+                                  {cancelando === r.id ? "Cancelando..." : "Cancelar"}
+                                </button>
+                              </>
+                            )}
+                            {r.status === "concluida" && (
+                              <Link to={`/avaliacoes/${r.quadraId}?escrever=1`} className="pn-botao pn-botao-contorno">
+                                <Star size={15} aria-hidden="true" /> Avaliar
+                              </Link>
+                            )}
+                            {r.status !== "confirmada" && (
+                              <Link to={`/agendamento/${r.quadraId}`} className="pn-botao">
+                                <RotateCcw size={15} aria-hidden="true" /> Reservar de novo
+                              </Link>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+      </div>
+
+      <Toast mensagem={toast} onFechar={() => setToast("")} />
+    </UsuarioLayout>
   );
 }

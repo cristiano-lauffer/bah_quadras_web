@@ -4,13 +4,18 @@ import Login from "../pages/Login";
 import Cadastro from "../pages/Cadastro";
 import CadastroUsuario from "../pages/CadastroUsuario";
 import CadastroEmpresa from "../pages/CadastroEmpresa";
+import DashboardEmpresa from "../pages/DashboardEmpresa";
 import PerfilEmpresa from "../pages/PerfilEmpresa";
 import EditarPerfilEmpresa from "../pages/EditarPerfilEmpresa";
 import PerfilUsuario from "../pages/PerfilUsuario";
-import Quadras from "../pages/Quadras";
+import QuadrasEmpresa from "../pages/QuadrasEmpresa";
+import CadastroQuadra from "../pages/CadastroQuadra";
+import EditarQuadra from "../pages/EditarQuadra";
+import HorariosQuadra from "../pages/HorariosQuadra";
 import Avaliacoes from "../pages/Avaliacoes";
 import Agendamento from "../pages/Agendamento";
 import NotFound from "../pages/NotFound";
+import DetalhesQuadra from "../pages/DetalhesQuadra";
 import MinhasReservas from "../pages/MinhasReservas";
 
 export default function AppRoutes() {
@@ -34,6 +39,16 @@ export default function AppRoutes() {
         />
 
         <Route
+          path="/empresa"
+          element={<Navigate to="/empresa/dashboard" replace />}
+        />
+
+        <Route
+          path="/empresa/dashboard"
+          element={<DashboardEmpresa />}
+        />
+
+        <Route
           path="/empresa/perfil"
           element={<PerfilEmpresa />}
         />
@@ -43,9 +58,11 @@ export default function AppRoutes() {
           element={<EditarPerfilEmpresa />}
         />
 
-        <Route 
-          path="/avaliacoes" element={<Avaliacoes />} 
+        <Route
+          path="/avaliacoes" element={<Avaliacoes />}
         />
+
+        <Route path="/avaliacoes/:id" element={<Avaliacoes />} />
 
         <Route 
           path="/agendamento" element={<Agendamento />} 
@@ -57,8 +74,14 @@ export default function AppRoutes() {
 
         <Route
           path="/empresa/quadras"
-          element={<Quadras />}
+          element={<QuadrasEmpresa />}
         />
+
+        <Route path="/empresa/quadras/nova" element={<CadastroQuadra />} />
+
+        <Route path="/empresa/quadras/:id/editar" element={<EditarQuadra />} />
+
+        <Route path="/empresa/quadras/:id/horarios" element={<HorariosQuadra />} />
 
         <Route
           path="/usuario/reservas"
@@ -69,6 +92,8 @@ export default function AppRoutes() {
           path="/perfil"
           element={<Navigate to="/empresa/perfil" replace />}
         />
+
+        <Route path="/quadra/:id" element={<DetalhesQuadra />} />
 
         <Route path="/usuario/perfil" element={<PerfilUsuario />} />
 

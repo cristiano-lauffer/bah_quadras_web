@@ -1,0 +1,446 @@
+/* =========================================================
+   CADASTRO EMPRESA (contato comercial)
+   Usa as variáveis globais de App.css. Prefixo "empresa-".
+   ========================================================= */
+
+.empresa {
+  --empresa-accent: #8be7b2;
+  --empresa-whatsapp: #1fa855;
+  --empresa-whatsapp-escuro: #168a44;
+  --empresa-erro: #c0392b;
+
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--page);
+  color: var(--text);
+}
+
+.empresa-main {
+  flex: 1;
+  padding-bottom: 80px;
+}
+
+.empresa-container,
+.empresa-hero-conteudo {
+  width: min(1200px, 100% - 48px);
+  margin-inline: auto;
+}
+
+.empresa-container {
+  display: grid;
+  grid-template-columns: 1fr minmax(0, 520px);
+  align-items: start;
+  gap: 56px;
+}
+
+/* ===== FAIXA DE TÍTULO ===== */
+
+.empresa-hero {
+  padding: 64px 0 72px;
+  margin-bottom: 40px;
+  background:
+    radial-gradient(circle at 85% 0%, rgba(139, 231, 178, 0.16), transparent 45%),
+    linear-gradient(135deg, var(--green-deep) 0%, #04271f 100%);
+  color: #fff;
+}
+
+.empresa-hero-conteudo > * {
+  max-width: calc(100% - 576px);
+}
+
+.empresa-eyebrow {
+  display: inline-block;
+  margin-bottom: 12px;
+  color: var(--empresa-accent);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+}
+
+.empresa-hero h1 {
+  margin: 0 0 16px;
+  font-size: clamp(32px, 4vw, 46px);
+  font-weight: 850;
+  line-height: 1.08;
+  letter-spacing: -0.8px;
+}
+
+.empresa-hero h1 em {
+  display: block;
+  font-style: normal;
+  color: var(--empresa-accent);
+}
+
+.empresa-lead {
+  margin: 0;
+  color: #cfe3da;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.empresa-beneficios {
+  display: grid;
+  gap: 14px;
+  margin: 0 0 36px;
+  padding: 0;
+  list-style: none;
+}
+
+.empresa-beneficios li {
+  display: flex;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 6px 20px rgba(6, 61, 48, 0.06);
+}
+
+.empresa-beneficio-icone {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--green-light);
+  color: var(--green);
+}
+
+.empresa-beneficios strong {
+  font-size: 16px;
+}
+
+.empresa-beneficios p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.empresa-passos {
+  margin-bottom: 32px;
+  color: var(--text);
+}
+
+.empresa-passos h2 {
+  margin: 0 0 16px;
+  font-size: 20px;
+}
+
+.empresa-passos ol {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: passo;
+}
+
+.empresa-passos li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  counter-increment: passo;
+  color: var(--text);
+}
+
+.empresa-passos li::before {
+  content: counter(passo);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--green);
+  color: #fff;
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.empresa-canais {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.empresa-canal {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  word-break: break-word;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.empresa-canal:hover {
+  border-color: var(--green);
+  transform: translateY(-2px);
+}
+
+.empresa-canal svg {
+  flex-shrink: 0;
+  color: var(--green);
+}
+
+.empresa-canal.whatsapp svg {
+  color: var(--empresa-whatsapp);
+}
+
+.empresa-canal span {
+  display: flex;
+  flex-direction: column;
+}
+
+.empresa-canal small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.empresa-horario {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* ===== FORMULÁRIO ===== */
+
+.empresa-card {
+  position: sticky;
+  top: 24px;
+  margin-top: -260px; /* sobe o card para dentro da faixa verde */
+  padding: 36px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: 0 24px 60px rgba(6, 61, 48, 0.14);
+}
+
+.empresa-card h2 {
+  margin: 0 0 6px;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.empresa-card-sub {
+  margin: 0 0 28px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.empresa-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.empresa-duas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.empresa-campo {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.empresa-campo label,
+.empresa-campo legend {
+  margin-bottom: 7px;
+  padding: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.empresa-campo input,
+.empresa-campo select,
+.empresa-campo textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.empresa-campo input,
+.empresa-campo select {
+  height: 48px;
+}
+
+.empresa-campo textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+
+.empresa-campo :is(input, select, textarea):focus {
+  outline: none;
+  border-color: var(--green);
+  box-shadow: 0 0 0 4px rgba(7, 131, 78, 0.12);
+}
+
+.empresa-campo.com-erro input {
+  border-color: var(--empresa-erro);
+}
+
+.empresa-erro {
+  margin: 6px 0 0;
+  color: var(--empresa-erro);
+  font-size: 13px;
+}
+
+.empresa-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.empresa-chip {
+  padding: 8px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.empresa-chip:hover {
+  border-color: var(--green);
+}
+
+.empresa-chip[aria-pressed="true"] {
+  border-color: var(--green);
+  background: var(--green-light);
+  color: var(--green-dark);
+}
+
+.empresa-chip[aria-pressed="true"]::before {
+  content: "✓ ";
+}
+
+.empresa-sucesso {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--green-light);
+  color: var(--green-dark);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.empresa-acoes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.empresa-botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 50px;
+  border: 1.5px solid transparent;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.empresa-botao.whatsapp {
+  background: var(--empresa-whatsapp);
+  color: #fff;
+}
+
+.empresa-botao.whatsapp:hover {
+  background: var(--empresa-whatsapp-escuro);
+}
+
+.empresa-botao.contorno {
+  border-color: var(--line);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.empresa-botao.contorno:hover {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.empresa-botao:focus-visible,
+.empresa-chip:focus-visible,
+.empresa-canal:focus-visible {
+  outline: 3px solid var(--green);
+  outline-offset: 2px;
+}
+
+/* ===== RESPONSIVO ===== */
+
+@media (max-width: 960px) {
+  .empresa-hero {
+    padding: 48px 0 80px;
+  }
+
+  .empresa-hero-conteudo > * {
+    max-width: 640px;
+  }
+
+  .empresa-container {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  /* No celular o formulário vem logo depois do título */
+  .empresa-card {
+    position: static;
+    order: -1;
+    margin-top: -80px;
+  }
+}
+
+@media (max-width: 560px) {
+  .empresa-container {
+    width: calc(100% - 32px);
+  }
+
+  .empresa-card {
+    padding: 24px 18px;
+  }
+
+  .empresa-duas,
+  .empresa-acoes,
+  .empresa-canais {
+    grid-template-columns: 1fr;
+  }
+}

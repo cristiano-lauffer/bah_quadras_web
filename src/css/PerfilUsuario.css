@@ -1,0 +1,531 @@
+/* =========================================================
+   PERFIL DO USUÁRIO - prefixo "pu-"
+   Estrutura e componentes base vêm de Painel.css.
+   ========================================================= */
+
+.pu-lista-limpa {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ===== Próxima partida ===== */
+
+.pu-proxima {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 24px;
+  padding: 26px;
+  border-radius: var(--pn-radius);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(139, 231, 178, 0.22), transparent 50%),
+    var(--green-deep);
+  color: #fff;
+  box-shadow: 0 16px 40px rgba(6, 61, 48, 0.22);
+}
+
+.pu-proxima-data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 88px;
+  height: 96px;
+  border-radius: 16px;
+  background: #fff;
+  color: var(--green-dark);
+  text-transform: uppercase;
+}
+
+.pu-proxima-data span {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.pu-proxima-data strong {
+  font-size: 36px;
+  line-height: 1;
+}
+
+.pu-proxima-quando {
+  color: var(--pn-accent);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.pu-proxima h2 {
+  margin: 4px 0 8px;
+  font-size: 24px;
+  font-weight: 850;
+}
+
+.pu-proxima-info p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin: 0;
+  color: #cfe3da;
+  font-size: 14px;
+}
+
+.pu-proxima-info p span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pu-proxima-acoes {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.pu-proxima-acoes strong {
+  font-size: 22px;
+}
+
+/* ===== Lista de reservas ===== */
+
+.pu-lista {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pu-reserva {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+}
+
+.pu-reserva + .pu-reserva {
+  border-top: 1px solid var(--line);
+}
+
+.pu-reserva:first-child {
+  padding-top: 0;
+}
+
+.pu-reserva-data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 54px;
+  border-radius: 12px;
+  background: var(--page);
+}
+
+.pu-reserva-data strong {
+  font-size: 19px;
+  line-height: 1;
+}
+
+.pu-reserva-data span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.pu-reserva-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.pu-reserva-info strong {
+  font-size: 15px;
+}
+
+.pu-reserva-info span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.pu-reserva-acao {
+  min-width: 80px;
+  text-align: right;
+}
+
+/* ===== Avaliações pendentes ===== */
+
+.pu-pendentes {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pu-pendentes li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pu-pendentes div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.pu-pendentes strong {
+  font-size: 14px;
+}
+
+.pu-pendentes span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.pu-pendentes .pn-botao {
+  height: 36px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+/* ===== Favoritas ===== */
+
+.pu-favoritas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 18px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pu-favorita {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--pn-radius);
+  background: var(--surface);
+  box-shadow: var(--pn-shadow);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.pu-favorita:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 36px rgba(6, 61, 48, 0.12);
+}
+
+.pu-favorita img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.pu-favorita-remover {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  color: #e11d48;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.pu-favorita-remover svg {
+  fill: currentColor;
+}
+
+.pu-favorita-corpo {
+  padding: 14px 16px 16px;
+}
+
+.pu-favorita-tag {
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.pu-favorita h3 {
+  margin: 2px 0 8px;
+  font-size: 16px;
+}
+
+.pu-favorita h3 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.pu-favorita h3 a:hover {
+  color: var(--green);
+}
+
+.pu-favorita p {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.pu-favorita p span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pu-favorita p svg {
+  color: var(--pn-gold);
+  fill: var(--pn-gold);
+}
+
+.pu-favorita p strong {
+  margin-left: auto;
+  color: var(--green-dark);
+  font-size: 14px;
+}
+
+/* ===== Meus dados ===== */
+
+.pu-identidade {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.pu-identidade h2 {
+  margin: 0 0 6px;
+  font-size: 22px;
+  font-weight: 850;
+}
+
+.pu-identidade p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.pu-identidade p span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pu-avatar-grande {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.pu-avatar-grande .pn-avatar {
+  width: 96px;
+  height: 96px;
+  font-size: 32px;
+}
+
+.pu-avatar-botao {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 3px solid var(--surface);
+  border-radius: 50%;
+  background: var(--green);
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.pu-avatar-botao:hover {
+  transform: scale(1.1);
+}
+
+.pu-avatar-botao:focus-within {
+  outline: 3px solid rgba(7, 131, 78, 0.45);
+}
+
+.pu-avatar-botao input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.pu-dados {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 20px;
+}
+
+.pu-dados div {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--page);
+}
+
+.pu-dados dt {
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.pu-dados dd {
+  margin: 0;
+  font-weight: 700;
+  word-break: break-word;
+}
+
+.pu-dados-esportes > span {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* ===== Configurações ===== */
+
+.pu-opcoes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pu-opcoes li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 14px 0;
+}
+
+.pu-opcoes li:first-child {
+  padding-top: 0;
+}
+
+.pu-opcoes li + li {
+  border-top: 1px solid var(--line);
+}
+
+.pu-opcoes strong {
+  font-size: 15px;
+}
+
+.pu-opcoes p {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.pu-grade-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.pu-perigo {
+  border-color: #f3c7c1;
+}
+
+.pu-perigo .pn-card-topo {
+  margin-bottom: 0;
+}
+
+.pu-perigo h2 {
+  color: var(--pn-erro);
+}
+
+.pu-perigo-confirmar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.pu-perigo-confirmar > span {
+  font-weight: 700;
+}
+
+/* ===== Responsivo ===== */
+
+@media (max-width: 900px) {
+  .pu-proxima {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .pu-proxima-acoes {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .pu-grade-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .pu-proxima {
+    grid-template-columns: 1fr;
+    padding: 22px;
+  }
+
+  .pu-proxima-data {
+    flex-direction: row;
+    gap: 8px;
+    width: auto;
+    height: auto;
+    padding: 8px 14px;
+    justify-self: start;
+  }
+
+  .pu-proxima-data strong {
+    font-size: 22px;
+  }
+
+  .pu-reserva {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .pu-reserva .pn-status,
+  .pu-reserva-acao {
+    grid-column: 2;
+    justify-self: start;
+    text-align: left;
+  }
+
+  .pu-reserva-acao {
+    min-width: 0;
+  }
+
+  .pu-identidade {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .pu-identidade p {
+    justify-content: center;
+  }
+
+  .pu-dados {
+    grid-template-columns: 1fr;
+  }
+}

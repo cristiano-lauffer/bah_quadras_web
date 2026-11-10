@@ -1,0 +1,262 @@
+/* =========================================================
+   HORÁRIOS DA QUADRA (grade semanal) - prefixo "hq-"
+   ========================================================= */
+
+.hq-topo {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.hq-trocar {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.hq-trocar select {
+  min-width: 240px;
+  height: 42px;
+  padding: 0 12px;
+  border: 1.5px solid var(--line);
+  border-radius: 11px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.hq-atalhos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hq-atalhos .pn-botao {
+  height: 38px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+.hq-aviso {
+  margin: 0;
+  padding: 12px 16px;
+  border: 1px solid #f6d9a8;
+  border-radius: 12px;
+  background: var(--pn-alerta-fundo);
+  color: #7c3d06;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.hq-card .pn-card-topo p {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  max-width: 560px;
+}
+
+.hq-card .pn-card-topo p svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.hq-legenda {
+  display: flex;
+  gap: 16px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.hq-legenda span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hq-legenda i {
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--line);
+  border-radius: 5px;
+  background: var(--surface);
+}
+
+.hq-legenda i.aberto {
+  border-color: var(--green);
+  background: var(--green);
+}
+
+/* ===== Grade ===== */
+
+.hq-rolagem {
+  overflow-x: auto;
+  margin: 0 -4px;
+  padding: 0 4px 4px;
+}
+
+.hq-grade {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: separate;
+  border-spacing: 4px;
+  user-select: none;
+  touch-action: none; /* permite arrastar no celular sem rolar a página */
+}
+
+.hq-grade th {
+  padding: 0;
+  font-weight: 600;
+}
+
+.hq-canto {
+  width: 64px;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: left;
+}
+
+.hq-cabecalho,
+.hq-hora {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.hq-cabecalho {
+  flex-direction: column;
+  padding: 6px 0;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.hq-cabecalho small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.hq-hora {
+  justify-content: flex-start;
+  height: 30px;
+  padding: 0 8px;
+  color: var(--muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.hq-cabecalho:hover,
+.hq-hora:hover {
+  background: var(--page);
+  color: var(--green-dark);
+}
+
+.hq-celula {
+  display: block;
+  width: 100%;
+  height: 30px;
+  padding: 0;
+  border: 1.5px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface);
+  cursor: pointer;
+  transition: background 0.1s, border-color 0.1s;
+}
+
+.hq-celula:hover {
+  border-color: var(--green);
+}
+
+.hq-celula.aberto {
+  border-color: var(--green);
+  background: var(--green);
+}
+
+.hq-celula.aberto:hover {
+  background: var(--green-dark);
+}
+
+/* ===== Barra de salvar ===== */
+
+.hq-barra {
+  position: sticky;
+  bottom: 16px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 12px 12px 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: 0 10px 30px rgba(6, 61, 48, 0.12);
+  font-size: 14px;
+}
+
+.hq-barra.visivel {
+  border-color: var(--green);
+  box-shadow: 0 12px 34px rgba(7, 131, 78, 0.22);
+}
+
+.hq-barra em {
+  color: var(--pn-alerta);
+  font-style: normal;
+  font-weight: 700;
+}
+
+.hq-barra > div {
+  display: flex;
+  gap: 8px;
+}
+
+.hq-barra .pn-botao:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hq-girando {
+  animation: hq-girar 0.8s linear infinite;
+}
+
+@keyframes hq-girar {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 600px) {
+  .hq-trocar,
+  .hq-trocar select {
+    width: 100%;
+  }
+
+  .hq-atalhos .pn-botao {
+    flex: 1 1 100%;
+  }
+
+  .hq-barra {
+    padding: 12px;
+  }
+
+  .hq-barra > div {
+    width: 100%;
+  }
+
+  .hq-barra .pn-botao {
+    flex: 1;
+  }
+}

@@ -1,0 +1,403 @@
+/* =========================================================
+   FORMULÁRIO DE QUADRA (cadastro e edição) - prefixo "fq-"
+   Campos base (pn-campo, pn-chip...) vêm de Painel.css.
+   ========================================================= */
+
+.fq {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  align-items: start;
+  gap: 24px;
+}
+
+.fq-select,
+.fq-textarea {
+  width: 100%;
+  padding: 0 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 11px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.fq-select {
+  height: 46px;
+  cursor: pointer;
+}
+
+.fq-textarea {
+  padding: 12px 14px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.fq-select:focus,
+.fq-textarea:focus {
+  outline: none;
+  border-color: var(--green);
+  box-shadow: 0 0 0 4px rgba(7, 131, 78, 0.12);
+}
+
+.fq-contador {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+}
+
+/* Preço */
+
+.fq-preco {
+  max-width: 260px;
+}
+
+.fq-preco-campo {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.fq-preco-campo span {
+  position: absolute;
+  left: 14px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.fq-preco-campo input {
+  width: 100%;
+  padding-left: 44px;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.fq-preco-mudanca {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--green-light);
+  color: var(--green-dark);
+  font-size: 14px;
+}
+
+.fq-preco-mudanca span {
+  flex-basis: 100%;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* Cobertura */
+
+.fq-opcoes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.fq-opcao {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0 !important;
+  padding: 14px 16px;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.fq-opcao:hover {
+  border-color: var(--green);
+}
+
+.fq-opcao.marcada {
+  border-color: var(--green);
+  background: var(--green-light);
+}
+
+.fq-opcao input {
+  position: absolute;
+  opacity: 0;
+}
+
+.fq-opcao:has(input:focus-visible) {
+  outline: 3px solid rgba(7, 131, 78, 0.45);
+  outline-offset: 2px;
+}
+
+.fq-opcao strong {
+  font-size: 15px;
+}
+
+.fq-opcao span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.fq-capacidade {
+  max-width: 220px;
+}
+
+/* Fotos */
+
+.fq-fotos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 10px;
+}
+
+.fq-foto {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  padding: 0;
+  border: 3px solid transparent;
+  border-radius: 12px;
+  background: var(--page);
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.fq-foto:hover {
+  transform: translateY(-2px);
+}
+
+.fq-foto img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fq-foto[aria-checked="true"] {
+  border-color: var(--green);
+}
+
+.fq-foto[aria-checked="true"]::after {
+  content: "✓";
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--green);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.fq-foto-enviar {
+  align-content: center;
+  gap: 4px;
+  border: 2px dashed var(--line);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.fq-foto-enviar:has(img) {
+  border: 3px solid var(--green);
+}
+
+.fq-foto-enviar input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.fq-foto-enviar:focus-within {
+  outline: 3px solid rgba(7, 131, 78, 0.45);
+  outline-offset: 2px;
+}
+
+/* ===== Lateral ===== */
+
+.fq-lateral {
+  position: sticky;
+  top: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fq-status {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fq-status-opcao {
+  padding: 11px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 11px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.fq-status-opcao:hover {
+  border-color: var(--green);
+}
+
+.fq-status-opcao[aria-checked="true"] {
+  border-color: var(--green);
+  background: var(--green-light);
+  color: var(--green-dark);
+}
+
+.fq-status-ajuda {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.fq-status-ajuda svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.fq-status-ajuda.ok svg { color: var(--green); }
+.fq-status-ajuda.alerta svg { color: var(--pn-alerta); }
+
+/* Prévia */
+
+.fq-previa {
+  padding: 16px;
+}
+
+.fq-previa-rotulo {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.fq-previa-card {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.fq-previa-foto {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: var(--green-light);
+}
+
+.fq-previa-foto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fq-previa-foto span {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--green-dark);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.fq-previa-corpo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+}
+
+.fq-previa-corpo > strong {
+  font-size: 16px;
+}
+
+.fq-previa-corpo small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.fq-previa-corpo p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.fq-previa-corpo p strong {
+  color: var(--green-dark);
+  font-size: 18px;
+}
+
+.fq-botoes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fq-botoes .pn-botao {
+  height: 46px;
+}
+
+.fq-botoes .pn-botao:disabled {
+  opacity: 0.75;
+  cursor: wait;
+}
+
+.fq-girando {
+  animation: fq-girar 0.8s linear infinite;
+}
+
+@keyframes fq-girar {
+  to { transform: rotate(360deg); }
+}
+
+/* ===== Responsivo ===== */
+
+@media (max-width: 1100px) {
+  .fq {
+    grid-template-columns: 1fr;
+  }
+
+  .fq-lateral {
+    position: static;
+  }
+}
+
+@media (max-width: 600px) {
+  .fq-opcoes {
+    grid-template-columns: 1fr;
+  }
+
+  .fq-preco,
+  .fq-capacidade {
+    max-width: none;
+  }
+}

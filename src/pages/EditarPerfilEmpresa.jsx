@@ -1,21 +1,21 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
+import EmpresaLayout from "../layouts/EmpresaLayout.jsx";
+import { empresaDemo } from "../data/empresa.js";
 
 export default function EditarPerfilEmpresa() {
   const [form, setForm] = useState({
-    nome: "Arena Sport",
-    cnpj: "12.345.678/0001-90",
-    telefone: "(51) 98765-4321",
-    email: "contato@arenasport.com",
-    descricao: "Somos uma empresa especializada em quadras esportivas, oferecendo espaços de qualidade para você reunir seus amigos e praticar seu esporte favorito.",
-    rua: "Av. das Quadras",
-    numero: "123",
-    bairro: "Centro",
-    cidade: "Porto Alegre",
-    estado: "RS",
-    instagram: "@arenasport",
+    nome: empresaDemo.nome,
+    cnpj: empresaDemo.cnpj,
+    telefone: empresaDemo.telefone,
+    email: empresaDemo.email,
+    descricao: empresaDemo.descricao,
+    rua: empresaDemo.endereco.rua,
+    numero: empresaDemo.endereco.numero,
+    bairro: empresaDemo.endereco.bairro,
+    cidade: empresaDemo.endereco.cidade,
+    estado: empresaDemo.endereco.estado,
+    instagram: empresaDemo.instagram,
   });
 
   function update(event) {
@@ -28,25 +28,11 @@ export default function EditarPerfilEmpresa() {
   }
 
   return (
-    <div className="dashboard-page">
-      <Header dashboard />
-      <div className="dashboard-layout">
-        <aside className="sidebar">
-          <Link to="/" className="side-link">⌂ <span>Início</span></Link>
-          <Link to="/empresa/perfil" className="side-link active">♙ <span>Meu perfil</span></Link>
-          <button className="side-link" type="button" onClick={() => alert("Cadastro de quadras será implementado depois.")}>▦ <span>Minhas quadras</span></button>
-          <button className="side-link" type="button" onClick={() => alert("Reservas serão implementadas depois.")}>▣ <span>Reservas</span></button>
-          <button className="side-link" type="button" onClick={() => alert("Financeiro será implementado depois.")}>＄ <span>Financeiro</span></button>
-          <button className="side-link" type="button" onClick={() => alert("Configurações serão implementadas depois.")}>⚙ <span>Configurações</span></button>
-          <Link to="/login" className="side-link side-logout">⇥ <span>Sair</span></Link>
-        </aside>
-
-        <main className="dashboard-content">
-          <div className="page-title-row">
-            <div><span className="eyebrow">ÁREA DA EMPRESA</span><h1>Editar perfil</h1></div>
-            <Link to="/empresa/perfil" className="btn btn-outline">Cancelar</Link>
-          </div>
-
+    <EmpresaLayout
+      titulo="Editar perfil"
+      subtitulo="Atualize as informações que os jogadores veem"
+      acoes={<Link to="/empresa/perfil" className="pn-botao pn-botao-contorno">Cancelar</Link>}
+    >
           <form className="edit-card form-stack" onSubmit={submit}>
             <h2>Informações da empresa</h2>
             <div className="form-two">
@@ -71,9 +57,6 @@ export default function EditarPerfilEmpresa() {
               <button className="btn btn-primary" type="submit">Salvar alterações</button>
             </div>
           </form>
-        </main>
-      </div>
-      <Footer />
-    </div>
+    </EmpresaLayout>
   );
 }
