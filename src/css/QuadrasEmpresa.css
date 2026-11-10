@@ -1,0 +1,203 @@
+/* =========================================================
+   MINHAS QUADRAS (empresa) - prefixo "qe-"
+   Estrutura e componentes base vêm de Painel.css.
+   ========================================================= */
+
+.qe-contagem {
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--page);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.pn-chip[aria-pressed="true"] .qe-contagem {
+  background: #fff;
+  color: var(--green-dark);
+}
+
+.qe-carregando {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 48px;
+  color: var(--muted);
+}
+
+.qe-girando {
+  animation: qe-girar 0.8s linear infinite;
+}
+
+@keyframes qe-girar {
+  to { transform: rotate(360deg); }
+}
+
+.qe-grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 20px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.qe-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--pn-radius);
+  background: var(--surface);
+  box-shadow: var(--pn-shadow);
+}
+
+.qe-foto {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 9;
+  background: var(--green-light);
+  color: var(--green);
+}
+
+.qe-foto img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.qe-card.apagada .qe-foto img {
+  filter: grayscale(0.85);
+  opacity: 0.7;
+}
+
+.qe-foto-status {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.qe-corpo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+}
+
+.qe-modalidade {
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.qe-corpo h2 {
+  margin: -8px 0 0;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.qe-info {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.qe-info div {
+  padding: 10px 12px;
+}
+
+.qe-info div + div {
+  border-left: 1px solid var(--line);
+}
+
+.qe-info dt {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.qe-info dd {
+  margin: 2px 0 0;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.qe-acoes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.qe-acoes .pn-botao {
+  height: 40px;
+  padding: 0 10px;
+}
+
+.qe-status-botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: auto;
+  padding: 8px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--pn-erro);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.qe-status-botao:hover:not(:disabled) {
+  background: #fdecea;
+}
+
+.qe-status-botao.reativar {
+  color: var(--green);
+}
+
+.qe-status-botao.reativar:hover:not(:disabled) {
+  background: var(--green-light);
+}
+
+.qe-status-botao:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.qe-confirmar {
+  margin-top: auto;
+  padding: 12px;
+  border: 1px solid #f3c7c1;
+  border-radius: 12px;
+  background: #fff7f6;
+}
+
+.qe-confirmar p {
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.qe-confirmar div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.qe-confirmar .pn-botao {
+  height: 36px;
+  font-size: 13px;
+}

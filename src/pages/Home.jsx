@@ -1,276 +1,468 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import {
+  ArrowRight,
+  CalendarCheck,
+  Clock,
+  Heart,
+  LayoutGrid,
+  MapPin,
+  MessageSquareQuote,
+  Search,
+  SearchX,
+  Star,
+  Trophy,
+  Users,
+} from "lucide-react";
 import Header from "../components/Header.jsx";
 import Footer from "../components/Footer.jsx";
-import "../Home.css";
+import { horariosLivresHoje, modalidades, quadras } from "../data/quadras.js";
+import { avaliacoes } from "../data/avaliacoes.js";
+import { corDoNome, formatarNota, formatarPreco, iniciais, normalizar, semAvaliacoes } from "../utils/formatadores.js";
+import "../css/Home.css";
 
-const quadras = [
-  {
-    id: 1,
-    nome: "Arena Sport",
-    modalidade: "Futebol society",
-    preco: 80,
-    avaliacao: "4,8",
-    imagem:
-      "https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=800&q=85",
-  },
-  {
-    id: 2,
-    nome: "Quadra Center",
-    modalidade: "Futsal",
-    preco: 70,
-    avaliacao: "4,6",
-    imagem:
-      "https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=800&q=85",
-  },
-  {
-    id: 3,
-    nome: "Play Sports",
-    modalidade: "Vôlei de areia",
-    preco: 60,
-    avaliacao: "4,7",
-    imagem:
-      "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?auto=format&fit=crop&w=800&q=85",
-  },
-  {
-    id: 4,
-    nome: "Arena Basketball",
-    modalidade: "Basquete",
-    preco: 75,
-    avaliacao: "4,9",
-    imagem:
-      "https://images.unsplash.com/photo-1504450758481-7338eba7524a?auto=format&fit=crop&w=800&q=85",
-  },
-  {
-    id: 5,
-    nome: "Beach Arena",
-    modalidade: "Beach Tennis",
-    preco: 65,
-    avaliacao: "4,8",
-    imagem:
-      "https://images.unsplash.com/photo-1600320254374-ce2d293c324e?auto=format&fit=crop&w=800&q=85",
-  },
-  {
-    id: 6,
-    nome: "Gol de Ouro",
-    modalidade: "Futebol society",
-    preco: 90,
-    avaliacao: "4,5",
-    imagem:
-      "https://images.unsplash.com/photo-1518604666860-9ed391f76460?auto=format&fit=crop&w=800&q=85",
-  },
-  {
-    id: 7,
-    nome: "Gol de Ouro",
-    modalidade: "Futebol society",
-    preco: 90,
-    avaliacao: "4,5",
-    imagem:
-      "https://images.unsplash.com/photo-1518604666860-9ed391f76460?auto=format&fit=crop&w=800&q=85",
-    },
-    {
-    id: 8,
-    nome: "Gol de Ouro",
-    modalidade: "Futebol society",
-    preco: 90,
-    avaliacao: "4,5",
-    imagem:
-      "https://images.unsplash.com/photo-1518604666860-9ed391f76460?auto=format&fit=crop&w=800&q=85",
-  },
-  {
-    id: 9,
-    nome: "Gol de Ouro",
-    modalidade: "Futebol society",
-    preco: 90,
-    avaliacao: "4,5",
-    imagem:
-      "https://images.unsplash.com/photo-1518604666860-9ed391f76460?auto=format&fit=crop&w=800&q=85",
-  },
+const ordenacoes = {
+  relevancia: { texto: "Relevância", fn: (a, b) => Number(!!b.destaque) - Number(!!a.destaque) },
+  avaliacao: { texto: "Melhor avaliadas", fn: (a, b) => (b.avaliacao ?? 0) - (a.avaliacao ?? 0) },
+  menorPreco: { texto: "Menor preço", fn: (a, b) => a.preco - b.preco },
+};
+
+const passos = [
+  { icone: Search, titulo: "Encontre", texto: "Busque por esporte, nome ou bairro e compare preços e avaliações." },
+  { icone: CalendarCheck, titulo: "Reserve", texto: "Escolha a data e um horário livre. A confirmação chega na hora." },
+  { icone: Trophy, titulo: "Jogue", texto: "Chame a galera e aproveite. A quadra já está garantida." },
 ];
+
+// Dados derivados (calculados uma vez só)
+const avaliadas = quadras.filter((q) => !semAvaliacoes(q));
+const totalAvaliacoes = avaliadas.reduce((soma, q) => soma + q.quantidadeAvaliacoes, 0);
+const mediaGeral = avaliadas.reduce((soma, q) => soma + q.avaliacao, 0) / avaliadas.length;
+const capaPorModalidade = Object.fromEntries(
+  modalidades.map((m) => {
+    const lista = quadras.filter((q) => q.modalidade === m);
+    return [m, { imagem: lista[0].imagens[0], total: lista.length }];
+  })
+);
+const depoimentos = avaliacoes
+  .filter((a) => a.nota === 5)
+  .sort((a, b) => b.util - a.util)
+  .slice(0, 3)
+  .map((a) => ({ ...a, quadra: quadras.find((q) => q.id === a.quadraId) }));
+
+function irParaQuadras() {
+  document.getElementById("quadras")?.scrollIntoView({ behavior: "smooth" });
+}
 
 export default function Home() {
   const [busca, setBusca] = useState("");
+  const [modalidade, setModalidade] = useState("todas");
+  const [ordem, setOrdem] = useState("relevancia");
+  const [favoritos, setFavoritos] = useState(() => new Set());
+  const { hash } = useLocation();
 
-  const quadrasFiltradas = quadras.filter((quadra) => {
-    const pesquisa = busca.toLowerCase().trim();
+  // Faz os links "/#quadras" e "/#sobre" do Header rolarem até a seção.
+  useEffect(() => {
+    if (hash) document.querySelector(hash)?.scrollIntoView({ behavior: "smooth" });
+  }, [hash]);
 
-    return (
-      quadra.nome.toLowerCase().includes(pesquisa) ||
-      quadra.modalidade.toLowerCase().includes(pesquisa)
-    );
-  });
+  const resultado = useMemo(() => {
+    const termo = normalizar(busca);
+    return quadras
+      .filter((q) => modalidade === "todas" || q.modalidade === modalidade)
+      .filter((q) =>
+        [q.nome, q.modalidade, q.bairro, q.cidade].some((campo) => normalizar(campo).includes(termo))
+      )
+      .sort(ordenacoes[ordem].fn);
+  }, [busca, modalidade, ordem]);
+
+  function escolherModalidade(m) {
+    setModalidade(m);
+    irParaQuadras();
+  }
+
+  function alternarFavorito(id) {
+    setFavoritos((atual) => {
+      const novo = new Set(atual);
+      if (novo.has(id)) novo.delete(id);
+      else novo.add(id);
+      return novo;
+    });
+  }
+
+  function limparFiltros() {
+    setBusca("");
+    setModalidade("todas");
+    setOrdem("relevancia");
+  }
 
   return (
-    <div className="pagina-inicial">
+    <div className="home">
       <Header />
 
       <main>
-        {/* Banner principal */}
-        <section className="banner">
-          <div className="banner-conteudo">
-            <span className="texto-destaque">
-              BEM-VINDO AO BAH QUADRAS
-            </span>
+        {/* ===== HERO ===== */}
+        <section className="home-hero">
+          <div className="home-container home-hero-grid">
+            <div className="home-hero-texto">
+              <span className="home-pill">
+                <span className="home-pill-ponto" aria-hidden="true" />
+                Horários livres para hoje à noite
+              </span>
 
-            <h1>Encontre a quadra ideal para você!</h1>
+              <h1>
+                Sua próxima partida <em>começa aqui.</em>
+              </h1>
+              <p>
+                Encontre quadras perto de você, compare preços e avaliações e reserve seu horário em
+                poucos cliques, sem precisar ligar para ninguém.
+              </p>
 
-            <p>
-              Descubra espaços esportivos, consulte opções e
-              organize sua próxima partida. Tudo em um só lugar.
-            </p>
+              <form
+                className="home-busca"
+                role="search"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  irParaQuadras();
+                }}
+              >
+                <label className="home-busca-campo">
+                  <Search size={20} aria-hidden="true" />
+                  <input
+                    type="search"
+                    placeholder="Quadra ou bairro"
+                    aria-label="Buscar por nome da quadra ou bairro"
+                    value={busca}
+                    onChange={(e) => setBusca(e.target.value)}
+                  />
+                </label>
+                <label className="home-busca-campo home-busca-select">
+                  <Trophy size={20} aria-hidden="true" />
+                  <select
+                    aria-label="Modalidade"
+                    value={modalidade}
+                    onChange={(e) => setModalidade(e.target.value)}
+                  >
+                    <option value="todas">Todos os esportes</option>
+                    {modalidades.map((m) => (
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <button type="submit">
+                  Buscar <ArrowRight size={18} aria-hidden="true" />
+                </button>
+              </form>
 
-            <form
-              className="busca-quadras"
-              onSubmit={(evento) => {
-                evento.preventDefault();
+              <div className="home-prova">
+                <div className="home-prova-avatares" aria-hidden="true">
+                  {depoimentos.map((d) => (
+                    <span key={d.id} style={{ background: corDoNome(d.nome) }}>
+                      {iniciais(d.nome)}
+                    </span>
+                  ))}
+                </div>
+                <p>
+                  <strong>
+                    <Star size={15} aria-hidden="true" /> {formatarNota(mediaGeral)}
+                  </strong>{" "}
+                  de média em {totalAvaliacoes} avaliações de jogadores
+                </p>
+              </div>
+            </div>
 
-                document
-                  .getElementById("quadras")
-                  ?.scrollIntoView({ behavior: "smooth" });
-              }}
-            >
-              <span aria-hidden="true">⌕</span>
+            <div className="home-hero-visual" aria-hidden="true">
+              <img className="home-hero-foto-principal" src={quadras[0].imagens[0]} alt="" />
+              <img className="home-hero-foto-secundaria" src={quadras[4].imagens[0]} alt="" />
 
-              <input
-                type="search"
-                placeholder="Buscar por esporte ou nome da quadra"
-                aria-label="Buscar quadras"
-                value={busca}
-                onChange={(evento) => setBusca(evento.target.value)}
-              />
+              <div className="home-flutuante home-flutuante-reserva">
+                <span className="home-flutuante-icone">
+                  <CalendarCheck size={20} />
+                </span>
+                <div>
+                  <strong>Reserva confirmada</strong>
+                  <span>Hoje · 19:00 às 20:00</span>
+                </div>
+              </div>
 
-              <button type="submit">Buscar</button>
-            </form>
+              <div className="home-flutuante home-flutuante-nota">
+                <div className="home-estrelas">
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <Star key={n} size={14} />
+                  ))}
+                </div>
+                <span>“Melhor society da região!”</span>
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* Quadras em destaque */}
-        <section className="secao-quadras" id="quadras">
-          <div className="titulo-secao">
+        {/* ===== FAIXA DE NÚMEROS ===== */}
+        <div className="home-container">
+          <dl className="home-stats">
             <div>
-              <h2>Quadras em destaque</h2>
-              <p>Encontre o espaço ideal para sua próxima partida.</p>
+              <span className="home-stats-icone" aria-hidden="true"><LayoutGrid size={20} /></span>
+              <dt>Quadras parceiras</dt>
+              <dd>{quadras.length}</dd>
             </div>
+            <div>
+              <span className="home-stats-icone" aria-hidden="true"><Trophy size={20} /></span>
+              <dt>Modalidades</dt>
+              <dd>{modalidades.length}</dd>
+            </div>
+            <div>
+              <span className="home-stats-icone" aria-hidden="true"><Star size={20} /></span>
+              <dt>Avaliação média</dt>
+              <dd>{formatarNota(mediaGeral)}</dd>
+            </div>
+            <div>
+              <span className="home-stats-icone" aria-hidden="true"><Users size={20} /></span>
+              <dt>Avaliações</dt>
+              <dd>{totalAvaliacoes}</dd>
+            </div>
+          </dl>
+        </div>
 
-            <Link to="/login" className="link-secao">
-              Ver todas →
-            </Link>
-          </div>
+        {/* ===== EXPLORE POR ESPORTE ===== */}
+        <section className="home-secao home-secao-compacta">
+          <div className="home-container">
+            <header className="home-secao-topo">
+              <div>
+                <span className="home-eyebrow">Explore</span>
+                <h2>Qual é o seu esporte?</h2>
+              </div>
+            </header>
 
-          {quadrasFiltradas.length > 0 ? (
-            <div className="lista-quadras">
-              {quadrasFiltradas.map((quadra) => (
-                <article className="card-quadra" key={quadra.id}>
-                  <Link
-                    to="/login"
-                    className="foto-quadra"
-                    aria-label={`Ver ${quadra.nome}`}
-                  >
-                    <img
-                      src={quadra.imagem}
-                      alt={`Espaço esportivo: ${quadra.modalidade}`}
-                      loading="lazy"
-                    />
-                  </Link>
-
-                  <div className="dados-quadra">
-                    <span className="modalidade">
-                      {quadra.modalidade}
-                    </span>
-
-                    <h3>{quadra.nome}</h3>
-
-                    <div className="informacoes-quadra">
-                      <span className="avaliacao">
-                        <span aria-hidden="true">★</span>{" "}
-                        {quadra.avaliacao}
-                      </span>
-
-                      <strong>
-                        {quadra.preco.toLocaleString("pt-BR", {
-                          style: "currency",
-                          currency: "BRL",
-                        })}
-                        /h
-                      </strong>
-                    </div>
-
-                    <Link to="/login" className="botao-detalhes">
-                      Ver detalhes →
-                    </Link>
-                  </div>
-                </article>
+            <div className="home-esportes">
+              {modalidades.map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  className="home-esporte"
+                  aria-pressed={modalidade === m}
+                  onClick={() => escolherModalidade(m)}
+                >
+                  <img src={capaPorModalidade[m].imagem} alt="" loading="lazy" />
+                  <span className="home-esporte-texto">
+                    <strong>{m}</strong>
+                    <small>
+                      {capaPorModalidade[m].total}{" "}
+                      {capaPorModalidade[m].total === 1 ? "quadra" : "quadras"}
+                    </small>
+                  </span>
+                </button>
               ))}
             </div>
-          ) : (
-            <div className="mensagem-vazia">
-              <h3>Nenhuma quadra encontrada</h3>
-              <p>
-                Tente buscar por outro nome ou modalidade esportiva.
-              </p>
-
-              <button
-                type="button"
-                onClick={() => setBusca("")}
-                className="botao-limpar"
-              >
-                Limpar busca
-              </button>
-            </div>
-          )}
+          </div>
         </section>
 
-        {/* Benefícios da plataforma */}
-        <section className="secao-beneficios" id="sobre">
-          <div className="titulo-secao">
-            <div>
-              <h2>O que você encontra aqui?</h2>
-              <p>
-                Tudo o que você precisa para organizar suas partidas.
-              </p>
+        {/* ===== LISTA DE QUADRAS ===== */}
+        <section className="home-secao" id="quadras">
+          <div className="home-container">
+            <header className="home-secao-topo">
+              <div>
+                <span className="home-eyebrow">Reserve agora</span>
+                <h2>Quadras disponíveis</h2>
+                <p>
+                  {resultado.length}{" "}
+                  {resultado.length === 1 ? "quadra encontrada" : "quadras encontradas"}
+                  {modalidade !== "todas" && ` em ${modalidade}`}
+                </p>
+              </div>
+
+              <label className="home-ordenar">
+                Ordenar por
+                <select value={ordem} onChange={(e) => setOrdem(e.target.value)}>
+                  {Object.entries(ordenacoes).map(([valor, { texto }]) => (
+                    <option key={valor} value={valor}>
+                      {texto}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </header>
+
+            <div className="home-chips" role="group" aria-label="Filtrar por modalidade">
+              {["todas", ...modalidades].map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  className="home-chip"
+                  aria-pressed={modalidade === m}
+                  onClick={() => setModalidade(m)}
+                >
+                  {m === "todas" ? "Todas" : m}
+                </button>
+              ))}
             </div>
+
+            {resultado.length > 0 ? (
+              <ul className="home-grid">
+                {resultado.map((q) => {
+                  const favorito = favoritos.has(q.id);
+                  return (
+                    <li key={q.id}>
+                      <article className="home-card">
+                        <div className="home-card-foto">
+                          <img src={q.imagens[0]} alt={`${q.nome} - ${q.modalidade}`} loading="lazy" />
+                          <span className="home-card-tag">{q.modalidade}</span>
+                          {q.destaque && <span className="home-card-destaque">★ Destaque</span>}
+                          <button
+                            type="button"
+                            className={`home-card-favorito ${favorito ? "ativo" : ""}`}
+                            aria-pressed={favorito}
+                            aria-label={favorito ? `Remover ${q.nome} dos favoritos` : `Favoritar ${q.nome}`}
+                            onClick={() => alternarFavorito(q.id)}
+                          >
+                            <Heart size={18} />
+                          </button>
+                        </div>
+
+                        <div className="home-card-corpo">
+                          <div className="home-card-linha">
+                            <h3>
+                              {/* O link cobre o card inteiro (ver .home-card-link::after no CSS) */}
+                              <Link to={`/quadra/${q.id}`} className="home-card-link">
+                                {q.nome}
+                              </Link>
+                            </h3>
+                            {semAvaliacoes(q) ? (
+                              <span className="home-card-nova">Nova</span>
+                            ) : (
+                              <span className="home-card-nota" aria-label={`Nota ${formatarNota(q.avaliacao)} de 5`}>
+                                <Star size={14} aria-hidden="true" />
+                                {formatarNota(q.avaliacao)}
+                                <small>({q.quantidadeAvaliacoes})</small>
+                              </span>
+                            )}
+                          </div>
+
+                          <p className="home-card-local">
+                            <MapPin size={14} aria-hidden="true" />
+                            {q.bairro}, {q.cidade}
+                          </p>
+
+                          <div className="home-card-horarios">
+                            <span>
+                              <Clock size={13} aria-hidden="true" /> Livre hoje:
+                            </span>
+                            {horariosLivresHoje(q).map((h) => (
+                              <span key={h} className="home-card-horario">
+                                {h}
+                              </span>
+                            ))}
+                          </div>
+
+                          <div className="home-card-rodape">
+                            <p className="home-card-preco">
+                              <strong>{formatarPreco(q.preco)}</strong>
+                              <span>/hora</span>
+                            </p>
+                            <span className="home-card-cta">
+                              Reservar <ArrowRight size={16} aria-hidden="true" />
+                            </span>
+                          </div>
+                        </div>
+                      </article>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <div className="home-vazio">
+                <SearchX size={40} aria-hidden="true" />
+                <h3>Nenhuma quadra encontrada</h3>
+                <p>Tente outro termo de busca ou outra modalidade.</p>
+                <button type="button" className="home-botao" onClick={limparFiltros}>
+                  Limpar filtros
+                </button>
+              </div>
+            )}
           </div>
+        </section>
 
-          <div className="lista-beneficios">
-            <article className="card-beneficio">
-              <div className="icone-beneficio" aria-hidden="true">
-                ⚽
+        {/* ===== COMO FUNCIONA ===== */}
+        <section className="home-secao home-secao-clara" id="sobre">
+          <div className="home-container">
+            <header className="home-secao-topo home-secao-topo-centro">
+              <div>
+                <span className="home-eyebrow">Como funciona</span>
+                <h2>Do sofá para a quadra em 3 passos</h2>
+                <p>Sem ligação, sem planilha, sem grupo de WhatsApp perdido.</p>
               </div>
+            </header>
 
-              <h3>Encontre quadras</h3>
+            <ol className="home-passos">
+              {passos.map(({ icone: Icone, titulo, texto }, i) => (
+                <li key={titulo} className="home-passo">
+                  <span className="home-passo-icone" aria-hidden="true">
+                    <Icone size={26} />
+                    <span className="home-passo-numero">{i + 1}</span>
+                  </span>
+                  <h3>{titulo}</h3>
+                  <p>{texto}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
 
-              <p>
-                Explore espaços esportivos e encontre um lugar para jogar.
-              </p>
-            </article>
-
-            <article className="card-beneficio">
-              <div className="icone-beneficio" aria-hidden="true">
-                📅
+        {/* ===== DEPOIMENTOS ===== */}
+        <section className="home-secao">
+          <div className="home-container">
+            <header className="home-secao-topo">
+              <div>
+                <span className="home-eyebrow">Quem joga, recomenda</span>
+                <h2>O que dizem os jogadores</h2>
               </div>
-
-              <h3>Faça reservas</h3>
-
-              <p>
-                Consulte horários e organize suas próximas partidas.
-              </p>
-            </article>
-
-            <article className="card-beneficio">
-              <div className="icone-beneficio" aria-hidden="true">
-                🏢
-              </div>
-
-              <h3>Cadastre sua empresa</h3>
-
-              <p>
-                Divulgue suas quadras e gerencie seu espaço esportivo.
-              </p>
-
-              <Link to="/cadastro/empresa">
-                Cadastrar empresa →
+              <Link to="/avaliacoes" className="home-link">
+                Ver todas as avaliações <ArrowRight size={16} aria-hidden="true" />
               </Link>
-            </article>
+            </header>
+
+            <ul className="home-depoimentos">
+              {depoimentos.map((d) => (
+                <li key={d.id} className="home-depoimento">
+                  <MessageSquareQuote className="home-depoimento-aspas" size={32} aria-hidden="true" />
+                  <div className="home-estrelas" aria-label={`${d.nota} de 5 estrelas`}>
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <Star key={n} size={15} aria-hidden="true" />
+                    ))}
+                  </div>
+                  <blockquote>{d.texto}</blockquote>
+                  <footer>
+                    <span className="home-depoimento-avatar" style={{ background: corDoNome(d.nome) }} aria-hidden="true">
+                      {iniciais(d.nome)}
+                    </span>
+                    <span>
+                      <strong>{d.nome}</strong>
+                      <Link to={`/avaliacoes/${d.quadraId}`}>jogou na {d.quadra.nome}</Link>
+                    </span>
+                  </footer>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        {/* ===== CTA EMPRESAS ===== */}
+        <section className="home-secao home-secao-sem-topo">
+          <div className="home-container">
+            <div className="home-cta">
+              <div className="home-cta-texto">
+                <span className="home-eyebrow">Para donos de quadra</span>
+                <h2>Sua quadra cheia, sua agenda organizada.</h2>
+                <p>
+                  Divulgue seu espaço para jogadores da região, receba reservas online e acompanhe
+                  tudo em um só painel.
+                </p>
+                <Link to="/cadastro/empresa" className="home-botao home-botao-claro">
+                  Falar com a equipe <ArrowRight size={18} aria-hidden="true" />
+                </Link>
+              </div>
+              <img src={quadras[3].imagens[0]} alt="" className="home-cta-imagem" loading="lazy" />
+            </div>
           </div>
         </section>
       </main>

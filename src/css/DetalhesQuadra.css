@@ -1,0 +1,498 @@
+/* =========================================================
+   DETALHES DA QUADRA - prefixo "dq-"
+   Usa as variáveis globais de App.css.
+   ========================================================= */
+
+.dq {
+  --dq-gold: #ffb020;
+  --dq-radius: 16px;
+  --dq-shadow: 0 1px 2px rgba(6, 61, 48, 0.05), 0 8px 24px rgba(6, 61, 48, 0.07);
+
+  background: var(--page);
+  color: var(--text);
+}
+
+.dq-container {
+  width: min(1120px, 100% - 48px);
+  margin-inline: auto;
+  padding: 28px 0 72px;
+}
+
+.dq :is(a, button):focus-visible {
+  outline: 3px solid rgba(7, 131, 78, 0.45);
+  outline-offset: 2px;
+}
+
+.dq-voltar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 18px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.dq-voltar:hover {
+  color: var(--green);
+}
+
+.dq-botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 20px;
+  border: 1.5px solid var(--green);
+  border-radius: 12px;
+  background: var(--green);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.dq-botao:hover {
+  border-color: var(--green-dark);
+  background: var(--green-dark);
+}
+
+.dq-botao-contorno {
+  align-self: flex-start;
+  border-color: var(--line);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.dq-botao-contorno:hover {
+  border-color: var(--green);
+  background: var(--surface);
+  color: var(--green);
+}
+
+.dq-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--green);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.dq-link:hover {
+  text-decoration: underline;
+}
+
+.dq-suave {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* ===== Galeria ===== */
+
+.dq-galeria {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 160px;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.dq-galeria-principal {
+  width: 100%;
+  height: 420px;
+  border-radius: 20px;
+  object-fit: cover;
+  box-shadow: var(--dq-shadow);
+}
+
+.dq-galeria-miniaturas {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dq-miniatura {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0;
+  border: 3px solid transparent;
+  border-radius: 14px;
+  background: none;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.15s, border-color 0.15s;
+}
+
+.dq-miniatura:hover,
+.dq-miniatura[aria-pressed="true"] {
+  opacity: 1;
+}
+
+.dq-miniatura[aria-pressed="true"] {
+  border-color: var(--green);
+}
+
+.dq-miniatura img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ===== Layout ===== */
+
+.dq-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  align-items: start;
+  gap: 32px;
+}
+
+.dq-principal {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.dq-tag {
+  display: inline-block;
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: var(--green-light);
+  color: var(--green-dark);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.dq-titulo h1 {
+  margin: 8px 0 8px;
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 850;
+  letter-spacing: -0.8px;
+}
+
+.dq-titulo p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.dq-titulo p > span,
+.dq-nota {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dq-nota {
+  color: inherit;
+  text-decoration: none;
+}
+
+.dq-nova {
+  padding: 3px 11px;
+  border-radius: 999px;
+  background: var(--green-light);
+  color: var(--green-dark);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.dq-nota:hover span {
+  text-decoration: underline;
+}
+
+.dq-nota svg {
+  color: var(--dq-gold);
+  fill: var(--dq-gold);
+}
+
+.dq-nota strong {
+  color: var(--text);
+}
+
+/* ===== Seções ===== */
+
+.dq-secao {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 28px;
+  border-top: 1px solid var(--line);
+}
+
+.dq-secao h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.dq-secao > p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.dq-secao-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dq-estrutura {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dq-estrutura li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.dq-estrutura svg {
+  color: var(--green);
+}
+
+/* Avaliações */
+
+.dq-avaliacoes {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dq-avaliacoes li {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.dq-avaliacao-topo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dq-avaliacao-topo div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dq-avaliacao-topo strong {
+  font-size: 14px;
+}
+
+.dq-avaliacao-topo time {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.dq-avatar {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.dq-estrelas {
+  display: inline-flex;
+  gap: 1px;
+  color: #d5ddd9;
+}
+
+.dq-estrelas svg {
+  fill: currentColor;
+}
+
+.dq-estrelas .on {
+  color: var(--dq-gold);
+}
+
+.dq-avaliacoes p {
+  margin: 10px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ===== Card de reserva ===== */
+
+.dq-reserva {
+  position: sticky;
+  top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: 0 16px 40px rgba(6, 61, 48, 0.1);
+}
+
+.dq-preco {
+  margin: 0;
+}
+
+.dq-preco strong {
+  font-size: 30px;
+  font-weight: 850;
+}
+
+.dq-preco span {
+  color: var(--muted);
+}
+
+.dq-hoje > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.dq-horarios {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.dq-horario {
+  display: grid;
+  place-items: center;
+  height: 40px;
+  border: 1.5px solid var(--green);
+  border-radius: 10px;
+  color: var(--green-dark);
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.dq-horario:hover {
+  background: var(--green);
+  color: #fff;
+}
+
+.dq-indisponivel {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fef3e2;
+  color: #7c3d06;
+  font-size: 14px;
+}
+
+.dq-indisponivel svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.dq-reserva > small {
+  text-align: center;
+}
+
+/* ===== Não encontrada ===== */
+
+.dq-nao-encontrada {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 64px 24px;
+  text-align: center;
+}
+
+.dq-nao-encontrada svg {
+  color: var(--muted);
+}
+
+.dq-nao-encontrada h1 {
+  margin: 8px 0 0;
+}
+
+.dq-nao-encontrada p {
+  margin: 0 0 12px;
+  color: var(--muted);
+}
+
+/* ===== Responsivo ===== */
+
+@media (max-width: 900px) {
+  .dq-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .dq-reserva {
+    position: static;
+    order: -1;
+  }
+
+  .dq-galeria {
+    grid-template-columns: 1fr;
+  }
+
+  .dq-galeria-principal {
+    height: 320px;
+  }
+
+  .dq-galeria-miniaturas {
+    flex-direction: row;
+  }
+
+  .dq-miniatura {
+    height: 72px;
+  }
+}
+
+@media (max-width: 560px) {
+  .dq-container {
+    width: calc(100% - 32px);
+    padding-top: 20px;
+  }
+
+  .dq-galeria-principal {
+    height: 230px;
+  }
+
+  .dq-reserva {
+    padding: 20px;
+  }
+}

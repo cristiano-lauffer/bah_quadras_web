@@ -1,96 +1,511 @@
-import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
-import "../Avaliacoes.css";
+import { useEffect, useRef, useState } from "react";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import {
+  ArrowLeft,
+  BadgeCheck,
+  MapPin,
+  MessageSquarePlus,
+  PencilLine,
+  Star,
+  ThumbsUp,
+  X,
+} from "lucide-react";
+import Header from "../components/Header.jsx";
+import Footer from "../components/Footer.jsx";
+import Toast from "../components/Toast.jsx";
+import { buscarQuadraPorId, quadras } from "../data/quadras.js";
+import { aspectosAvaliacao, avaliacoesDaQuadra, rotulosNota } from "../data/avaliacoes.js";
+import {
+  corDoNome,
+  formatarData,
+  formatarNota,
+  iniciais,
+  isoComDias,
+  tempoRelativo,
+} from "../utils/formatadores.js";
+import "../css/Avaliacoes.css";
 
+const POR_PAGINA = 5;
 
-const iniciais = [
-  { id: 1, nome: "Mariana Costa", nota: 5, data: "18/10/2026", texto: "Ótima quadra, bem cuidada e com iluminação excelente. O atendimento também foi muito bom!" },
-  { id: 2, nome: "Lucas Ferreira", nota: 5, data: "12/10/2026", texto: "Espaço organizado, grama em boas condições e fácil de chegar. Recomendo!" },
-  { id: 3, nome: "Rafael Martins", nota: 4, data: "05/10/2026", texto: "A quadra é muito boa e os vestiários estavam limpos. O estacionamento poderia ser maior." },
-  { id: 4, nome: "Camila Souza", nota: 4, data: "28/09/2026", texto: "Boa estrutura e ótimo custo-benefício para jogar com os amigos." },
-];
+const ordenacoes = {
+  recentes: { texto: "Mais recentes", fn: (a, b) => b.data.localeCompare(a.data) },
+  uteis: { texto: "Mais úteis", fn: (a, b) => b.util - a.util },
+  maior: { texto: "Maior nota", fn: (a, b) => b.nota - a.nota },
+  menor: { texto: "Menor nota", fn: (a, b) => a.nota - b.nota },
+};
 
-function Stars({ value, large = false }) {
-  return <span className={`reviews-stars ${large ? "large" : ""}`} aria-label={`${value} de 5 estrelas`}>
-    {[1, 2, 3, 4, 5].map(n => <span key={n} className={n <= value ? "on" : ""}>★</span>)}
-  </span>;
+function Estrelas({ valor, tamanho = 16 }) {
+  return (
+    <span className="av-estrelas" role="img" aria-label={`${valor} de 5 estrelas`}>
+      {[1, 2, 3, 4, 5].map((n) => (
+        <Star key={n} size={tamanho} className={n <= Math.round(valor) ? "on" : ""} aria-hidden="true" />
+      ))}
+    </span>
+  );
 }
 
-export default function Avaliacoes() {
-  const [reviews, setReviews] = useState(iniciais);
-  const [filter, setFilter] = useState("all");
-  const [showForm, setShowForm] = useState(false);
-  const [name, setName] = useState("");
-  const [comment, setComment] = useState("");
-  const [rating, setRating] = useState(5);
-  const [message, setMessage] = useState("");
-  const average = useMemo(() => reviews.reduce((sum, r) => sum + r.nota, 0) / reviews.length, [reviews]);
-  const count = rating => reviews.filter(r => r.nota === rating).length;
-  const visible = filter === "all" ? reviews : reviews.filter(r => r.nota === Number(filter));
+// A "key" faz a página reiniciar os filtros quando o usuário troca de quadra.
+export default function AvaliacoesPagina() {
+  const { id } = useParams();
+  return <Avaliacoes key={id ?? "padrao"} id={id} />;
+}
 
-  function submitReview(event) {
-    event.preventDefault();
-    if (!name.trim() || !comment.trim()) {
-      setMessage("Preencha seu nome e o comentário.");
-      return;
-    }
-    setReviews(current => [{
-      id: Date.now(), nome: name.trim(), nota: rating,
-      data: new Date().toLocaleDateString("pt-BR"), texto: comment.trim()
-    }, ...current]);
-    setName(""); setComment(""); setRating(5); setFilter("all");
-    setShowForm(false);
-    setMessage("Avaliação adicionada nesta demonstração.");
+function Avaliacoes({ id }) {
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const quadra = id ? buscarQuadraPorId(id) : quadras[0];
+
+  const [novas, setNovas] = useState([]);
+  const [marcadasUteis, setMarcadasUteis] = useState(() => new Set());
+  const [filtroNota, setFiltroNota] = useState(0);
+  const [filtroAspecto, setFiltroAspecto] = useState("");
+  const [ordem, setOrdem] = useState("recentes");
+  const [visiveis, setVisiveis] = useState(POR_PAGINA);
+  const [formAberto, setFormAberto] = useState(searchParams.get("escrever") === "1");
+  const [toast, setToast] = useState("");
+  const dialogRef = useRef(null);
+
+  // "?escrever=1" abre o formulário direto (usado por "Avaliar quadra" em Minhas Reservas).
+  useEffect(() => {
+    if (searchParams.get("escrever")) setSearchParams({}, { replace: true });
+  }, [searchParams, setSearchParams]);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (formAberto && !dialog.open) dialog.showModal();
+    if (!formAberto && dialog.open) dialog.close();
+  }, [formAberto]);
+
+  if (!quadra) {
+    return (
+      <div className="av">
+        <Header />
+        <main className="av-container av-nao-encontrada">
+          <h1>Quadra não encontrada</h1>
+          <p>Não encontramos avaliações para este endereço.</p>
+          <Link to="/" className="av-botao">Voltar para o início</Link>
+        </main>
+        <Footer />
+      </div>
+    );
   }
 
-  return <div className="public-page">
-    <Header />
-    <main className="reviews-page">
-      <div className="reviews-container">
-        <Link to="/" className="reviews-back">← Voltar para o início</Link>
-        <header className="reviews-heading">
-          <div><span className="reviews-eyebrow">OPINIÃO DE QUEM JÁ JOGOU</span>
-            <h1>Avaliações</h1><p>Veja o que os jogadores dizem sobre a Arena Sport.</p></div>
-          <button className="reviews-primary" onClick={() => { setShowForm(!showForm); setMessage(""); }}>
-            {showForm ? "Fechar formulário" : "+ Escrever avaliação"}
-          </button>
+  const lista = [...novas, ...avaliacoesDaQuadra(quadra.id)];
+  const total = lista.length;
+  const media = total ? lista.reduce((s, a) => s + a.nota, 0) / total : 0;
+  const porNota = [5, 4, 3, 2, 1].map((n) => ({ nota: n, qtd: lista.filter((a) => a.nota === n).length }));
+  const aspectosContagem = aspectosAvaliacao
+    .map((asp) => ({ asp, qtd: lista.filter((a) => a.aspectos.includes(asp)).length }))
+    .filter((x) => x.qtd > 0)
+    .sort((a, b) => b.qtd - a.qtd);
+
+  const filtradas = lista
+    .filter((a) => !filtroNota || a.nota === filtroNota)
+    .filter((a) => !filtroAspecto || a.aspectos.includes(filtroAspecto))
+    .sort(ordenacoes[ordem].fn);
+
+  const temFiltro = filtroNota || filtroAspecto;
+
+  function mudarFiltroNota(n) {
+    setFiltroNota((atual) => (atual === n ? 0 : n));
+    setVisiveis(POR_PAGINA);
+  }
+
+  function mudarFiltroAspecto(asp) {
+    setFiltroAspecto((atual) => (atual === asp ? "" : asp));
+    setVisiveis(POR_PAGINA);
+  }
+
+  function limparFiltros() {
+    setFiltroNota(0);
+    setFiltroAspecto("");
+    setVisiveis(POR_PAGINA);
+  }
+
+  function alternarUtil(idAvaliacao) {
+    setMarcadasUteis((atual) => {
+      const novo = new Set(atual);
+      if (novo.has(idAvaliacao)) novo.delete(idAvaliacao);
+      else novo.add(idAvaliacao);
+      return novo;
+    });
+  }
+
+  function publicar(dados) {
+    setNovas((atual) => [
+      { id: Date.now(), quadraId: quadra.id, data: isoComDias(0), util: 0, propria: true, ...dados },
+      ...atual,
+    ]);
+    limparFiltros();
+    setOrdem("recentes");
+    setFormAberto(false);
+    setToast("Obrigado! Sua avaliação foi publicada (demonstração).");
+  }
+
+  return (
+    <div className="av">
+      <Header />
+
+      <main className="av-container">
+        <Link to={`/quadra/${quadra.id}`} className="av-voltar">
+          <ArrowLeft size={16} aria-hidden="true" /> Voltar para a quadra
+        </Link>
+
+        {/* ===== Cabeçalho com a quadra ===== */}
+        <header className="av-cabecalho">
+          <img src={quadra.imagens[0]} alt="" className="av-cabecalho-foto" />
+          <div className="av-cabecalho-info">
+            <span className="av-tag">{quadra.modalidade}</span>
+            <h1>Avaliações da {quadra.nome}</h1>
+            <p>
+              <MapPin size={15} aria-hidden="true" /> {quadra.bairro}, {quadra.cidade}
+            </p>
+          </div>
+          <div className="av-cabecalho-acoes">
+            <label className="av-trocar">
+              <span>Ver outra quadra</span>
+              <select value={quadra.id} onChange={(e) => navigate(`/avaliacoes/${e.target.value}`)}>
+                {quadras.map((q) => (
+                  <option key={q.id} value={q.id}>
+                    {q.nome}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button type="button" className="av-botao" onClick={() => setFormAberto(true)}>
+              <PencilLine size={18} aria-hidden="true" /> Escrever avaliação
+            </button>
+          </div>
         </header>
 
-        <section className="reviews-summary">
-          <div className="reviews-score"><strong>{average.toFixed(1).replace(".", ",")}</strong>
-            <Stars value={Math.round(average)} large /><span>{reviews.length} avaliações</span></div>
-          <div className="reviews-breakdown">{[5, 4, 3, 2, 1].map(n =>
-            <button key={n} className={filter === String(n) ? "selected" : ""} onClick={() => setFilter(filter === String(n) ? "all" : String(n))}>
-              <span>{n} ★</span><span className="reviews-track"><i style={{ width: `${reviews.length ? count(n) / reviews.length * 100 : 0}%` }} /></span><span>{count(n)}</span>
-            </button>)}</div>
-        </section>
+        <div className="av-layout">
+          {/* ===== Resumo ===== */}
+          <aside className="av-resumo">
+            <div className="av-resumo-nota">
+              <strong>{total ? formatarNota(media) : "–"}</strong>
+              <div>
+                <Estrelas valor={media} tamanho={20} />
+                <span>
+                  {total} {total === 1 ? "avaliação" : "avaliações"}
+                </span>
+              </div>
+            </div>
 
-        {showForm && <form className="reviews-form" onSubmit={submitReview}>
-          <h2>Conte como foi sua experiência</h2>
-          <label>Sua nota</label><div className="reviews-picker">
-            {[1, 2, 3, 4, 5].map(n => <button type="button" key={n} className={n <= rating ? "on" : ""} onClick={() => setRating(n)} aria-label={`${n} estrelas`}>★</button>)}
-            <span>{rating} de 5</span>
-          </div>
-          <label htmlFor="review-name">Nome</label><input id="review-name" value={name} onChange={e => setName(e.target.value)} maxLength={80} placeholder="Seu nome" />
-          <label htmlFor="review-comment">Comentário</label><textarea id="review-comment" value={comment} onChange={e => setComment(e.target.value)} maxLength={500} rows={4} placeholder="Conte o que achou da quadra..." />
-          {message && <p className="reviews-message">{message}</p>}
-          <div className="reviews-form-actions"><button type="button" className="reviews-secondary" onClick={() => setShowForm(false)}>Cancelar</button><button className="reviews-primary" type="submit">Publicar avaliação</button></div>
-        </form>}
-        {!showForm && message && <p className="reviews-message">{message}</p>}
+            <div className="av-barras" role="group" aria-label="Filtrar por nota">
+              {porNota.map(({ nota, qtd }) => (
+                <button
+                  key={nota}
+                  type="button"
+                  className="av-barra"
+                  aria-pressed={filtroNota === nota}
+                  disabled={!qtd}
+                  onClick={() => mudarFiltroNota(nota)}
+                >
+                  <span className="av-barra-rotulo">
+                    {nota} <Star size={12} aria-hidden="true" />
+                  </span>
+                  <span className="av-barra-trilho">
+                    <span style={{ width: `${total ? (qtd / total) * 100 : 0}%` }} />
+                  </span>
+                  <span className="av-barra-qtd">{qtd}</span>
+                </button>
+              ))}
+            </div>
 
-        <div className="reviews-list-heading"><div><h2>Comentários dos jogadores</h2><p>{visible.length} avaliações encontradas</p></div>
-          <label>Filtrar: <select value={filter} onChange={e => setFilter(e.target.value)}><option value="all">Todas as notas</option>{[5,4,3,2,1].map(n => <option key={n} value={n}>{n} estrelas</option>)}</select></label>
+            {aspectosContagem.length > 0 && (
+              <div className="av-aspectos">
+                <h2>Mais elogiado</h2>
+                <div className="av-aspectos-lista">
+                  {aspectosContagem.map(({ asp, qtd }) => (
+                    <button
+                      key={asp}
+                      type="button"
+                      className="av-aspecto"
+                      aria-pressed={filtroAspecto === asp}
+                      onClick={() => mudarFiltroAspecto(asp)}
+                    >
+                      {asp} <small>{qtd}</small>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="av-resumo-cta">
+              <MessageSquarePlus size={22} aria-hidden="true" />
+              <div>
+                <strong>Jogou aqui?</strong>
+                <p>Sua opinião ajuda outros jogadores a escolher.</p>
+              </div>
+              <button type="button" className="av-botao av-botao-contorno" onClick={() => setFormAberto(true)}>
+                Avaliar
+              </button>
+            </div>
+          </aside>
+
+          {/* ===== Lista ===== */}
+          <section className="av-lista-secao" aria-labelledby="av-lista-titulo">
+            <div className="av-barra-ferramentas">
+              <div>
+                <h2 id="av-lista-titulo">Comentários dos jogadores</h2>
+                <p>
+                  Mostrando {Math.min(visiveis, filtradas.length)} de {filtradas.length}
+                </p>
+              </div>
+              <label className="av-ordenar">
+                Ordenar
+                <select value={ordem} onChange={(e) => setOrdem(e.target.value)}>
+                  {Object.entries(ordenacoes).map(([valor, { texto }]) => (
+                    <option key={valor} value={valor}>
+                      {texto}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            {temFiltro && (
+              <div className="av-filtros-ativos">
+                {filtroNota > 0 && (
+                  <button type="button" onClick={() => mudarFiltroNota(filtroNota)}>
+                    {filtroNota} estrelas <X size={14} aria-label="remover filtro" />
+                  </button>
+                )}
+                {filtroAspecto && (
+                  <button type="button" onClick={() => mudarFiltroAspecto(filtroAspecto)}>
+                    {filtroAspecto} <X size={14} aria-label="remover filtro" />
+                  </button>
+                )}
+                <button type="button" className="av-limpar" onClick={limparFiltros}>
+                  Limpar tudo
+                </button>
+              </div>
+            )}
+
+            {filtradas.length > 0 ? (
+              <ul className="av-lista">
+                {filtradas.slice(0, visiveis).map((a) => {
+                  const marcada = marcadasUteis.has(a.id);
+                  return (
+                    <li key={a.id} className={`av-card ${a.propria ? "propria" : ""}`}>
+                      <div className="av-card-topo">
+                        <span className="av-avatar" style={{ background: corDoNome(a.nome) }} aria-hidden="true">
+                          {iniciais(a.nome)}
+                        </span>
+                        <div className="av-card-autor">
+                          <strong>{a.nome}</strong>
+                          {a.propria ? (
+                            <span className="av-selo av-selo-voce">Sua avaliação</span>
+                          ) : (
+                            <span className="av-selo">
+                              <BadgeCheck size={14} aria-hidden="true" /> Jogou aqui
+                            </span>
+                          )}
+                        </div>
+                        <time dateTime={a.data} title={formatarData(a.data)}>
+                          {tempoRelativo(a.data)}
+                        </time>
+                      </div>
+
+                      <div className="av-card-nota">
+                        <Estrelas valor={a.nota} />
+                        <span>{rotulosNota[a.nota]}</span>
+                      </div>
+
+                      <p className="av-card-texto">{a.texto}</p>
+
+                      <div className="av-card-rodape">
+                        <div className="av-card-aspectos">
+                          {a.aspectos.map((asp) => (
+                            <span key={asp}>{asp}</span>
+                          ))}
+                        </div>
+                        {!a.propria && (
+                          <button
+                            type="button"
+                            className="av-util"
+                            aria-pressed={marcada}
+                            onClick={() => alternarUtil(a.id)}
+                          >
+                            <ThumbsUp size={15} aria-hidden="true" /> Útil ({a.util + (marcada ? 1 : 0)})
+                          </button>
+                        )}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <div className="av-vazio">
+                <MessageSquarePlus size={40} aria-hidden="true" />
+                {total === 0 ? (
+                  <>
+                    <h3>Ainda não há avaliações</h3>
+                    <p>Seja o primeiro a contar como foi jogar na {quadra.nome}.</p>
+                    <button type="button" className="av-botao" onClick={() => setFormAberto(true)}>
+                      Escrever avaliação
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <h3>Nenhuma avaliação com esses filtros</h3>
+                    <p>Tente remover algum filtro para ver mais comentários.</p>
+                    <button type="button" className="av-botao av-botao-contorno" onClick={limparFiltros}>
+                      Limpar filtros
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+
+            {visiveis < filtradas.length && (
+              <button
+                type="button"
+                className="av-botao av-botao-contorno av-mais"
+                onClick={() => setVisiveis((v) => v + POR_PAGINA)}
+              >
+                Carregar mais avaliações
+              </button>
+            )}
+          </section>
         </div>
-        <div className="reviews-list">{visible.map(r => <article className="review-card" key={r.id}>
-          <div className="review-avatar">{r.nome.split(" ").slice(0,2).map(p => p[0]).join("").toUpperCase()}</div>
-          <div className="review-body"><div className="review-top"><div><h3>{r.nome}</h3><Stars value={r.nota} /></div><time>{r.data}</time></div><p>{r.texto}</p></div>
-        </article>)}
-        {!visible.length && <div className="reviews-empty"><h3>Nenhuma avaliação com essa nota</h3><button className="reviews-secondary" onClick={() => setFilter("all")}>Ver todas</button></div>}
+      </main>
+
+      {/* ===== Modal do formulário ===== */}
+      <dialog
+        ref={dialogRef}
+        className="av-modal"
+        aria-labelledby="av-form-titulo"
+        onClose={() => setFormAberto(false)}
+        onClick={(e) => e.target === e.currentTarget && setFormAberto(false)}
+      >
+        {formAberto && (
+          <FormAvaliacao quadra={quadra} onEnviar={publicar} onCancelar={() => setFormAberto(false)} />
+        )}
+      </dialog>
+
+      <Toast mensagem={toast} onFechar={() => setToast("")} />
+      <Footer />
+    </div>
+  );
+}
+
+function FormAvaliacao({ quadra, onEnviar, onCancelar }) {
+  const [nota, setNota] = useState(0);
+  const [hover, setHover] = useState(0);
+  const [nome, setNome] = useState("");
+  const [aspectos, setAspectos] = useState([]);
+  const [texto, setTexto] = useState("");
+  const [erros, setErros] = useState({});
+  const notaExibida = hover || nota;
+
+  function alternarAspecto(asp) {
+    setAspectos((atual) => (atual.includes(asp) ? atual.filter((x) => x !== asp) : [...atual, asp]));
+  }
+
+  function enviar(e) {
+    e.preventDefault();
+    const novos = {};
+    if (!nota) novos.nota = "Escolha uma nota de 1 a 5.";
+    if (!nome.trim()) novos.nome = "Informe seu nome.";
+    if (texto.trim().length < 20) novos.texto = "Escreva pelo menos 20 caracteres.";
+    setErros(novos);
+    if (Object.keys(novos).length) return;
+    onEnviar({ nota, nome: nome.trim(), aspectos, texto: texto.trim() });
+  }
+
+  return (
+    <form className="av-form" onSubmit={enviar} noValidate>
+      <div className="av-form-topo">
+        <div>
+          <h2 id="av-form-titulo">Avaliar {quadra.nome}</h2>
+          <p>Conte para outros jogadores como foi a sua experiência.</p>
+        </div>
+        <button type="button" className="av-fechar" onClick={onCancelar} aria-label="Fechar">
+          <X size={20} />
+        </button>
+      </div>
+
+      <fieldset className="av-campo">
+        <legend>Sua nota</legend>
+        <div className="av-seletor" onMouseLeave={() => setHover(0)}>
+          {[1, 2, 3, 4, 5].map((n) => (
+            <button
+              key={n}
+              type="button"
+              className={n <= notaExibida ? "on" : ""}
+              onClick={() => setNota(n)}
+              onMouseEnter={() => setHover(n)}
+              aria-label={`${n} ${n === 1 ? "estrela" : "estrelas"} - ${rotulosNota[n]}`}
+              aria-pressed={nota === n}
+            >
+              <Star size={34} />
+            </button>
+          ))}
+          <span className="av-seletor-rotulo">{notaExibida ? rotulosNota[notaExibida] : "Toque nas estrelas"}</span>
+        </div>
+        {erros.nota && <p className="av-erro">{erros.nota}</p>}
+      </fieldset>
+
+      <div className="av-campo">
+        <label htmlFor="av-nome">Seu nome</label>
+        <input
+          id="av-nome"
+          value={nome}
+          maxLength={80}
+          autoComplete="name"
+          placeholder="Como quer aparecer"
+          onChange={(e) => setNome(e.target.value)}
+          aria-invalid={!!erros.nome}
+        />
+        {erros.nome && <p className="av-erro">{erros.nome}</p>}
+      </div>
+
+      <fieldset className="av-campo">
+        <legend>
+          O que se destacou? <small>(opcional)</small>
+        </legend>
+        <div className="av-aspectos-lista">
+          {aspectosAvaliacao.map((asp) => (
+            <button
+              key={asp}
+              type="button"
+              className="av-aspecto"
+              aria-pressed={aspectos.includes(asp)}
+              onClick={() => alternarAspecto(asp)}
+            >
+              {asp}
+            </button>
+          ))}
+        </div>
+      </fieldset>
+
+      <div className="av-campo">
+        <label htmlFor="av-texto">Comentário</label>
+        <textarea
+          id="av-texto"
+          rows={4}
+          maxLength={500}
+          value={texto}
+          placeholder="Como estava a quadra, o atendimento, a estrutura..."
+          onChange={(e) => setTexto(e.target.value)}
+          aria-invalid={!!erros.texto}
+        />
+        <div className="av-campo-rodape">
+          {erros.texto ? <p className="av-erro">{erros.texto}</p> : <span />}
+          <small>{texto.length}/500</small>
         </div>
       </div>
-    </main>
-    <Footer />
-  </div>;
+
+      <div className="av-form-acoes">
+        <button type="button" className="av-botao av-botao-contorno" onClick={onCancelar}>
+          Cancelar
+        </button>
+        <button type="submit" className="av-botao">
+          Publicar avaliação
+        </button>
+      </div>
+    </form>
+  );
 }
