@@ -1,0 +1,151 @@
+/* =========================================================
+   GRÁFICO DE BARRAS (uma série) - prefixo "gb-"
+   Usado no Dashboard e no Financeiro da empresa.
+   ========================================================= */
+
+
+.gb {
+  padding-left: 52px; /* espaço para os valores do eixo */
+}
+
+.gb-area {
+  position: relative;
+  height: 240px;
+  margin-top: 24px; /* espaço para o rótulo da última barra */
+}
+
+.gb-grade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px solid var(--grade);
+}
+
+.gb-grade span {
+  position: absolute;
+  right: calc(100% + 10px);
+  top: -8px;
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.gb-colunas {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: stretch;
+}
+
+.gb-coluna {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+/* Área de toque maior que a barra */
+.gb-alvo {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  cursor: default;
+}
+
+.gb-alvo:hover,
+.gb-alvo:focus-visible {
+  background: rgba(7, 131, 78, 0.05);
+}
+
+.gb-barra {
+  position: relative;
+  width: 24px;
+  min-height: 2px;
+  border-radius: 4px 4px 0 0;
+  background: var(--green);
+  transition: height 0.4s ease;
+}
+
+.gb-rotulo {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.gb-dica {
+  position: absolute;
+  z-index: 5;
+  bottom: calc(100% - 12px);
+  left: 50%;
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 150px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--green-deep);
+  color: #fff;
+  font-size: 13px;
+  text-align: left;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.gb-dica strong {
+  text-transform: capitalize;
+}
+
+.gb-dica small {
+  color: #9fbfb2;
+}
+
+.gb-alvo:hover .gb-dica,
+.gb-alvo:focus-visible .gb-dica {
+  display: flex;
+}
+
+.gb-meses {
+  display: flex;
+  margin-top: 10px;
+}
+
+.gb-meses span {
+  flex: 1;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  text-transform: capitalize;
+}
+
+@media (max-width: 600px) {
+  .gb {
+    padding-left: 44px;
+  }
+
+  .gb-area {
+    height: 200px;
+  }
+
+  .gb-barra {
+    width: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gb-barra {
+    transition: none;
+  }
+}

@@ -46,23 +46,6 @@
   background: rgba(255, 255, 255, 0.2);
 }
 
-.mr-carregando {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 48px;
-  color: var(--muted);
-}
-
-.mr-girando {
-  animation: mr-girar 0.8s linear infinite;
-}
-
-@keyframes mr-girar {
-  to { transform: rotate(360deg); }
-}
-
 /* ===== Lista ===== */
 
 .mr-lista {
@@ -113,7 +96,7 @@
   min-width: 52px;
   padding: 6px 8px;
   border-radius: 12px;
-  background: #fff;
+  background: var(--surface);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
@@ -123,7 +106,7 @@
 }
 
 .mr-data span {
-  color: var(--green);
+  color: var(--green-texto);
   font-size: 11px;
   font-weight: 800;
   text-transform: uppercase;
@@ -144,7 +127,7 @@
 }
 
 .mr-modalidade {
-  color: var(--green);
+  color: var(--green-texto);
   font-size: 12px;
   font-weight: 700;
 }
@@ -177,7 +160,7 @@
 }
 
 .mr-info em {
-  color: var(--green);
+  color: var(--green-texto);
   font-style: normal;
   font-weight: 700;
   text-transform: none;
@@ -185,7 +168,7 @@
 
 .mr-info svg {
   flex-shrink: 0;
-  color: var(--green);
+  color: var(--green-texto);
 }
 
 .mr-rodape {
@@ -242,7 +225,7 @@
 }
 
 .mr-cancelar:hover:not(:disabled) {
-  background: #fdecea;
+  background: var(--erro-fundo);
 }
 
 .mr-cancelar:disabled {
@@ -253,9 +236,9 @@
 .mr-confirmar {
   flex: 1 1 320px;
   padding: 12px;
-  border: 1px solid #f3c7c1;
+  border: 1px solid var(--erro-borda);
   border-radius: 12px;
-  background: #fff7f6;
+  background: var(--erro-fundo);
 }
 
 .mr-confirmar p {

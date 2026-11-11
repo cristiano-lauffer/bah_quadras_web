@@ -1,10 +1,25 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>bah_quadras_web</title>
+    <title>Bah Quadras</title>
+    <meta
+      name="description"
+      content="Encontre quadras esportivas perto de você, compare preços e avaliações e reserve seu horário em poucos cliques."
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#063d30" />
+    <!--
+      Aplica o tema salvo (claro/escuro) antes de a página aparecer,
+      para não "piscar" branco ao abrir no modo escuro.
+    -->
+    <script>
+      try {
+        var tema = localStorage.getItem("bahquadras:tema");
+        if (tema === "claro" || tema === "escuro") document.documentElement.dataset.tema = tema;
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -3,28 +3,44 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft,
   ArrowRight,
-  CalendarCheck,
   CircleAlert,
   CircleCheck,
   Clock,
   CreditCard,
-  Info,
   LoaderCircle,
   MapPin,
   Star,
 } from "lucide-react";
-import Header from "../components/Header.jsx";
-import Footer from "../components/Footer.jsx";
 import { useDados } from "../hooks/useDados.js";
-import { buscarQuadraPorId, quadras } from "../data/quadras.js";
-import { empresaDemo } from "../data/empresa.js";
+import PaginaAgendamento from "../components/agendamento/PaginaAgendamento.jsx";
+import EscolherQuadra from "../components/agendamento/EscolherQuadra.jsx";
+import QuadraNaoEncontrada from "../components/agendamento/QuadraNaoEncontrada.jsx";
+import ReservaConfirmada from "../components/agendamento/ReservaConfirmada.jsx";
+import { buscarQuadraPublica } from "../services/catalogoService.js";
 import { buscarVinculoPublico, gradePadrao } from "../services/quadrasService.js";
 import { criarReserva, horariosOcupados } from "../services/reservasService.js";
-import { formatarData, formatarNota, formatarPreco, isoComDias, paraData, semAvaliacoes } from "../utils/formatadores.js";
+import { empresaAtual } from "../services/empresaService.js";
+import {
+  cobraPorBateria,
+  formatarData,
+  formatarNota,
+  formatarPreco,
+  isoComDias,
+  minutosBateria,
+  paraData,
+  semAvaliacoes,
+  somarMinutos,
+  unidadePreco,
+  foto,
+} from "../utils/formatadores.js";
 import "../css/Agendamento.css";
+import { useTitulo } from "../hooks/useTitulo.js";
+import Esqueleto from "../components/Esqueleto.jsx";
 
 const DIAS_VISIVEIS = 14;
-const DURACAO_MAXIMA = 3;
+const DURACAO_MAXIMA = 3; // horas
+const BATERIAS_MAXIMAS = 4; // kart: baterias dentro do mesmo horário
+const POLITICA_PADRAO = "Cancelamento gratuito até 24 horas antes do horário reservado.";
 const formasPagamento = ["Pix", "Cartão", "Dinheiro"];
 
 const somarHoras = (hora, n) => `${String(Number(hora.slice(0, 2)) + n).padStart(2, "0")}:00`;
@@ -33,61 +49,13 @@ export default function Agendamento() {
   const { id } = useParams();
   const [params] = useSearchParams();
 
-  if (!id) return <EscolherQuadra />;
+  const quadra = id ? buscarQuadraPublica(id) : null;
+  useTitulo(!id ? "Escolha uma quadra" : quadra ? `Reservar ${quadra.nome}` : "Quadra não encontrada");
 
-  const quadra = buscarQuadraPorId(id);
+  if (!id) return <EscolherQuadra />;
   if (!quadra) return <QuadraNaoEncontrada />;
 
   return <Reserva key={id} quadra={quadra} dataInicial={params.get("data")} horaInicial={params.get("hora")} />;
-}
-
-function Pagina({ children }) {
-  return (
-    <div className="public-page ag">
-      <Header />
-      <main className="ag-container">{children}</main>
-      <Footer />
-    </div>
-  );
-}
-
-function EscolherQuadra() {
-  return (
-    <Pagina>
-      <header className="ag-cabecalho-simples">
-        <h1>Qual quadra você quer reservar?</h1>
-        <p>Escolha uma quadra para ver os horários livres.</p>
-      </header>
-      <ul className="ag-escolher">
-        {quadras.map((q) => (
-          <li key={q.id}>
-            <Link to={`/agendamento/${q.id}`} className="ag-escolher-card">
-              <img src={q.imagens[0]} alt="" loading="lazy" />
-              <span>
-                <small>{q.modalidade}</small>
-                <strong>{q.nome}</strong>
-                <span>{formatarPreco(q.preco)}/h · {q.bairro}</span>
-              </span>
-              <ArrowRight size={18} aria-hidden="true" />
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </Pagina>
-  );
-}
-
-function QuadraNaoEncontrada() {
-  return (
-    <Pagina>
-      <div className="ag-aviso-grande">
-        <CircleAlert size={40} aria-hidden="true" />
-        <h1>Quadra não encontrada</h1>
-        <p>O link pode estar incorreto ou a quadra não está mais disponível.</p>
-        <Link to="/agendamento" className="ag-botao">Ver todas as quadras</Link>
-      </div>
-    </Pagina>
-  );
 }
 
 /* ================================================================
@@ -128,14 +96,22 @@ function Reserva({ quadra, dataInicial, horaInicial }) {
   });
   const livre = (h) => horarios.find((x) => x.hora === h)?.estado === "livre";
 
-  // Quantas horas seguidas estão livres a partir do horário escolhido.
+  // Kart é cobrado por bateria: as baterias cabem dentro de um horário de 1 hora.
+  const kart = cobraPorBateria(quadra);
+  const minBateria = minutosBateria(quadra);
+  const maximoOpcoes = kart ? BATERIAS_MAXIMAS : DURACAO_MAXIMA;
+
+  // Quantas opções (horas seguidas ou baterias) estão disponíveis no horário escolhido.
   let duracaoPossivel = 0;
   if (hora && livre(hora)) {
-    while (duracaoPossivel < DURACAO_MAXIMA && livre(somarHoras(hora, duracaoPossivel))) duracaoPossivel++;
+    if (kart) duracaoPossivel = BATERIAS_MAXIMAS;
+    else while (duracaoPossivel < DURACAO_MAXIMA && livre(somarHoras(hora, duracaoPossivel))) duracaoPossivel++;
   }
   const horaValida = duracaoPossivel > 0;
   const duracaoFinal = Math.min(duracao, Math.max(duracaoPossivel, 1));
   const total = preco * duracaoFinal;
+  const fimEscolhido = (n) => (kart ? somarMinutos(hora, n * minBateria) : somarHoras(hora, n));
+  const politica = vinculo ? empresaAtual().politicaCancelamento : POLITICA_PADRAO;
   const livresNoDia = horarios.filter((h) => h.estado === "livre").length;
 
   function escolherData(novaData) {
@@ -153,7 +129,8 @@ function Reserva({ quadra, dataInicial, horaInicial }) {
       endereco: `${quadra.bairro}, ${quadra.cidade}`,
       data,
       hora,
-      duracao: duracaoFinal,
+      duracao: kart ? 1 : duracaoFinal, // horas que o horário fica ocupado
+      ...(kart && { baterias: duracaoFinal, minutosBateria: minBateria }),
       valor: total,
       pagamento,
     });
@@ -166,49 +143,22 @@ function Reserva({ quadra, dataInicial, horaInicial }) {
   /* ---------- Reserva concluída ---------- */
   if (etapa === "concluido" && reserva) {
     return (
-      <Pagina>
-        <section className="ag-sucesso">
-          <span className="ag-sucesso-icone" aria-hidden="true">
-            <CircleCheck size={44} />
-          </span>
-          <h1>Reserva confirmada!</h1>
-          <p>Te esperamos na quadra. Você encontra esta reserva em Minhas reservas.</p>
-
-          <dl className="ag-recibo">
-            <div><dt>Quadra</dt><dd>{quadra.nome}</dd></div>
-            <div><dt>Data</dt><dd>{formatarData(reserva.data, { weekday: "long", day: "numeric", month: "long" })}</dd></div>
-            <div><dt>Horário</dt><dd>{reserva.hora} às {somarHoras(reserva.hora, reserva.duracao)}</dd></div>
-            <div><dt>Pagamento</dt><dd>{reserva.pagamento} no local</dd></div>
-            <div className="ag-recibo-total"><dt>Total</dt><dd>{formatarPreco(reserva.valor, 2)}</dd></div>
-          </dl>
-
-          <p className="ag-nota">
-            <Info size={15} aria-hidden="true" /> Demonstração: a reserva fica salva apenas neste navegador.
-          </p>
-
-          <div className="ag-sucesso-acoes">
-            <Link to="/usuario/reservas" className="ag-botao">
-              <CalendarCheck size={18} aria-hidden="true" /> Ver minhas reservas
-            </Link>
-            <Link to="/" className="ag-botao ag-botao-contorno">
-              Voltar ao início
-            </Link>
-          </div>
-        </section>
-      </Pagina>
+      <PaginaAgendamento>
+        <ReservaConfirmada quadra={quadra} reserva={reserva} />
+      </PaginaAgendamento>
     );
   }
 
   const indisponivel = situacao !== "ativa";
 
   return (
-    <Pagina>
+    <PaginaAgendamento>
       <Link to={`/quadra/${quadra.id}`} className="ag-voltar">
         <ArrowLeft size={16} aria-hidden="true" /> Voltar para a quadra
       </Link>
 
       <header className="ag-quadra">
-        <img src={quadra.imagens[0]} alt="" />
+        <img {...foto(quadra.imagens[0], 200)} alt="" />
         <div>
           <span className="ag-tag">{quadra.modalidade}</span>
           <h1>Reservar {quadra.nome}</h1>
@@ -235,9 +185,7 @@ function Reserva({ quadra, dataInicial, horaInicial }) {
       <div className="ag-layout">
         <div className="ag-principal">
           {carregandoVinculo ? (
-            <p className="ag-carregando" role="status">
-              <LoaderCircle size={18} className="ag-girando" aria-hidden="true" /> Carregando disponibilidade...
-            </p>
+            <Esqueleto tipo="lista" quantidade={3} rotulo="Carregando disponibilidade..." />
           ) : indisponivel ? (
             <div className="ag-aviso-grande">
               <CircleAlert size={40} aria-hidden="true" />
@@ -291,9 +239,7 @@ function Reserva({ quadra, dataInicial, horaInicial }) {
                 </div>
 
                 {carregandoHorarios ? (
-                  <p className="ag-carregando" role="status">
-                    <LoaderCircle size={18} className="ag-girando" aria-hidden="true" /> Buscando horários...
-                  </p>
+                  <Esqueleto tipo="botoes" quantidade={10} rotulo="Buscando horários..." />
                 ) : horarios.length === 0 ? (
                   <p className="ag-vazio">A quadra não abre neste dia.</p>
                 ) : livresNoDia === 0 ? (
@@ -326,9 +272,10 @@ function Reserva({ quadra, dataInicial, horaInicial }) {
               {/* ===== Duração ===== */}
               {horaValida && (
                 <section className="ag-card" aria-labelledby="ag-duracao-titulo">
-                  <h2 id="ag-duracao-titulo">Por quanto tempo?</h2>
+                  <h2 id="ag-duracao-titulo">{kart ? "Quantas baterias?" : "Por quanto tempo?"}</h2>
+                  {kart && <p className="ag-texto">Cada bateria tem {minBateria} minutos.</p>}
                   <div className="ag-duracoes" role="radiogroup" aria-label="Duração">
-                    {Array.from({ length: DURACAO_MAXIMA }, (_, i) => i + 1).map((n) => (
+                    {Array.from({ length: maximoOpcoes }, (_, i) => i + 1).map((n) => (
                       <button
                         key={n}
                         type="button"
@@ -338,8 +285,8 @@ function Reserva({ quadra, dataInicial, horaInicial }) {
                         className="ag-duracao"
                         onClick={() => setDuracao(n)}
                       >
-                        <strong>{n}h</strong>
-                        <small>{n > duracaoPossivel ? "Indisponível" : `até ${somarHoras(hora, n)}`}</small>
+                        <strong>{kart ? `${n} ${n === 1 ? "bateria" : "baterias"}` : `${n}h`}</strong>
+                        <small>{n > duracaoPossivel ? "Indisponível" : `até ${fimEscolhido(n)}`}</small>
                       </button>
                     ))}
                   </div>
@@ -366,7 +313,7 @@ function Reserva({ quadra, dataInicial, horaInicial }) {
 
               <div className="ag-politica">
                 <strong>Política de cancelamento</strong>
-                <p>{empresaDemo.politicaCancelamento}</p>
+                <p>{politica}</p>
               </div>
 
               <label className="ag-aceite">
@@ -388,10 +335,10 @@ function Reserva({ quadra, dataInicial, horaInicial }) {
               </div>
               <div>
                 <dt>Horário</dt>
-                <dd>{horaValida ? `${hora} às ${somarHoras(hora, duracaoFinal)}` : "Escolha um horário"}</dd>
+                <dd>{horaValida ? `${hora} às ${fimEscolhido(duracaoFinal)}` : "Escolha um horário"}</dd>
               </div>
               <div>
-                <dt>Valor por hora</dt>
+                <dt>Valor por {unidadePreco(quadra)}</dt>
                 <dd>{formatarPreco(preco, 2)}</dd>
               </div>
               <div className="ag-resumo-total">
@@ -435,6 +382,6 @@ function Reserva({ quadra, dataInicial, horaInicial }) {
           </aside>
         )}
       </div>
-    </Pagina>
+    </PaginaAgendamento>
   );
 }

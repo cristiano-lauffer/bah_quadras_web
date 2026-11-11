@@ -37,7 +37,7 @@
 .fq-select:focus,
 .fq-textarea:focus {
   outline: none;
-  border-color: var(--green);
+  border-color: var(--green-texto);
   box-shadow: 0 0 0 4px rgba(7, 131, 78, 0.12);
 }
 
@@ -83,7 +83,7 @@
   padding: 12px 14px;
   border-radius: 12px;
   background: var(--green-light);
-  color: var(--green-dark);
+  color: var(--green-forte);
   font-size: 14px;
 }
 
@@ -115,11 +115,11 @@
 }
 
 .fq-opcao:hover {
-  border-color: var(--green);
+  border-color: var(--green-texto);
 }
 
 .fq-opcao.marcada {
-  border-color: var(--green);
+  border-color: var(--green-texto);
   background: var(--green-light);
 }
 
@@ -182,7 +182,7 @@
 }
 
 .fq-foto[aria-checked="true"] {
-  border-color: var(--green);
+  border-color: var(--green-texto);
 }
 
 .fq-foto[aria-checked="true"]::after {
@@ -256,13 +256,13 @@
 }
 
 .fq-status-opcao:hover {
-  border-color: var(--green);
+  border-color: var(--green-texto);
 }
 
 .fq-status-opcao[aria-checked="true"] {
-  border-color: var(--green);
+  border-color: var(--green-texto);
   background: var(--green-light);
-  color: var(--green-dark);
+  color: var(--green-forte);
 }
 
 .fq-status-ajuda {
@@ -280,7 +280,7 @@
   margin-top: 1px;
 }
 
-.fq-status-ajuda.ok svg { color: var(--green); }
+.fq-status-ajuda.ok svg { color: var(--green-texto); }
 .fq-status-ajuda.alerta svg { color: var(--pn-alerta); }
 
 /* Prévia */
@@ -323,8 +323,8 @@
   bottom: 10px;
   padding: 4px 10px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.95);
-  color: var(--green-dark);
+  background: var(--surface-translucida);
+  color: var(--green-forte);
   font-size: 11px;
   font-weight: 700;
 }
@@ -352,7 +352,7 @@
 }
 
 .fq-previa-corpo p strong {
-  color: var(--green-dark);
+  color: var(--green-forte);
   font-size: 18px;
 }
 

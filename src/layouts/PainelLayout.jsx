@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { LogOut, Menu, X } from "lucide-react";
+import { useTitulo } from "../hooks/useTitulo.js";
+import BotaoTema from "../components/BotaoTema.jsx";
 import "../css/Painel.css";
 
 /**
@@ -12,12 +14,16 @@ import "../css/Painel.css";
  *     "ativo" é opcional; sem ele, o item fica ativo quando o caminho é igual a "to"
  *     (ou começa com "prefixo", se informado).
  * - perfil: { nome, subtitulo, avatar (texto ou elemento) }
- * - titulo, subtitulo: cabeçalho da página
+ * - titulo, subtitulo: cabeçalho da página (o título também vai para a aba do navegador)
+ * - tituloAba: texto da aba, quando for diferente do título
  * - acoes: botões exibidos à direita do título
  */
-export default function PainelLayout({ variante = "empresa", rotulo, menu, perfil, titulo, subtitulo, acoes, children }) {
+export default function PainelLayout({ variante = "empresa", rotulo, menu, perfil, titulo, tituloAba, subtitulo, acoes, children }) {
   const [menuAberto, setMenuAberto] = useState(false);
   const { pathname, search } = useLocation();
+  // O título da página vira o título da aba (ex.: "Dashboard · Bah Quadras").
+  // "tituloAba" permite um texto diferente do cabeçalho (ex.: "Minha área" em vez de "Olá, João!").
+  useTitulo(tituloAba ?? (typeof titulo === "string" ? titulo : undefined));
 
   // "prefixo" deixa o item ativo também nas subpáginas (ex.: /empresa/quadras/nova).
   const estaAtivo = (item) =>
@@ -99,7 +105,10 @@ export default function PainelLayout({ variante = "empresa", rotulo, menu, perfi
             <h1>{titulo}</h1>
             {subtitulo && <p>{subtitulo}</p>}
           </div>
-          {acoes && <div className="pn-topo-acoes">{acoes}</div>}
+          <div className="pn-topo-acoes">
+            {acoes}
+            <BotaoTema />
+          </div>
         </header>
 
         <main id="pn-conteudo" className="pn-conteudo" tabIndex={-1}>

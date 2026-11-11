@@ -5,7 +5,7 @@
 
 .ag {
   --ag-gold: #ffb020;
-  --ag-erro: #c0392b;
+  --ag-erro: var(--erro);
   --ag-radius: 16px;
   --ag-shadow: 0 1px 2px rgba(6, 61, 48, 0.05), 0 8px 24px rgba(6, 61, 48, 0.07);
 
@@ -55,7 +55,7 @@
 }
 
 .ag-botao:hover:not(:disabled) {
-  border-color: var(--green-dark);
+  border-color: var(--green-forte);
   background: var(--green-dark);
 }
 
@@ -71,9 +71,9 @@
 }
 
 .ag-botao-contorno:hover:not(:disabled) {
-  border-color: var(--green);
+  border-color: var(--green-texto);
   background: var(--surface);
-  color: var(--green);
+  color: var(--green-texto);
 }
 
 .ag-voltar {
@@ -88,7 +88,7 @@
 }
 
 .ag-voltar:hover {
-  color: var(--green);
+  color: var(--green-texto);
 }
 
 /* ===== Cabeçalho da quadra ===== */
@@ -113,7 +113,7 @@
   padding: 3px 10px;
   border-radius: 999px;
   background: var(--green-light);
-  color: var(--green-dark);
+  color: var(--green-forte);
   font-size: 12px;
   font-weight: 700;
 }
@@ -187,12 +187,12 @@
 }
 
 .ag-passos li.feito {
-  color: var(--green-dark);
+  color: var(--green-forte);
 }
 
 .ag-passos li.feito span {
   background: var(--green-light);
-  color: var(--green);
+  color: var(--green-texto);
 }
 
 /* ===== Layout ===== */
@@ -248,7 +248,6 @@
   margin-bottom: 18px;
 }
 
-.ag-carregando,
 .ag-vazio {
   display: flex;
   align-items: center;
@@ -315,11 +314,11 @@
 }
 
 .ag-dia:hover:not(:disabled) {
-  border-color: var(--green);
+  border-color: var(--green-texto);
 }
 
 .ag-dia[aria-checked="true"] {
-  border-color: var(--green);
+  border-color: var(--green-texto);
   background: var(--green);
   color: #fff;
 }
@@ -361,7 +360,7 @@
 }
 
 .ag-legenda i.ocupado {
-  background: repeating-linear-gradient(45deg, #e3e9e6, #e3e9e6 3px, #f3f6f4 3px, #f3f6f4 6px);
+  background: repeating-linear-gradient(45deg, var(--listrado-1), var(--listrado-1) 3px, var(--listrado-2) 3px, var(--listrado-2) 6px);
 }
 
 .ag-horarios {
@@ -375,7 +374,7 @@
   border: 1.5px solid var(--green);
   border-radius: 11px;
   background: var(--surface);
-  color: var(--green-dark);
+  color: var(--green-forte);
   font: inherit;
   font-size: 15px;
   font-weight: 700;
@@ -395,8 +394,8 @@
 
 .ag-horario.ocupado {
   border-color: transparent;
-  background: repeating-linear-gradient(45deg, #e3e9e6, #e3e9e6 4px, #f3f6f4 4px, #f3f6f4 8px);
-  color: #98a7a0;
+  background: repeating-linear-gradient(45deg, var(--listrado-1), var(--listrado-1) 4px, var(--listrado-2) 4px, var(--listrado-2) 8px);
+  color: var(--muted);
   text-decoration: line-through;
   cursor: not-allowed;
 }
@@ -404,7 +403,7 @@
 .ag-horario.passado {
   border-color: var(--line);
   background: var(--page);
-  color: #b3beb9;
+  color: var(--muted);
   cursor: not-allowed;
 }
 
@@ -412,7 +411,7 @@
 
 .ag-duracoes {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
   gap: 10px;
 }
 
@@ -440,13 +439,13 @@
 }
 
 .ag-duracao:hover:not(:disabled) {
-  border-color: var(--green);
+  border-color: var(--green-texto);
 }
 
 .ag-duracao[aria-checked="true"] {
-  border-color: var(--green);
+  border-color: var(--green-texto);
   background: var(--green-light);
-  color: var(--green-dark);
+  color: var(--green-forte);
 }
 
 .ag-duracao:disabled {
@@ -489,9 +488,9 @@
 }
 
 .ag-pagamento label.marcado {
-  border-color: var(--green);
+  border-color: var(--green-texto);
   background: var(--green-light);
-  color: var(--green-dark);
+  color: var(--green-forte);
 }
 
 .ag-pagamento input {
@@ -530,7 +529,7 @@
   width: 18px;
   height: 18px;
   margin: 1px 0 0;
-  accent-color: var(--green);
+  accent-color: var(--green-texto);
 }
 
 /* ===== Resumo ===== */
@@ -581,7 +580,7 @@
 }
 
 .ag-resumo-total dd {
-  color: var(--green-dark);
+  color: var(--green-forte);
   font-size: 20px;
   font-weight: 850;
 }
@@ -615,7 +614,7 @@
   height: 84px;
   border-radius: 50%;
   background: var(--green-light);
-  color: var(--green);
+  color: var(--green-texto);
   animation: ag-pulo 0.5s ease-out;
 }
 
@@ -666,13 +665,67 @@
 }
 
 .ag-recibo-total dd {
-  color: var(--green-dark);
+  color: var(--green-forte);
   font-size: 18px;
 }
 
 .ag-sucesso .ag-nota {
   justify-content: center;
   margin-bottom: 22px;
+}
+
+.ag-extras {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0 0 22px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  text-align: left;
+}
+
+.ag-extras-titulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.ag-extras-titulo svg {
+  color: var(--green-texto);
+}
+
+.ag-extras-botoes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.ag-extras .ag-botao {
+  height: 44px;
+  padding: 0 12px;
+  font-size: 14px;
+}
+
+/* Verde do WhatsApp, com texto branco nos dois temas */
+.ag-botao-whatsapp {
+  border-color: #15803d;
+  background: #15803d;
+  color: #fff;
+}
+
+.ag-botao-whatsapp:hover:not(:disabled) {
+  border-color: #126b35;
+  background: #126b35;
+}
+
+@media (max-width: 480px) {
+  .ag-extras-botoes {
+    grid-template-columns: 1fr;
+  }
 }
 
 .ag-sucesso-acoes {
@@ -721,7 +774,7 @@
 }
 
 .ag-escolher-card:hover {
-  border-color: var(--green);
+  border-color: var(--green-texto);
   transform: translateY(-2px);
 }
 
@@ -739,7 +792,7 @@
 }
 
 .ag-escolher-card small {
-  color: var(--green);
+  color: var(--green-texto);
   font-size: 12px;
   font-weight: 700;
 }
@@ -750,7 +803,7 @@
 }
 
 .ag-escolher-card > svg {
-  color: var(--green);
+  color: var(--green-texto);
 }
 
 .ag-aviso-grande {

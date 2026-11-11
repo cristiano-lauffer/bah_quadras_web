@@ -1,105 +1,78 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { lazy, Suspense } from "react";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import Home from "../pages/Home";
-import Login from "../pages/Login";
-import Cadastro from "../pages/Cadastro";
-import CadastroUsuario from "../pages/CadastroUsuario";
-import CadastroEmpresa from "../pages/CadastroEmpresa";
-import DashboardEmpresa from "../pages/DashboardEmpresa";
-import PerfilEmpresa from "../pages/PerfilEmpresa";
-import EditarPerfilEmpresa from "../pages/EditarPerfilEmpresa";
-import PerfilUsuario from "../pages/PerfilUsuario";
-import QuadrasEmpresa from "../pages/QuadrasEmpresa";
-import CadastroQuadra from "../pages/CadastroQuadra";
-import EditarQuadra from "../pages/EditarQuadra";
-import HorariosQuadra from "../pages/HorariosQuadra";
-import Avaliacoes from "../pages/Avaliacoes";
-import Agendamento from "../pages/Agendamento";
-import NotFound from "../pages/NotFound";
-import DetalhesQuadra from "../pages/DetalhesQuadra";
-import MinhasReservas from "../pages/MinhasReservas";
+import RolarParaTopo from "../components/RolarParaTopo";
+import CarregandoPagina from "../components/CarregandoPagina";
+
+// A Home é a porta de entrada: carrega junto com o site.
+// As demais páginas viram arquivos separados, baixados só quando abertas
+// (quem visita só a Home não baixa, por exemplo, o painel da empresa).
+const Login = lazy(() => import("../pages/Login"));
+const Cadastro = lazy(() => import("../pages/Cadastro"));
+const CadastroUsuario = lazy(() => import("../pages/CadastroUsuario"));
+const CadastroEmpresa = lazy(() => import("../pages/CadastroEmpresa"));
+const DetalhesQuadra = lazy(() => import("../pages/DetalhesQuadra"));
+const Agendamento = lazy(() => import("../pages/Agendamento"));
+const Avaliacoes = lazy(() => import("../pages/Avaliacoes"));
+const NotFound = lazy(() => import("../pages/NotFound"));
+
+// Área do jogador
+const PerfilUsuario = lazy(() => import("../pages/PerfilUsuario"));
+const MinhasReservas = lazy(() => import("../pages/MinhasReservas"));
+
+// Área da empresa
+const DashboardEmpresa = lazy(() => import("../pages/DashboardEmpresa"));
+const ReservasEmpresa = lazy(() => import("../pages/ReservasEmpresa"));
+const QuadrasEmpresa = lazy(() => import("../pages/QuadrasEmpresa"));
+const CadastroQuadra = lazy(() => import("../pages/CadastroQuadra"));
+const EditarQuadra = lazy(() => import("../pages/EditarQuadra"));
+const HorariosQuadra = lazy(() => import("../pages/HorariosQuadra"));
+const FinanceiroEmpresa = lazy(() => import("../pages/FinanceiroEmpresa"));
+const AvaliacoesEmpresa = lazy(() => import("../pages/AvaliacoesEmpresa"));
+const Notificacoes = lazy(() => import("../pages/Notificacoes"));
+const PerfilEmpresa = lazy(() => import("../pages/PerfilEmpresa"));
+const EditarPerfilEmpresa = lazy(() => import("../pages/EditarPerfilEmpresa"));
 
 export default function AppRoutes() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
+      <RolarParaTopo />
+      <Suspense fallback={<CarregandoPagina />}>
+        <Routes>
+          {/* Páginas públicas */}
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/cadastro" element={<Cadastro />} />
+          <Route path="/cadastro/usuario" element={<CadastroUsuario />} />
+          <Route path="/cadastro/empresa" element={<CadastroEmpresa />} />
+          <Route path="/quadra/:id" element={<DetalhesQuadra />} />
+          <Route path="/agendamento" element={<Agendamento />} />
+          <Route path="/agendamento/:id" element={<Agendamento />} />
+          <Route path="/avaliacoes" element={<Avaliacoes />} />
+          <Route path="/avaliacoes/:id" element={<Avaliacoes />} />
 
-        <Route path="/login" element={<Login />} />
+          {/* Área do jogador */}
+          <Route path="/usuario/perfil" element={<PerfilUsuario />} />
+          <Route path="/usuario/reservas" element={<MinhasReservas />} />
 
-        <Route path="/cadastro" element={<Cadastro />} />
+          {/* Área da empresa */}
+          <Route path="/empresa" element={<Navigate to="/empresa/dashboard" replace />} />
+          <Route path="/empresa/dashboard" element={<DashboardEmpresa />} />
+          <Route path="/empresa/reservas" element={<ReservasEmpresa />} />
+          <Route path="/empresa/quadras" element={<QuadrasEmpresa />} />
+          <Route path="/empresa/quadras/nova" element={<CadastroQuadra />} />
+          <Route path="/empresa/quadras/:id/editar" element={<EditarQuadra />} />
+          <Route path="/empresa/quadras/:id/horarios" element={<HorariosQuadra />} />
+          <Route path="/empresa/financeiro" element={<FinanceiroEmpresa />} />
+          <Route path="/empresa/avaliacoes" element={<AvaliacoesEmpresa />} />
+          <Route path="/empresa/notificacoes" element={<Notificacoes />} />
+          <Route path="/empresa/perfil" element={<PerfilEmpresa />} />
+          <Route path="/empresa/editar" element={<EditarPerfilEmpresa />} />
+          <Route path="/perfil" element={<Navigate to="/empresa/perfil" replace />} />
 
-        <Route
-          path="/cadastro/usuario"
-          element={<CadastroUsuario />}
-        />
-
-        <Route
-          path="/cadastro/empresa"
-          element={<CadastroEmpresa />}
-        />
-
-        <Route
-          path="/empresa"
-          element={<Navigate to="/empresa/dashboard" replace />}
-        />
-
-        <Route
-          path="/empresa/dashboard"
-          element={<DashboardEmpresa />}
-        />
-
-        <Route
-          path="/empresa/perfil"
-          element={<PerfilEmpresa />}
-        />
-
-        <Route
-          path="/empresa/editar"
-          element={<EditarPerfilEmpresa />}
-        />
-
-        <Route
-          path="/avaliacoes" element={<Avaliacoes />}
-        />
-
-        <Route path="/avaliacoes/:id" element={<Avaliacoes />} />
-
-        <Route 
-          path="/agendamento" element={<Agendamento />} 
-        />
-
-        <Route 
-          path="/agendamento/:id" element={<Agendamento />} 
-        />
-
-        <Route
-          path="/empresa/quadras"
-          element={<QuadrasEmpresa />}
-        />
-
-        <Route path="/empresa/quadras/nova" element={<CadastroQuadra />} />
-
-        <Route path="/empresa/quadras/:id/editar" element={<EditarQuadra />} />
-
-        <Route path="/empresa/quadras/:id/horarios" element={<HorariosQuadra />} />
-
-        <Route
-          path="/usuario/reservas"
-          element={<MinhasReservas />}
-        />
-
-        <Route
-          path="/perfil"
-          element={<Navigate to="/empresa/perfil" replace />}
-        />
-
-        <Route path="/quadra/:id" element={<DetalhesQuadra />} />
-
-        <Route path="/usuario/perfil" element={<PerfilUsuario />} />
-
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
     </BrowserRouter>
-
   );
 }

@@ -15,25 +15,8 @@
 }
 
 .pn-chip[aria-pressed="true"] .qe-contagem {
-  background: #fff;
-  color: var(--green-dark);
-}
-
-.qe-carregando {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 48px;
-  color: var(--muted);
-}
-
-.qe-girando {
-  animation: qe-girar 0.8s linear infinite;
-}
-
-@keyframes qe-girar {
-  to { transform: rotate(360deg); }
+  background: var(--surface);
+  color: var(--green-forte);
 }
 
 .qe-grade {
@@ -61,7 +44,7 @@
   place-items: center;
   aspect-ratio: 16 / 9;
   background: var(--green-light);
-  color: var(--green);
+  color: var(--green-texto);
 }
 
 .qe-foto img {
@@ -93,7 +76,7 @@
 }
 
 .qe-modalidade {
-  color: var(--green);
+  color: var(--green-texto);
   font-size: 12px;
   font-weight: 700;
 }
@@ -161,11 +144,11 @@
 }
 
 .qe-status-botao:hover:not(:disabled) {
-  background: #fdecea;
+  background: var(--erro-fundo);
 }
 
 .qe-status-botao.reativar {
-  color: var(--green);
+  color: var(--green-texto);
 }
 
 .qe-status-botao.reativar:hover:not(:disabled) {
@@ -180,9 +163,9 @@
 .qe-confirmar {
   margin-top: auto;
   padding: 12px;
-  border: 1px solid #f3c7c1;
+  border: 1px solid var(--erro-borda);
   border-radius: 12px;
-  background: #fff7f6;
+  background: var(--erro-fundo);
 }
 
 .qe-confirmar p {

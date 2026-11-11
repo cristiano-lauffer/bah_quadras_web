@@ -3,8 +3,10 @@ import { Link } from "react-router-dom";
 import { ArrowRight, Eye, EyeOff, Info, LoaderCircle, Lock, Mail } from "lucide-react";
 import AuthLayout, { Campo } from "../layouts/AuthLayout.jsx";
 import { emailValido } from "../utils/mascaras.js";
+import { useTitulo } from "../hooks/useTitulo.js";
 
 export default function Login() {
+  useTitulo("Entrar");
   const [form, setForm] = useState({ email: "", senha: "", lembrar: false });
   const [erros, setErros] = useState({});
   const [mostrarSenha, setMostrarSenha] = useState(false);

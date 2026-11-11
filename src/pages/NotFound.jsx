@@ -1,7 +1,9 @@
 import { Link, useNavigate } from "react-router-dom";
 import "../css/NotFound.css";
+import { useTitulo } from "../hooks/useTitulo.js";
 
 export default function NotFound() {
+  useTitulo("Página não encontrada");
   const navigate = useNavigate();
 
   function voltarPagina() {

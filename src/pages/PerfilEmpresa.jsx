@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   AtSign,
@@ -21,46 +22,64 @@ import {
   Wrench,
 } from "lucide-react";
 import EmpresaLayout from "../layouts/EmpresaLayout.jsx";
-import { empresaDemo, quadrasEmpresa } from "../data/empresa.js";
+import Toast from "../components/Toast.jsx";
+import { quadrasEmpresa } from "../data/empresa.js";
+import { empresaAtual, obterEmpresa } from "../services/empresaService.js";
+import { contarSemResposta } from "../services/respostasService.js";
 import { buscarQuadraPorId } from "../data/quadras.js";
 import { useDados } from "../hooks/useDados.js";
-import { listarQuadras } from "../services/quadrasService.js";
-import { formatarData, formatarNota, formatarPreco } from "../utils/formatadores.js";
+import { idPublico, listarQuadras } from "../services/quadrasService.js";
+import { formatarData, formatarNota, formatarPreco, foto as fotoTamanho } from "../utils/formatadores.js";
 import "../css/PerfilEmpresa.css";
 
-const empresa = empresaDemo;
 const quadraPublica = buscarQuadraPorId("arena-sport");
-const { rua, numero, bairro, cidade, estado, cep } = empresa.endereco;
-const enderecoCompleto = `${rua}, ${numero} - ${bairro}, ${cidade}/${estado}`;
-
-// Itens que deixam o perfil mais completo para os jogadores.
-const checklist = [
-  { texto: "Logo e foto de capa", feito: Boolean(empresa.logo && empresa.capa) },
-  { texto: "Descrição da empresa", feito: empresa.descricao.length > 50 },
-  { texto: "Pelo menos 4 fotos", feito: empresa.fotos.length >= 4 },
-  { texto: "Horário de funcionamento", feito: empresa.horarios.length === 7 },
-  { texto: "Redes sociais", feito: Boolean(empresa.instagram) },
-  { texto: "CNPJ verificado", feito: empresa.verificada },
-  { texto: "Vídeo do espaço", feito: false },
-  { texto: "Responder às avaliações", feito: false },
-];
-const completude = Math.round((checklist.filter((c) => c.feito).length / checklist.length) * 100);
 
 const paraMinutos = (h) => (h === "00:00" ? 24 * 60 : Number(h.slice(0, 2)) * 60 + Number(h.slice(3, 5)));
 
-function situacaoAgora() {
+// Itens que deixam o perfil mais completo para os jogadores.
+function montarChecklist(empresa) {
+  return [
+    { texto: "Logo e foto de capa", feito: Boolean(empresa.logo && empresa.capa) },
+    { texto: "Descrição da empresa", feito: empresa.descricao.length > 50 },
+    { texto: "Pelo menos 4 fotos", feito: empresa.fotos.length >= 4 },
+    { texto: "Horário de funcionamento", feito: empresa.horarios.some((h) => h.abre) },
+    { texto: "Redes sociais", feito: Boolean(empresa.instagram) },
+    { texto: "CNPJ verificado", feito: empresa.verificada },
+    { texto: "Vídeo do espaço", feito: false },
+    { texto: "Responder às avaliações", feito: contarSemResposta() === 0 },
+  ];
+}
+
+function situacaoAgora(empresa) {
   const agora = new Date();
   const hoje = empresa.horarios.find((h) => h.dia === agora.getDay());
   const minutos = agora.getHours() * 60 + agora.getMinutes();
-  const aberto = hoje && minutos >= paraMinutos(hoje.abre) && minutos < paraMinutos(hoje.fecha);
+  const aberto = Boolean(hoje?.abre) && minutos >= paraMinutos(hoje.abre) && minutos < paraMinutos(hoje.fecha);
   return { aberto, hoje };
 }
 
 export default function PerfilEmpresa() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [toast, setToast] = useState(location.state?.aviso ?? "");
+
+  // Dados salvos pelo "Editar perfil" (os dados atuais evitam a tela "piscar").
+  const { dados: empresaSalva } = useDados(obterEmpresa);
+  const empresa = empresaSalva ?? empresaAtual();
+  const { rua, numero, bairro, cidade, estado, cep } = empresa.endereco;
+  const enderecoCompleto = `${rua}, ${numero}${bairro ? ` - ${bairro}` : ""}, ${cidade}/${estado}`;
+  const checklist = montarChecklist(empresa);
+  const completude = Math.round((checklist.filter((c) => c.feito).length / checklist.length) * 100);
+
   // Só as quadras que os jogadores podem ver (desativadas ficam de fora).
   const { dados } = useDados(listarQuadras);
   const quadrasVisiveis = (dados ?? quadrasEmpresa).filter((q) => q.status !== "inativa");
-  const { aberto, hoje } = situacaoAgora();
+  const { aberto, hoje } = situacaoAgora(empresa);
+
+  function fecharToast() {
+    setToast("");
+    if (location.state?.aviso) navigate(location.pathname, { replace: true, state: null });
+  }
 
   return (
     <EmpresaLayout
@@ -75,7 +94,7 @@ export default function PerfilEmpresa() {
       <div className="pn-pilha">
         {/* ===== Capa ===== */}
         <section className="pe-capa" aria-label="Identificação">
-          <img src={empresa.capa} alt="" className="pe-capa-imagem" />
+          <img {...fotoTamanho(empresa.capa, 1100)} alt="" className="pe-capa-imagem" />
           <div className="pe-capa-conteudo">
             <span className="pe-logo" aria-hidden="true">{empresa.logo}</span>
             <div className="pe-capa-texto">
@@ -123,7 +142,7 @@ export default function PerfilEmpresa() {
               <ul className="pe-galeria" aria-label="Fotos do espaço">
                 {empresa.fotos.map((foto, i) => (
                   <li key={foto}>
-                    <img src={foto} alt={`Foto ${i + 1} do espaço`} loading="lazy" />
+                    <img {...fotoTamanho(foto, 260)} alt={`Foto ${i + 1} do espaço`} loading="lazy" />
                   </li>
                 ))}
               </ul>
@@ -143,11 +162,11 @@ export default function PerfilEmpresa() {
               <ul className="pe-quadras">
                 {quadrasVisiveis.map((q) => (
                   <li key={q.id} className="pe-quadra">
-                    <img src={q.imagem} alt="" loading="lazy" />
+                    <img {...fotoTamanho(q.imagem, 120)} alt="" loading="lazy" />
                     <div>
                       <span className="pe-quadra-modalidade">{q.modalidade}</span>
                       <strong>
-                        {q.publicaId ? <Link to={`/quadra/${q.publicaId}`}>{q.nome}</Link> : q.nome}
+                        <Link to={`/quadra/${idPublico(q)}`}>{q.nome}</Link>
                       </strong>
                       <span className="pe-quadra-rodape">
                         <span>{formatarPreco(q.preco)}/h</span>
@@ -283,7 +302,7 @@ export default function PerfilEmpresa() {
                         {h.dia === hoje?.dia && <span className="pe-hoje">Hoje</span>}
                       </th>
                       <td>
-                        {h.abre} às {h.fecha}
+                        {h.abre ? `${h.abre} às ${h.fecha}` : "Fechado"}
                       </td>
                     </tr>
                   ))}
@@ -314,6 +333,7 @@ export default function PerfilEmpresa() {
           </div>
         </div>
       </div>
+      <Toast mensagem={toast} onFechar={fecharToast} />
     </EmpresaLayout>
   );
 }

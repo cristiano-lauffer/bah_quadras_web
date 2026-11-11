@@ -14,10 +14,12 @@ import {
 } from "lucide-react";
 import AuthLayout, { Campo } from "../layouts/AuthLayout.jsx";
 import { emailValido, forcaSenha, mascaraTelefone, telefoneValido } from "../utils/mascaras.js";
+import { useTitulo } from "../hooks/useTitulo.js";
 
 const niveisSenha = ["", "Fraca", "Razoável", "Boa", "Forte"];
 
 export default function CadastroUsuario() {
+  useTitulo("Criar conta de jogador");
   const [form, setForm] = useState({
     nome: "",
     email: "",

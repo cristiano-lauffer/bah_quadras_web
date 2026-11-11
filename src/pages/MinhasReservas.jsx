@@ -2,10 +2,10 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   CalendarDays,
+  CalendarPlus,
   CircleCheck,
   CircleX,
   Clock,
-  LoaderCircle,
   MapPin,
   Plus,
   RotateCcw,
@@ -14,11 +14,13 @@ import {
 } from "lucide-react";
 import UsuarioLayout from "../layouts/UsuarioLayout.jsx";
 import Toast from "../components/Toast.jsx";
+import { baixarIcs, eventoDaReserva } from "../utils/agenda.js";
 import { useDados } from "../hooks/useDados.js";
-import { buscarQuadraPorId } from "../data/quadras.js";
+import { buscarQuadraPublica } from "../services/catalogoService.js";
 import { cancelarReserva, fimDaReserva, inicioDaReserva, listarReservas, separarReservas } from "../services/reservasService.js";
-import { formatarData, formatarPreco, paraData, tempoRelativo } from "../utils/formatadores.js";
+import { descreverDuracao, formatarData, formatarPreco, paraData, tempoRelativo, foto } from "../utils/formatadores.js";
 import "../css/MinhasReservas.css";
+import Esqueleto from "../components/Esqueleto.jsx";
 
 const statusReserva = {
   confirmada: { texto: "Confirmada", classe: "ok", icone: CircleCheck },
@@ -83,9 +85,7 @@ export default function MinhasReservas() {
 
         <section id="mr-painel" role="tabpanel" aria-labelledby={`mr-aba-${aba}`}>
           {carregando && !dados ? (
-            <p className="mr-carregando" role="status">
-              <LoaderCircle size={20} className="mr-girando" aria-hidden="true" /> Carregando reservas...
-            </p>
+            <Esqueleto tipo="cards" quantidade={2} rotulo="Carregando reservas..." />
           ) : lista.length === 0 ? (
             <div className="pn-vazio">
               <CalendarDays size={40} aria-hidden="true" />
@@ -102,7 +102,7 @@ export default function MinhasReservas() {
           ) : (
             <ul className="mr-lista">
               {lista.map((r) => {
-                const quadra = buscarQuadraPorId(r.quadraId);
+                const quadra = buscarQuadraPublica(r.quadraId);
                 const status = statusReserva[r.status];
                 const horasAte = (inicioDaReserva(r) - new Date()) / 3_600_000;
                 const data = paraData(r.data);
@@ -110,7 +110,7 @@ export default function MinhasReservas() {
                 return (
                   <li key={r.id} className={`mr-card ${r.status}`}>
                     <div className="mr-foto">
-                      {quadra && <img src={quadra.imagens[0]} alt="" loading="lazy" />}
+                      {quadra && <img {...foto(quadra.imagens[0], 300)} alt="" loading="lazy" />}
                       <div className="mr-data" aria-hidden="true">
                         <strong>{data.getDate()}</strong>
                         <span>{data.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}</span>
@@ -136,7 +136,7 @@ export default function MinhasReservas() {
                           {r.status === "confirmada" && <em> · {tempoRelativo(r.data)}</em>}
                         </li>
                         <li>
-                          <Clock size={15} aria-hidden="true" /> {r.hora} às {fimDaReserva(r)} ({r.duracao}h)
+                          <Clock size={15} aria-hidden="true" /> {r.hora} às {fimDaReserva(r)} ({descreverDuracao(r)})
                         </li>
                         <li>
                           <MapPin size={15} aria-hidden="true" /> {r.endereco}
@@ -172,6 +172,14 @@ export default function MinhasReservas() {
                                 <Link to={`/quadra/${r.quadraId}`} className="pn-botao pn-botao-contorno">
                                   Ver quadra
                                 </Link>
+                                <button
+                                  type="button"
+                                  className="pn-botao pn-botao-contorno"
+                                  onClick={() => baixarIcs(eventoDaReserva(r), `reserva-${r.quadraId}-${r.data}.ics`)}
+                                  title="Baixar evento para o calendário (.ics)"
+                                >
+                                  <CalendarPlus size={15} aria-hidden="true" /> Agenda
+                                </button>
                                 <button
                                   type="button"
                                   className="mr-cancelar"

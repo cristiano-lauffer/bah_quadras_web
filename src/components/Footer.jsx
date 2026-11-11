@@ -45,7 +45,7 @@ export default function Footer() {
             Encontre seu espaço esportivo e prepare-se para a próxima partida.
           </p>
 
-          <Link to="/login" className="rodape-botao">
+          <Link to="/#quadras" className="rodape-botao">
             Encontrar quadras →
           </Link>
         </div>

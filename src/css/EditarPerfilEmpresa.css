@@ -1,0 +1,158 @@
+/* =========================================================
+   EDITAR PERFIL DA EMPRESA - prefixo "ep-"
+   Campos base (pn-campo, pn-chip...) vêm de Painel.css.
+   ========================================================= */
+
+.ep {
+  max-width: 900px;
+}
+
+.ep-textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 11px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.ep-textarea:focus,
+.ep-horas select:focus {
+  outline: none;
+  border-color: var(--green-texto);
+  box-shadow: 0 0 0 4px rgba(7, 131, 78, 0.12);
+}
+
+.ep-contador {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+}
+
+.ep-endereco {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.ep-rua {
+  grid-column: span 3;
+}
+
+/* Horários */
+
+.ep-horarios {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ep-horarios li {
+  display: grid;
+  grid-template-columns: 110px 110px 1fr;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 6px 0;
+}
+
+.ep-horarios li + li {
+  border-top: 1px solid var(--line);
+}
+
+.ep-horarios li.fechado strong {
+  color: var(--muted);
+}
+
+.ep-aberto {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ep-aberto input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--green-texto);
+}
+
+.ep-horas {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.ep-horas select {
+  height: 40px;
+  padding: 0 10px;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+/* Barra de salvar */
+
+.ep-barra {
+  position: sticky;
+  bottom: 16px;
+  z-index: 5;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: 0 10px 30px rgba(6, 61, 48, 0.12);
+}
+
+.ep-barra .pn-botao:disabled {
+  opacity: 0.75;
+  cursor: wait;
+}
+
+.ep-girando {
+  animation: ep-girar 0.8s linear infinite;
+}
+
+@keyframes ep-girar {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 700px) {
+  .ep-endereco {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ep-rua {
+    grid-column: 1 / -1;
+  }
+
+  .ep-horarios li {
+    grid-template-columns: 1fr auto;
+  }
+
+  .ep-horas {
+    grid-column: 1 / -1;
+  }
+
+  .ep-barra .pn-botao {
+    flex: 1;
+  }
+}

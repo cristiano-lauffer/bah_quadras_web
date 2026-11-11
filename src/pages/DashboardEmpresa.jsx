@@ -16,12 +16,14 @@ import {
   Wrench,
 } from "lucide-react";
 import EmpresaLayout from "../layouts/EmpresaLayout.jsx";
-import { agendaHoje, empresaDemo, historicoMensal, quadrasEmpresa } from "../data/empresa.js";
+import GraficoBarras from "../components/GraficoBarras.jsx";
+import { empresaAtual } from "../services/empresaService.js";
+import { agendaHoje, historicoMensal, quadrasEmpresa } from "../data/empresa.js";
 import { buscarQuadraPorId } from "../data/quadras.js";
 import { useDados } from "../hooks/useDados.js";
 import { listarQuadras } from "../services/quadrasService.js";
 import { avaliacoesDaQuadra } from "../data/avaliacoes.js";
-import { corDoNome, formatarNota, formatarPreco, iniciais, tempoRelativo } from "../utils/formatadores.js";
+import { corDoNome, formatarNota, formatarPreco, iniciais, tempoRelativo, foto } from "../utils/formatadores.js";
 import "../css/DashboardEmpresa.css";
 
 const metricas = {
@@ -47,15 +49,6 @@ function saudacao() {
   if (h < 12) return "Bom dia";
   if (h < 18) return "Boa tarde";
   return "Boa noite";
-}
-
-// Escolhe um topo "redondo" para o eixo Y (ex.: 12.740 -> 15.000).
-function eixoBonito(maximo, divisoes = 4) {
-  const bruto = maximo / divisoes;
-  const potencia = 10 ** Math.floor(Math.log10(bruto));
-  const passo = [1, 2, 2.5, 5, 10].map((m) => m * potencia).find((p) => p >= bruto);
-  const topo = Math.ceil(maximo / passo) * passo;
-  return { topo, marcas: Array.from({ length: topo / passo + 1 }, (_, i) => i * passo) };
 }
 
 function situacaoReserva(r, agoraMin) {
@@ -108,7 +101,7 @@ export default function DashboardEmpresa() {
   return (
     <EmpresaLayout
       titulo="Dashboard"
-      subtitulo={`${saudacao()}, ${empresaDemo.responsavel.split(" ")[0]} · ${dataHoje}`}
+      subtitulo={`${saudacao()}, ${empresaAtual().responsavel.split(" ")[0]} · ${dataHoje}`}
       acoes={
         <>
           <Link to={`/quadra/${quadraPublica.id}`} className="pn-botao pn-botao-contorno">
@@ -224,7 +217,19 @@ export default function DashboardEmpresa() {
             {verTabela ? (
               <TabelaMensal />
             ) : (
-              <GraficoBarras dados={historicoMensal} chave={metrica} config={metricas[metrica]} />
+              <GraficoBarras
+                dados={historicoMensal.map((d) => ({
+                  rotulo: d.mes,
+                  rotuloLongo: d.mesLongo,
+                  valor: d[metrica],
+                  detalhe:
+                    metrica === "faturamento"
+                      ? metricas.reservas.formatar(d.reservas)
+                      : metricas.faturamento.formatar(d.faturamento),
+                }))}
+                formatar={metricas[metrica].formatar}
+                formatarEixo={metricas[metrica].eixo}
+              />
             )}
           </section>
 
@@ -237,6 +242,7 @@ export default function DashboardEmpresa() {
                   {agenda.length} reservas · {formatarPreco(receitaHoje)} previstos
                 </p>
               </div>
+              <Link to="/empresa/reservas" className="pn-link">Ver todas</Link>
             </div>
 
             <ol className="db-agenda">
@@ -280,7 +286,7 @@ export default function DashboardEmpresa() {
             <ul className="db-ocupacao">
               {quadras.filter((q) => q.status !== "inativa").map((q) => (
                 <li key={q.id}>
-                  <img src={q.imagem} alt="" loading="lazy" />
+                  <img {...foto(q.imagem, 120)} alt="" loading="lazy" />
                   <div className="db-ocupacao-info">
                     <div className="db-ocupacao-linha">
                       <strong>{q.nome}</strong>
@@ -320,7 +326,7 @@ export default function DashboardEmpresa() {
                 <h2 id="db-avaliacoes-titulo">Avaliações recentes</h2>
                 <p>O que os jogadores estão dizendo</p>
               </div>
-              <Link to={`/avaliacoes/${quadraPublica.id}`} className="pn-link">Ver todas</Link>
+              <Link to="/empresa/avaliacoes" className="pn-link">Responder</Link>
             </div>
 
             <ul className="db-avaliacoes">
@@ -352,57 +358,8 @@ export default function DashboardEmpresa() {
 }
 
 /* ================================================================
-   Gráfico de barras (uma série, um eixo)
+   Tabela (alternativa acessível ao gráfico)
    ================================================================ */
-
-function GraficoBarras({ dados, chave, config }) {
-  const { topo, marcas } = eixoBonito(Math.max(...dados.map((d) => d[chave])));
-  const ultimo = dados.length - 1;
-
-  return (
-    <div className="db-grafico">
-      <div className="db-grafico-area">
-        {/* Linhas de grade e valores do eixo */}
-        {marcas.map((m) => (
-          <div key={m} className="db-grafico-grade" style={{ bottom: `${(m / topo) * 100}%` }}>
-            <span>{config.eixo(m)}</span>
-          </div>
-        ))}
-
-        <div className="db-grafico-colunas">
-          {dados.map((d, i) => {
-            const valor = d[chave];
-            const outra = chave === "faturamento" ? metricas.reservas.formatar(d.reservas) : metricas.faturamento.formatar(d.faturamento);
-            return (
-              <div key={d.mes} className="db-coluna">
-                <button
-                  type="button"
-                  className="db-coluna-alvo"
-                  aria-label={`${d.mesLongo}: ${config.formatar(valor)}`}
-                >
-                  <span className="db-barra" style={{ height: `${(valor / topo) * 100}%` }}>
-                    {i === ultimo && <span className="db-barra-rotulo">{config.formatar(valor)}</span>}
-                  </span>
-                  <span className="db-dica" role="tooltip">
-                    <strong>{d.mesLongo}</strong>
-                    <span>{config.formatar(valor)}</span>
-                    <small>{outra}</small>
-                  </span>
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="db-grafico-meses" aria-hidden="true">
-        {dados.map((d) => (
-          <span key={d.mes}>{d.mes}</span>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 function TabelaMensal() {
   return (

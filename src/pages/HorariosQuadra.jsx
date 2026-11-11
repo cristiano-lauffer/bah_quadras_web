@@ -14,6 +14,7 @@ import {
   totalHorariosSemana,
 } from "../services/quadrasService.js";
 import "../css/HorariosQuadra.css";
+import Esqueleto from "../components/Esqueleto.jsx";
 
 const ordenar = (lista) => [...lista].sort();
 const mesmaGrade = (a, b) =>
@@ -39,7 +40,7 @@ export default function HorariosQuadra() {
       }
     >
       {carregando ? (
-        <p className="pn-texto-suave" role="status">Carregando...</p>
+        <Esqueleto tipo="botoes" quantidade={28} rotulo="Carregando horários..." />
       ) : erro ? (
         <div className="pn-vazio">
           <SearchX size={40} aria-hidden="true" />

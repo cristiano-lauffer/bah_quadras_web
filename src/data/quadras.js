@@ -148,7 +148,10 @@ export const quadras = [
     bairro: "BR-386, km 428",
     cidade: "Nova Santa Rita/RS",
     endereco: "BR-386, km 428 - Nova Santa Rita/RS",
-    preco: 150, // TODO: valor ilustrativo, confirmar a tabela de preços com o Velopark
+    mapa: "Velopark, Nova Santa Rita - RS", // busca usada no mapa (mais precisa que o km da rodovia)
+    // Kart é cobrado por bateria, não por hora.
+    cobranca: { unidade: "bateria", minutos: 15 },
+    preco: 90, // por bateria. TODO: valor ilustrativo, confirmar a tabela de preços com o Velopark
     avaliacao: null,
     quantidadeAvaliacoes: 0,
     descricao:

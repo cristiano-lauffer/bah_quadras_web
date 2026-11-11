@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { ArrowRight, Building2, User } from "lucide-react";
 import AuthLayout from "../layouts/AuthLayout.jsx";
+import { useTitulo } from "../hooks/useTitulo.js";
 
 const opcoes = [
   {
@@ -20,6 +21,7 @@ const opcoes = [
 ];
 
 export default function Cadastro() {
+  useTitulo("Criar conta");
   return (
     <AuthLayout
       titulo="Bora jogar?"

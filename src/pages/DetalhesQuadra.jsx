@@ -7,15 +7,18 @@ import {
   Check,
   CircleAlert,
   Clock,
+  ExternalLink,
   MapPin,
+  MessageCircle,
   MessageSquarePlus,
+  Navigation,
   SearchX,
   Star,
 } from "lucide-react";
 import Header from "../components/Header.jsx";
 import Footer from "../components/Footer.jsx";
 import { useDados } from "../hooks/useDados.js";
-import { buscarQuadraPorId } from "../data/quadras.js";
+import { buscarQuadraPublica } from "../services/catalogoService.js";
 import { avaliacoesDaQuadra } from "../data/avaliacoes.js";
 import { buscarVinculoPublico, gradePadrao } from "../services/quadrasService.js";
 import { horariosOcupados } from "../services/reservasService.js";
@@ -27,12 +30,19 @@ import {
   isoComDias,
   semAvaliacoes,
   tempoRelativo,
+  unidadePreco,
+  foto,
 } from "../utils/formatadores.js";
 import "../css/DetalhesQuadra.css";
+import { useTitulo } from "../hooks/useTitulo.js";
+import { linkWhatsApp } from "../utils/agenda.js";
+import Esqueleto from "../components/Esqueleto.jsx";
 
 export default function DetalhesQuadra() {
   const { id } = useParams();
-  const quadra = buscarQuadraPorId(id);
+  // Catálogo: quadras de demonstração + as cadastradas pela empresa.
+  const quadra = buscarQuadraPublica(id);
+  useTitulo(quadra ? quadra.nome : "Quadra não encontrada");
 
   return (
     <div className="public-page dq">
@@ -69,6 +79,8 @@ function Conteudo({ quadra }) {
     (h) => Number(h.slice(0, 2)) > horaAgora && !ocupados?.includes(h)
   );
 
+  const buscaMapa = encodeURIComponent(quadra.mapa ?? quadra.endereco);
+
   const avaliacoes = avaliacoesDaQuadra(quadra.id)
     .sort((a, b) => b.data.localeCompare(a.data))
     .slice(0, 3);
@@ -81,7 +93,7 @@ function Conteudo({ quadra }) {
 
       {/* ===== Galeria ===== */}
       <section className="dq-galeria" aria-label="Fotos">
-        <img className="dq-galeria-principal" src={quadra.imagens[fotoAtual]} alt={`${quadra.nome}, foto ${fotoAtual + 1}`} />
+        <img className="dq-galeria-principal" {...foto(quadra.imagens[fotoAtual], 1100)} alt={`${quadra.nome}, foto ${fotoAtual + 1}`} />
         <div className="dq-galeria-miniaturas">
           {quadra.imagens.map((img, i) => (
             <button
@@ -92,7 +104,7 @@ function Conteudo({ quadra }) {
               aria-label={`Ver foto ${i + 1}`}
               onClick={() => setFotoAtual(i)}
             >
-              <img src={img} alt="" loading="lazy" />
+              <img {...foto(img, 220)} alt="" loading="lazy" />
             </button>
           ))}
         </div>
@@ -140,6 +152,40 @@ function Conteudo({ quadra }) {
             )}
           </section>
 
+          {/* ===== Localização ===== */}
+          <section className="dq-secao" aria-labelledby="dq-mapa-titulo">
+            <h2 id="dq-mapa-titulo">Localização</h2>
+            <p className="dq-endereco">
+              <MapPin size={17} aria-hidden="true" /> {quadra.endereco}
+            </p>
+            <div className="dq-mapa">
+              <iframe
+                title={`Mapa com a localização de ${quadra.nome}`}
+                src={`https://www.google.com/maps?q=${buscaMapa}&output=embed`}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+            <div className="dq-mapa-acoes">
+              <a
+                className="dq-botao"
+                href={`https://www.google.com/maps/dir/?api=1&destination=${buscaMapa}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Navigation size={17} aria-hidden="true" /> Como chegar
+              </a>
+              <a
+                className="dq-botao dq-botao-contorno"
+                href={`https://www.google.com/maps/search/?api=1&query=${buscaMapa}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <ExternalLink size={17} aria-hidden="true" /> Abrir no Google Maps
+              </a>
+            </div>
+          </section>
+
           <section className="dq-secao" id="avaliacoes">
             <div className="dq-secao-topo">
               <h2>Avaliações</h2>
@@ -183,11 +229,11 @@ function Conteudo({ quadra }) {
         {/* ===== Reserva ===== */}
         <aside className="dq-reserva" aria-label="Reservar">
           <p className="dq-preco">
-            <strong>{formatarPreco(preco)}</strong> <span>/ hora</span>
+            <strong>{formatarPreco(preco)}</strong> <span>/ {unidadePreco(quadra)}</span>
           </p>
 
           {carregando ? (
-            <p className="dq-suave">Carregando horários...</p>
+            <Esqueleto tipo="botoes" quantidade={6} rotulo="Carregando horários..." />
           ) : situacao !== "ativa" ? (
             <p className="dq-indisponivel">
               <CircleAlert size={17} aria-hidden="true" />
@@ -219,6 +265,18 @@ function Conteudo({ quadra }) {
           )}
 
           <small className="dq-suave">Cancelamento grátis até 24h antes.</small>
+
+          <a
+            className="dq-compartilhar"
+            href={linkWhatsApp(
+              `Olha essa quadra no Bah Quadras: ${quadra.nome} (${quadra.modalidade}) em ${quadra.cidade}, ${formatarPreco(preco)}/${unidadePreco(quadra)}.
+${window.location.origin}/quadra/${quadra.id}`
+            )}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <MessageCircle size={17} aria-hidden="true" /> Compartilhar no WhatsApp
+          </a>
         </aside>
       </div>
     </>

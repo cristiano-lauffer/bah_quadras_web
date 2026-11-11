@@ -1,0 +1,111 @@
+/* =========================================================
+   FINANCEIRO DA EMPRESA - prefixo "fi-"
+   Estrutura e componentes base vêm de Painel.css.
+   ========================================================= */
+
+.fi-icone-alerta {
+  background: var(--pn-alerta-fundo);
+  color: var(--pn-alerta);
+}
+
+.fi-icone-erro {
+  background: var(--erro-fundo);
+  color: var(--pn-erro);
+}
+
+/* Barras horizontais (formas de pagamento e quadras) */
+
+.fi-barras {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fi-barras-linha {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+.fi-barras-linha span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fi-barras-linha small {
+  min-width: 36px;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+}
+
+/* Tabela */
+
+.fi-tabela-wrap {
+  overflow-x: auto;
+}
+
+.fi-tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.fi-tabela th {
+  padding: 0 10px 10px;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.fi-tabela td {
+  padding: 10px;
+  vertical-align: top;
+}
+
+.fi-tabela tr + tr td {
+  border-top: 1px solid var(--line);
+}
+
+.fi-tabela td small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.fi-tabela th:last-child,
+.fi-tabela td:last-child {
+  text-align: right;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.fi-grade-inferior {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.fi-nota {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+@media (max-width: 1180px) {
+  .fi-grade-inferior {
+    grid-template-columns: 1fr;
+  }
+}

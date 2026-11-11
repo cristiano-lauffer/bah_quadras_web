@@ -11,12 +11,56 @@ body {
   min-width: 320px;
   min-height: 100vh;
   font-family: Inter, Arial, Helvetica, sans-serif;
-  color: #172b25;
-  background: #f4f6f5;
+  color: var(--text);
+  background: var(--page);
+  transition: background-color 0.2s, color 0.2s;
 }
 
-button, input, textarea {
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  body {
+    transition: none;
+  }
+}
+
+button, input, textarea, select {
   font: inherit;
+}
+
+/*
+  Lista de opções dos <select>: o navegador desenha a lista com fundo próprio
+  (branco no Windows), mas o texto herda a cor da página. No tema escuro isso
+  deixava texto claro sobre fundo branco. Aqui as duas cores seguem o tema.
+*/
+select option,
+select optgroup {
+  background-color: var(--surface);
+  color: var(--text);
+}
+
+select option:disabled {
+  color: var(--muted);
+}
+
+/*
+  Preenchimento automático do navegador (e-mail, senha...): o Chrome pinta o
+  campo de branco/amarelo. Mantém as cores do tema.
+*/
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text);
+  caret-color: var(--text);
+  box-shadow: 0 0 0 1000px var(--surface) inset;
+  transition: background-color 9999s ease-out 0s;
+}
+
+::selection {
+  background: var(--green-light);
+  color: var(--green-forte);
 }
 
 button, a {

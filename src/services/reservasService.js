@@ -7,6 +7,7 @@
 // =========================================================
 import { reservas as reservasExemplo } from "../data/reservas.js";
 import { lerSalvo, responder, salvar } from "./armazenamento.js";
+import { somarMinutos } from "../utils/formatadores.js";
 
 const CHAVE = "bahquadras:usuario:reservas";
 
@@ -64,7 +65,10 @@ export function horariosOcupados(quadraId, data) {
 /* ---------------- Ajudantes de exibição ---------------- */
 
 export const inicioDaReserva = (r) => new Date(`${r.data}T${r.hora}:00`);
-export const fimDaReserva = (r) => `${String(Number(r.hora.slice(0, 2)) + r.duracao).padStart(2, "0")}:00`;
+export const fimDaReserva = (r) =>
+  r.baterias
+    ? somarMinutos(r.hora, r.baterias * (r.minutosBateria ?? 15))
+    : `${String(Number(r.hora.slice(0, 2)) + r.duracao).padStart(2, "0")}:00`;
 
 /** Separa a lista em próximas, histórico e números do jogador. */
 export function separarReservas(lista) {

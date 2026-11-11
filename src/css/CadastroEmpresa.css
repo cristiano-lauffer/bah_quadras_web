@@ -7,7 +7,7 @@
   --empresa-accent: #8be7b2;
   --empresa-whatsapp: #1fa855;
   --empresa-whatsapp-escuro: #168a44;
-  --empresa-erro: #c0392b;
+  --empresa-erro: var(--erro);
 
   min-height: 100vh;
   display: flex;
@@ -107,7 +107,7 @@
   height: 44px;
   border-radius: 12px;
   background: var(--green-light);
-  color: var(--green);
+  color: var(--green-texto);
 }
 
 .empresa-beneficios strong {
@@ -185,13 +185,13 @@
 }
 
 .empresa-canal:hover {
-  border-color: var(--green);
+  border-color: var(--green-texto);
   transform: translateY(-2px);
 }
 
 .empresa-canal svg {
   flex-shrink: 0;
-  color: var(--green);
+  color: var(--green-texto);
 }
 
 .empresa-canal.whatsapp svg {
@@ -299,7 +299,7 @@
 
 .empresa-campo :is(input, select, textarea):focus {
   outline: none;
-  border-color: var(--green);
+  border-color: var(--green-texto);
   box-shadow: 0 0 0 4px rgba(7, 131, 78, 0.12);
 }
 
@@ -333,13 +333,13 @@
 }
 
 .empresa-chip:hover {
-  border-color: var(--green);
+  border-color: var(--green-texto);
 }
 
 .empresa-chip[aria-pressed="true"] {
-  border-color: var(--green);
+  border-color: var(--green-texto);
   background: var(--green-light);
-  color: var(--green-dark);
+  color: var(--green-forte);
 }
 
 .empresa-chip[aria-pressed="true"]::before {
@@ -351,7 +351,7 @@
   padding: 12px 14px;
   border-radius: 10px;
   background: var(--green-light);
-  color: var(--green-dark);
+  color: var(--green-forte);
   font-size: 14px;
   line-height: 1.5;
 }
@@ -394,8 +394,8 @@
 }
 
 .empresa-botao.contorno:hover {
-  border-color: var(--green);
-  color: var(--green);
+  border-color: var(--green-texto);
+  color: var(--green-texto);
 }
 
 .empresa-botao:focus-visible,

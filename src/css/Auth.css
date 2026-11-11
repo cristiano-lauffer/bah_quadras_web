@@ -5,7 +5,7 @@
 
 .auth {
   --auth-accent: #8be7b2;
-  --auth-erro: #c0392b;
+  --auth-erro: var(--erro);
   --auth-radius: 12px;
 
   min-height: 100vh;
@@ -129,7 +129,7 @@
 
 .auth-logo-mobile {
   display: none;
-  color: var(--green-dark);
+  color: var(--green-forte);
 }
 
 .auth-topo-acao {
@@ -186,7 +186,7 @@
 }
 
 .auth-voltar:hover {
-  color: var(--green);
+  color: var(--green-texto);
 }
 
 /* ===== LINKS ===== */
@@ -202,13 +202,13 @@
 }
 
 .auth-link {
-  color: var(--green);
+  color: var(--green-texto);
   font-size: 13px;
   font-weight: 600;
 }
 
 .auth-link-forte {
-  color: var(--green);
+  color: var(--green-texto);
   font-weight: 700;
 }
 
@@ -270,21 +270,21 @@
 }
 
 .auth-input input::placeholder {
-  color: #9aa8a2;
+  color: var(--muted);
 }
 
 .auth-input input:hover {
-  border-color: #c5d3cc;
+  border-color: var(--line-forte);
 }
 
 .auth-input input:focus {
   outline: none;
-  border-color: var(--green);
+  border-color: var(--green-texto);
   box-shadow: 0 0 0 4px rgba(7, 131, 78, 0.12);
 }
 
 .auth-input:focus-within .auth-input-icone {
-  color: var(--green);
+  color: var(--green-texto);
 }
 
 .auth-input-botao {
@@ -303,7 +303,7 @@
 
 .auth-input-botao:hover {
   background: var(--green-light);
-  color: var(--green);
+  color: var(--green-texto);
 }
 
 .auth-campo.com-erro input {
@@ -379,7 +379,7 @@
   height: 18px;
   margin: 1px 0 0;
   flex-shrink: 0;
-  accent-color: var(--green);
+  accent-color: var(--green-texto);
   cursor: pointer;
 }
 
@@ -393,7 +393,7 @@
   padding: 12px 14px;
   border-radius: 10px;
   background: var(--green-light);
-  color: var(--green-dark);
+  color: var(--green-forte);
   font-size: 14px;
   line-height: 1.45;
 }
@@ -450,7 +450,7 @@
 }
 
 .auth-botao-contorno:hover:not(:disabled) {
-  border-color: #c5d3cc;
+  border-color: var(--line-forte);
   background: var(--page);
 }
 
@@ -507,7 +507,7 @@
 }
 
 .auth-opcao:hover {
-  border-color: var(--green);
+  border-color: var(--green-texto);
   box-shadow: 0 12px 28px rgba(6, 61, 48, 0.1);
   transform: translateY(-2px);
 }
@@ -520,7 +520,7 @@
   height: 52px;
   border-radius: 14px;
   background: var(--green-light);
-  color: var(--green);
+  color: var(--green-texto);
 }
 
 .auth-opcao-texto {
@@ -544,7 +544,7 @@
   align-items: center;
   gap: 6px;
   margin-top: 8px;
-  color: var(--green);
+  color: var(--green-texto);
   font-weight: 700;
 }
 
@@ -566,7 +566,7 @@
 }
 
 .auth-sucesso > svg {
-  color: var(--green);
+  color: var(--green-texto);
 }
 
 .auth-sucesso h2 {
