@@ -6,24 +6,30 @@ import {
   MapPin,
   MessageSquarePlus,
   PencilLine,
-  Star,
   ThumbsUp,
   X,
 } from "lucide-react";
 import Header from "../components/Header.jsx";
 import Footer from "../components/Footer.jsx";
 import Toast from "../components/Toast.jsx";
-import { buscarQuadraPorId, quadras } from "../data/quadras.js";
+import { useDados } from "../hooks/useDados.js";
+import { listarRespostas } from "../services/respostasService.js";
+import { empresaAtual } from "../services/empresaService.js";
+import Estrelas from "../components/avaliacoes/Estrelas.jsx";
+import FormAvaliacao from "../components/avaliacoes/FormAvaliacao.jsx";
+import ResumoAvaliacoes from "../components/avaliacoes/ResumoAvaliacoes.jsx";
+import { buscarQuadraPublica, quadrasPublicas } from "../services/catalogoService.js";
 import { aspectosAvaliacao, avaliacoesDaQuadra, rotulosNota } from "../data/avaliacoes.js";
 import {
   corDoNome,
   formatarData,
-  formatarNota,
   iniciais,
   isoComDias,
   tempoRelativo,
+  foto,
 } from "../utils/formatadores.js";
 import "../css/Avaliacoes.css";
+import { useTitulo } from "../hooks/useTitulo.js";
 
 const POR_PAGINA = 5;
 
@@ -34,16 +40,6 @@ const ordenacoes = {
   menor: { texto: "Menor nota", fn: (a, b) => a.nota - b.nota },
 };
 
-function Estrelas({ valor, tamanho = 16 }) {
-  return (
-    <span className="av-estrelas" role="img" aria-label={`${valor} de 5 estrelas`}>
-      {[1, 2, 3, 4, 5].map((n) => (
-        <Star key={n} size={tamanho} className={n <= Math.round(valor) ? "on" : ""} aria-hidden="true" />
-      ))}
-    </span>
-  );
-}
-
 // A "key" faz a página reiniciar os filtros quando o usuário troca de quadra.
 export default function AvaliacoesPagina() {
   const { id } = useParams();
@@ -53,9 +49,11 @@ export default function AvaliacoesPagina() {
 function Avaliacoes({ id }) {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const quadra = id ? buscarQuadraPorId(id) : quadras[0];
+  const quadra = id ? buscarQuadraPublica(id) : quadrasPublicas()[0];
+  useTitulo(quadra ? `Avaliações · ${quadra.nome}` : "Avaliações");
 
   const [novas, setNovas] = useState([]);
+  const { dados: respostas } = useDados(listarRespostas);
   const [marcadasUteis, setMarcadasUteis] = useState(() => new Set());
   const [filtroNota, setFiltroNota] = useState(0);
   const [filtroAspecto, setFiltroAspecto] = useState("");
@@ -154,7 +152,7 @@ function Avaliacoes({ id }) {
 
         {/* ===== Cabeçalho com a quadra ===== */}
         <header className="av-cabecalho">
-          <img src={quadra.imagens[0]} alt="" className="av-cabecalho-foto" />
+          <img {...foto(quadra.imagens[0], 400)} alt="" className="av-cabecalho-foto" />
           <div className="av-cabecalho-info">
             <span className="av-tag">{quadra.modalidade}</span>
             <h1>Avaliações da {quadra.nome}</h1>
@@ -166,7 +164,7 @@ function Avaliacoes({ id }) {
             <label className="av-trocar">
               <span>Ver outra quadra</span>
               <select value={quadra.id} onChange={(e) => navigate(`/avaliacoes/${e.target.value}`)}>
-                {quadras.map((q) => (
+                {quadrasPublicas().map((q) => (
                   <option key={q.id} value={q.id}>
                     {q.nome}
                   </option>
@@ -181,68 +179,17 @@ function Avaliacoes({ id }) {
 
         <div className="av-layout">
           {/* ===== Resumo ===== */}
-          <aside className="av-resumo">
-            <div className="av-resumo-nota">
-              <strong>{total ? formatarNota(media) : "–"}</strong>
-              <div>
-                <Estrelas valor={media} tamanho={20} />
-                <span>
-                  {total} {total === 1 ? "avaliação" : "avaliações"}
-                </span>
-              </div>
-            </div>
-
-            <div className="av-barras" role="group" aria-label="Filtrar por nota">
-              {porNota.map(({ nota, qtd }) => (
-                <button
-                  key={nota}
-                  type="button"
-                  className="av-barra"
-                  aria-pressed={filtroNota === nota}
-                  disabled={!qtd}
-                  onClick={() => mudarFiltroNota(nota)}
-                >
-                  <span className="av-barra-rotulo">
-                    {nota} <Star size={12} aria-hidden="true" />
-                  </span>
-                  <span className="av-barra-trilho">
-                    <span style={{ width: `${total ? (qtd / total) * 100 : 0}%` }} />
-                  </span>
-                  <span className="av-barra-qtd">{qtd}</span>
-                </button>
-              ))}
-            </div>
-
-            {aspectosContagem.length > 0 && (
-              <div className="av-aspectos">
-                <h2>Mais elogiado</h2>
-                <div className="av-aspectos-lista">
-                  {aspectosContagem.map(({ asp, qtd }) => (
-                    <button
-                      key={asp}
-                      type="button"
-                      className="av-aspecto"
-                      aria-pressed={filtroAspecto === asp}
-                      onClick={() => mudarFiltroAspecto(asp)}
-                    >
-                      {asp} <small>{qtd}</small>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="av-resumo-cta">
-              <MessageSquarePlus size={22} aria-hidden="true" />
-              <div>
-                <strong>Jogou aqui?</strong>
-                <p>Sua opinião ajuda outros jogadores a escolher.</p>
-              </div>
-              <button type="button" className="av-botao av-botao-contorno" onClick={() => setFormAberto(true)}>
-                Avaliar
-              </button>
-            </div>
-          </aside>
+          <ResumoAvaliacoes
+            total={total}
+            media={media}
+            porNota={porNota}
+            aspectosContagem={aspectosContagem}
+            filtroNota={filtroNota}
+            filtroAspecto={filtroAspecto}
+            onFiltroNota={mudarFiltroNota}
+            onFiltroAspecto={mudarFiltroAspecto}
+            onAvaliar={() => setFormAberto(true)}
+          />
 
           {/* ===== Lista ===== */}
           <section className="av-lista-secao" aria-labelledby="av-lista-titulo">
@@ -314,6 +261,16 @@ function Avaliacoes({ id }) {
                       </div>
 
                       <p className="av-card-texto">{a.texto}</p>
+
+                      {respostas?.[a.id] && (
+                        <div className="av-resposta">
+                          <div className="av-resposta-topo">
+                            <strong>Resposta de {empresaAtual().nome}</strong>
+                            <time dateTime={respostas[a.id].data}>{tempoRelativo(respostas[a.id].data)}</time>
+                          </div>
+                          <p>{respostas[a.id].texto}</p>
+                        </div>
+                      )}
 
                       <div className="av-card-rodape">
                         <div className="av-card-aspectos">
@@ -388,124 +345,5 @@ function Avaliacoes({ id }) {
       <Toast mensagem={toast} onFechar={() => setToast("")} />
       <Footer />
     </div>
-  );
-}
-
-function FormAvaliacao({ quadra, onEnviar, onCancelar }) {
-  const [nota, setNota] = useState(0);
-  const [hover, setHover] = useState(0);
-  const [nome, setNome] = useState("");
-  const [aspectos, setAspectos] = useState([]);
-  const [texto, setTexto] = useState("");
-  const [erros, setErros] = useState({});
-  const notaExibida = hover || nota;
-
-  function alternarAspecto(asp) {
-    setAspectos((atual) => (atual.includes(asp) ? atual.filter((x) => x !== asp) : [...atual, asp]));
-  }
-
-  function enviar(e) {
-    e.preventDefault();
-    const novos = {};
-    if (!nota) novos.nota = "Escolha uma nota de 1 a 5.";
-    if (!nome.trim()) novos.nome = "Informe seu nome.";
-    if (texto.trim().length < 20) novos.texto = "Escreva pelo menos 20 caracteres.";
-    setErros(novos);
-    if (Object.keys(novos).length) return;
-    onEnviar({ nota, nome: nome.trim(), aspectos, texto: texto.trim() });
-  }
-
-  return (
-    <form className="av-form" onSubmit={enviar} noValidate>
-      <div className="av-form-topo">
-        <div>
-          <h2 id="av-form-titulo">Avaliar {quadra.nome}</h2>
-          <p>Conte para outros jogadores como foi a sua experiência.</p>
-        </div>
-        <button type="button" className="av-fechar" onClick={onCancelar} aria-label="Fechar">
-          <X size={20} />
-        </button>
-      </div>
-
-      <fieldset className="av-campo">
-        <legend>Sua nota</legend>
-        <div className="av-seletor" onMouseLeave={() => setHover(0)}>
-          {[1, 2, 3, 4, 5].map((n) => (
-            <button
-              key={n}
-              type="button"
-              className={n <= notaExibida ? "on" : ""}
-              onClick={() => setNota(n)}
-              onMouseEnter={() => setHover(n)}
-              aria-label={`${n} ${n === 1 ? "estrela" : "estrelas"} - ${rotulosNota[n]}`}
-              aria-pressed={nota === n}
-            >
-              <Star size={34} />
-            </button>
-          ))}
-          <span className="av-seletor-rotulo">{notaExibida ? rotulosNota[notaExibida] : "Toque nas estrelas"}</span>
-        </div>
-        {erros.nota && <p className="av-erro">{erros.nota}</p>}
-      </fieldset>
-
-      <div className="av-campo">
-        <label htmlFor="av-nome">Seu nome</label>
-        <input
-          id="av-nome"
-          value={nome}
-          maxLength={80}
-          autoComplete="name"
-          placeholder="Como quer aparecer"
-          onChange={(e) => setNome(e.target.value)}
-          aria-invalid={!!erros.nome}
-        />
-        {erros.nome && <p className="av-erro">{erros.nome}</p>}
-      </div>
-
-      <fieldset className="av-campo">
-        <legend>
-          O que se destacou? <small>(opcional)</small>
-        </legend>
-        <div className="av-aspectos-lista">
-          {aspectosAvaliacao.map((asp) => (
-            <button
-              key={asp}
-              type="button"
-              className="av-aspecto"
-              aria-pressed={aspectos.includes(asp)}
-              onClick={() => alternarAspecto(asp)}
-            >
-              {asp}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-
-      <div className="av-campo">
-        <label htmlFor="av-texto">Comentário</label>
-        <textarea
-          id="av-texto"
-          rows={4}
-          maxLength={500}
-          value={texto}
-          placeholder="Como estava a quadra, o atendimento, a estrutura..."
-          onChange={(e) => setTexto(e.target.value)}
-          aria-invalid={!!erros.texto}
-        />
-        <div className="av-campo-rodape">
-          {erros.texto ? <p className="av-erro">{erros.texto}</p> : <span />}
-          <small>{texto.length}/500</small>
-        </div>
-      </div>
-
-      <div className="av-form-acoes">
-        <button type="button" className="av-botao av-botao-contorno" onClick={onCancelar}>
-          Cancelar
-        </button>
-        <button type="submit" className="av-botao">
-          Publicar avaliação
-        </button>
-      </div>
-    </form>
   );
 }

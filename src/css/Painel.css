@@ -10,9 +10,9 @@
   --pn-shadow: 0 1px 2px rgba(6, 61, 48, 0.05), 0 6px 20px rgba(6, 61, 48, 0.06);
   --pn-accent: #8be7b2;
   --pn-gold: #ffb020;
-  --pn-erro: #c0392b;
-  --pn-alerta: #b45309;
-  --pn-alerta-fundo: #fef3e2;
+  --pn-erro: var(--erro);
+  --pn-alerta: var(--alerta);
+  --pn-alerta-fundo: var(--alerta-fundo);
 
   /* Menu lateral (variante empresa = escuro) */
   --pn-menu-fundo: var(--green-deep);
@@ -34,8 +34,8 @@
 /* Variante jogador = menu claro */
 .pn-usuario {
   --pn-menu-fundo: var(--surface);
-  --pn-menu-texto: #4a5d55;
-  --pn-menu-titulo: #9aa8a2;
+  --pn-menu-texto: var(--text-2);
+  --pn-menu-titulo: var(--muted);
   --pn-menu-hover: var(--page);
   --pn-menu-ativo-fundo: var(--green-light);
   --pn-menu-ativo-texto: var(--green-dark);
@@ -286,7 +286,7 @@
   min-height: 76px;
   padding: 14px 32px;
   border-bottom: 1px solid var(--line);
-  background: rgba(244, 246, 245, 0.88);
+  background: var(--page-translucida);
   backdrop-filter: blur(10px);
 }
 
@@ -377,7 +377,7 @@
 }
 
 .pn-card-topo h2 svg {
-  color: var(--green);
+  color: var(--green-texto);
 }
 
 .pn-card-topo p {
@@ -394,7 +394,7 @@
   padding: 0;
   border: 0;
   background: none;
-  color: var(--green);
+  color: var(--green-texto);
   font: inherit;
   font-size: 14px;
   font-weight: 700;
@@ -435,7 +435,7 @@
 }
 
 .pn-botao:hover {
-  border-color: var(--green-dark);
+  border-color: var(--green-forte);
   background: var(--green-dark);
 }
 
@@ -446,26 +446,27 @@
 }
 
 .pn-botao-contorno:hover {
-  border-color: var(--green);
+  border-color: var(--green-texto);
   background: var(--surface);
-  color: var(--green);
+  color: var(--green-texto);
 }
 
+/* Botão branco sobre faixas verde-escuras: cores fixas nos dois temas */
 .pn-botao-claro {
   border-color: #fff;
   background: #fff;
-  color: var(--green-dark);
+  color: #064b37;
 }
 
 .pn-botao-claro:hover {
-  border-color: var(--green-light);
-  background: var(--green-light);
-  color: var(--green-dark);
+  border-color: #e8f5ee;
+  background: #e8f5ee;
+  color: #064b37;
 }
 
 .pn-botao-perigo {
-  border-color: var(--pn-erro);
-  background: var(--pn-erro);
+  border-color: var(--erro-botao);
+  background: var(--erro-botao);
 }
 
 .pn-botao-perigo:hover {
@@ -509,7 +510,7 @@
   height: 36px;
   border-radius: 10px;
   background: var(--green-light);
-  color: var(--green);
+  color: var(--green-texto);
 }
 
 .pn-kpi strong {
@@ -535,7 +536,7 @@
 }
 
 .pn-variacao.sobe {
-  color: var(--green);
+  color: var(--green-texto);
 }
 
 .pn-variacao.desce {
@@ -557,7 +558,7 @@
 
 .pn-status.ok {
   background: var(--green-light);
-  color: var(--green-dark);
+  color: var(--green-forte);
 }
 
 .pn-status.alerta {
@@ -566,18 +567,18 @@
 }
 
 .pn-status.neutro {
-  background: #eef1f0;
-  color: #55665f;
+  background: var(--neutro-fundo);
+  color: var(--text-2);
 }
 
 .pn-status.erro {
-  background: #fdecea;
+  background: var(--erro-fundo);
   color: var(--pn-erro);
 }
 
 .pn-status.info {
-  background: #e8eefc;
-  color: #1d4ed8;
+  background: var(--info-fundo);
+  color: var(--info);
 }
 
 /* Chips */
@@ -608,18 +609,18 @@ button.pn-chip {
 }
 
 button.pn-chip:hover {
-  border-color: var(--green);
+  border-color: var(--green-texto);
 }
 
 .pn-chip[aria-pressed="true"],
 .pn-chip.marcado {
-  border-color: var(--green);
+  border-color: var(--green-texto);
   background: var(--green-light);
-  color: var(--green-dark);
+  color: var(--green-forte);
 }
 
 .pn-chip svg {
-  color: var(--green);
+  color: var(--green-texto);
 }
 
 /* Formulários */
@@ -667,7 +668,7 @@ button.pn-chip:hover {
 
 .pn-campo input:focus {
   outline: none;
-  border-color: var(--green);
+  border-color: var(--green-texto);
   box-shadow: 0 0 0 4px rgba(7, 131, 78, 0.12);
 }
 
@@ -697,7 +698,7 @@ button.pn-chip:hover {
   padding: 0;
   border: 0;
   border-radius: 999px;
-  background: #cfd8d4;
+  background: var(--line-forte);
   cursor: pointer;
   transition: background 0.2s;
 }
@@ -842,7 +843,7 @@ button.pn-chip:hover {
     width: 100%;
   }
 
-  .pn-topo-acoes > * {
+  .pn-topo-acoes > :not(.botao-tema) {
     flex: 1;
   }
 

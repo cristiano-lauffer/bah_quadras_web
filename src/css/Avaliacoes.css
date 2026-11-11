@@ -5,7 +5,7 @@
 
 .av {
   --av-gold: #ffb020;
-  --av-erro: #c0392b;
+  --av-erro: var(--erro);
   --av-radius: 16px;
   --av-shadow: 0 1px 2px rgba(6, 61, 48, 0.05), 0 8px 24px rgba(6, 61, 48, 0.07);
 
@@ -54,7 +54,7 @@
 }
 
 .av-botao:hover {
-  border-color: var(--green-dark);
+  border-color: var(--green-forte);
   background: var(--green-dark);
 }
 
@@ -65,9 +65,9 @@
 }
 
 .av-botao-contorno:hover {
-  border-color: var(--green);
+  border-color: var(--green-texto);
   background: var(--surface);
-  color: var(--green);
+  color: var(--green-texto);
 }
 
 .av-voltar {
@@ -82,7 +82,7 @@
 }
 
 .av-voltar:hover {
-  color: var(--green);
+  color: var(--green-texto);
 }
 
 /* ===== Estrelas ===== */
@@ -90,7 +90,7 @@
 .av-estrelas {
   display: inline-flex;
   gap: 2px;
-  color: #d5ddd9;
+  color: var(--estrela-vazia);
 }
 
 .av-estrelas svg {
@@ -129,7 +129,7 @@
   padding: 4px 10px;
   border-radius: 999px;
   background: var(--green-light);
-  color: var(--green-dark);
+  color: var(--green-forte);
   font-size: 12px;
   font-weight: 700;
 }
@@ -327,11 +327,11 @@
 }
 
 .av-aspecto:hover {
-  border-color: var(--green);
+  border-color: var(--green-texto);
 }
 
 .av-aspecto[aria-pressed="true"] {
-  border-color: var(--green);
+  border-color: var(--green-texto);
   background: var(--green);
   color: #fff;
 }
@@ -350,7 +350,7 @@
 }
 
 .av-resumo-cta > svg {
-  color: var(--green);
+  color: var(--green-texto);
 }
 
 .av-resumo-cta strong {
@@ -429,7 +429,7 @@
 
 .av-filtros-ativos .av-limpar {
   background: none;
-  color: var(--green);
+  color: var(--green-texto);
   text-decoration: underline;
 }
 
@@ -452,7 +452,7 @@
 }
 
 .av-card.propria {
-  border-color: var(--green);
+  border-color: var(--green-texto);
   box-shadow: 0 0 0 3px var(--green-light);
 }
 
@@ -490,7 +490,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: var(--green);
+  color: var(--green-texto);
   font-size: 12px;
   font-weight: 700;
 }
@@ -523,6 +523,41 @@
   margin: 0;
   font-size: 15px;
   line-height: 1.65;
+}
+
+/* Resposta da empresa */
+.av-resposta {
+  margin: 14px 0 0 18px;
+  padding: 12px 14px;
+  border-left: 3px solid var(--green-texto);
+  border-radius: 0 12px 12px 0;
+  background: var(--surface-2);
+}
+
+.av-resposta-topo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.av-resposta-topo time {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.av-resposta p {
+  margin: 6px 0 0;
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+@media (max-width: 560px) {
+  .av-resposta {
+    margin-left: 0;
+  }
 }
 
 .av-card-rodape {
@@ -567,14 +602,14 @@
 }
 
 .av-util:hover {
-  border-color: var(--green);
-  color: var(--green);
+  border-color: var(--green-texto);
+  color: var(--green-texto);
 }
 
 .av-util[aria-pressed="true"] {
-  border-color: var(--green);
+  border-color: var(--green-texto);
   background: var(--green-light);
-  color: var(--green-dark);
+  color: var(--green-forte);
 }
 
 .av-util[aria-pressed="true"] svg {
@@ -724,7 +759,7 @@
 
 .av-campo :is(input, textarea):focus {
   outline: none;
-  border-color: var(--green);
+  border-color: var(--green-texto);
   box-shadow: 0 0 0 4px rgba(7, 131, 78, 0.12);
 }
 
@@ -768,7 +803,7 @@
   border: 0;
   border-radius: 8px;
   background: none;
-  color: #d5ddd9;
+  color: var(--estrela-vazia);
   cursor: pointer;
   transition: transform 0.15s, color 0.15s;
 }

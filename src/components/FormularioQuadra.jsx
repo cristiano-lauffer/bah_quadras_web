@@ -9,7 +9,7 @@ import {
   tiposPiso,
 } from "../services/quadrasService.js";
 import { quadras as quadrasPublicas } from "../data/quadras.js";
-import { formatarPreco } from "../utils/formatadores.js";
+import { formatarPreco, foto as fotoTamanho } from "../utils/formatadores.js";
 import "../css/FormularioQuadra.css";
 
 // Fotos prontas para a demonstração (sem precisar de upload).
@@ -302,7 +302,7 @@ export default function FormularioQuadra({ inicial }) {
                 className="fq-foto"
                 onClick={() => setForm((f) => ({ ...f, imagem: foto }))}
               >
-                <img src={foto} alt="" loading="lazy" />
+                <img {...fotoTamanho(foto, 160)} alt="" loading="lazy" />
               </button>
             ))}
             <label className="fq-foto fq-foto-enviar">
@@ -350,7 +350,7 @@ export default function FormularioQuadra({ inicial }) {
           <span className="fq-previa-rotulo">Prévia para os jogadores</span>
           <div className="fq-previa-card">
             <div className="fq-previa-foto">
-              {form.imagem && <img src={form.imagem} alt="" />}
+              {form.imagem && <img {...fotoTamanho(form.imagem, 340)} alt="" />}
               {form.modalidade && <span>{form.modalidade}</span>}
             </div>
             <div className="fq-previa-corpo">

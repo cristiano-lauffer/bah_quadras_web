@@ -6,7 +6,8 @@
 // mantendo o mesmo nome e retorno, por exemplo:
 //   export const listarQuadras = () => api.get("/empresa/quadras").then(r => r.data);
 // =========================================================
-import { empresaDemo, quadrasEmpresa as quadrasIniciais } from "../data/empresa.js";
+import { quadrasEmpresa as quadrasIniciais } from "../data/empresa.js";
+import { empresaAtual } from "./empresaService.js";
 import { apagar, falhar, lerSalvo, responder, salvar } from "./armazenamento.js";
 
 const CHAVE = "bahquadras:empresa:quadras";
@@ -57,10 +58,14 @@ export const diasDaSemana = [
   { dia: 0, curto: "Dom", nome: "Domingo" },
 ];
 
-/** Grade semanal a partir do horário de funcionamento da empresa. */
+/** Grade semanal a partir do horário de funcionamento da empresa (o salvo no Editar perfil). */
 export function gradePadrao() {
   const grade = {};
-  for (const h of empresaDemo.horarios) {
+  for (const h of empresaAtual().horarios) {
+    if (!h.abre) {
+      grade[h.dia] = []; // dia fechado
+      continue;
+    }
     const abre = Number(h.abre.slice(0, 2));
     const fecha = h.fecha === "00:00" ? 24 : Number(h.fecha.slice(0, 2));
     grade[h.dia] = horasDoDia.filter((hora) => {
@@ -93,6 +98,22 @@ function ler() {
   return lerSalvo(CHAVE) ?? dadosIniciais();
 }
 
+/**
+ * Id da página pública (/quadra/:id) de uma quadra da empresa.
+ * Quadras que já tinham página própria usam "publicaId"; as demais usam o próprio id.
+ */
+export const idPublico = (quadra) => quadra.publicaId ?? quadra.id;
+
+/** Quadras da empresa (leitura imediata, usada pelo catálogo público). */
+export function quadrasDaEmpresaAtual() {
+  return ler();
+}
+
+/** Ids das páginas públicas das quadras da empresa (leitura imediata). */
+export function idsPublicosDaEmpresa() {
+  return ler().map(idPublico);
+}
+
 /* ---------------- Funções públicas (mesma "cara" de uma API) ---------------- */
 
 export function listarQuadras() {
@@ -106,7 +127,7 @@ export function buscarQuadra(id) {
 
 /** Quadra da empresa ligada a uma página pública (/quadra/:id), se existir. */
 export function buscarVinculoPublico(publicaId) {
-  return responder(ler().find((q) => q.publicaId === publicaId) ?? null, 150);
+  return responder(ler().find((q) => idPublico(q) === publicaId) ?? null, 150);
 }
 
 /** Cria (sem id) ou atualiza (com id) uma quadra. */

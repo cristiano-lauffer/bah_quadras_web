@@ -13,6 +13,7 @@ import Footer from "../components/Footer.jsx";
 import { CONTATO, linkEmail, linkWhatsApp } from "../config/contato.js";
 import { emailValido, mascaraTelefone, telefoneValido } from "../utils/mascaras.js";
 import "../css/CadastroEmpresa.css";
+import { useTitulo } from "../hooks/useTitulo.js";
 
 const beneficios = [
   { icone: CalendarCheck, titulo: "Agenda online", texto: "Reservas 24h por dia, sem precisar atender telefone." },
@@ -67,6 +68,7 @@ function montarMensagem(f) {
 }
 
 export default function CadastroEmpresa() {
+  useTitulo("Anuncie sua quadra");
   const [form, setForm] = useState(vazio);
   const [erros, setErros] = useState({});
   const [enviado, setEnviado] = useState(null);

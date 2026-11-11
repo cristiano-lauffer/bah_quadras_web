@@ -33,8 +33,8 @@
   width: 88px;
   height: 96px;
   border-radius: 16px;
-  background: #fff;
-  color: var(--green-dark);
+  background: #fff; /* bloco branco sobre o card verde-escuro, nos dois temas */
+  color: #064b37;
   text-transform: uppercase;
 }
 
@@ -239,8 +239,8 @@
   height: 36px;
   border: 0;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.95);
-  color: #e11d48;
+  background: var(--surface-translucida);
+  color: var(--coracao);
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
@@ -254,7 +254,7 @@
 }
 
 .pu-favorita-tag {
-  color: var(--green);
+  color: var(--green-texto);
   font-size: 12px;
   font-weight: 700;
 }
@@ -270,7 +270,7 @@
 }
 
 .pu-favorita h3 a:hover {
-  color: var(--green);
+  color: var(--green-texto);
 }
 
 .pu-favorita p {
@@ -295,7 +295,7 @@
 
 .pu-favorita p strong {
   margin-left: auto;
-  color: var(--green-dark);
+  color: var(--green-forte);
   font-size: 14px;
 }
 
@@ -441,7 +441,7 @@
 }
 
 .pu-perigo {
-  border-color: #f3c7c1;
+  border-color: var(--erro-borda);
 }
 
 .pu-perigo .pn-card-topo {

@@ -11,6 +11,38 @@ export const formatarPreco = (valor, casas = Number.isInteger(valor) ? 0 : 2) =>
 
 export const formatarNota = (nota) => nota.toFixed(1).replace(".", ",");
 
+/* ---------- Cobrança: por hora (padrão) ou por bateria (kart) ---------- */
+
+export const cobraPorBateria = (quadra) => quadra?.cobranca?.unidade === "bateria";
+export const minutosBateria = (quadra) => quadra?.cobranca?.minutos ?? 15;
+/** "hora" ou "bateria", para textos como "R$ 90/bateria". */
+export const unidadePreco = (quadra) => (cobraPorBateria(quadra) ? "bateria" : "hora");
+
+/** "19:00" + 30 min -> "19:30" */
+export function somarMinutos(hora, minutos) {
+  const total = Number(hora.slice(0, 2)) * 60 + Number(hora.slice(3, 5)) + minutos;
+  return `${String(Math.floor(total / 60) % 24).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+}
+
+/** "2h" ou "2 baterias (30 min)" */
+export function descreverDuracao(reserva) {
+  if (!reserva.baterias) return `${reserva.duracao}h`;
+  const minutos = reserva.baterias * (reserva.minutosBateria ?? 15);
+  return `${reserva.baterias} ${reserva.baterias === 1 ? "bateria" : "baterias"} (${minutos} min)`;
+}
+
+/**
+ * Pede a foto no tamanho em que ela aparece na tela (largura em px), mais uma
+ * versão com o dobro para telas de alta densidade. Uso: <img {...foto(url, 600)} alt="" />
+ * Fotos que não são do Unsplash (ex.: enviadas pelo usuário) passam sem mudança.
+ */
+export function foto(url, largura) {
+  if (!url) return {}; // sem foto: não coloca src (src="" faria o navegador baixar a página de novo)
+  if (!url.includes("images.unsplash.com")) return { src: url };
+  const comLargura = (w) => (/[?&]w=\d+/.test(url) ? url.replace(/([?&])w=\d+/, `$1w=${w}`) : `${url}&w=${w}`);
+  return { src: comLargura(largura), srcSet: `${comLargura(largura)} 1x, ${comLargura(largura * 2)} 2x` };
+}
+
 /** Quadra ainda sem avaliações (ex.: parceira recém-cadastrada). */
 export const semAvaliacoes = (quadra) => !quadra.quantidadeAvaliacoes || quadra.avaliacao == null;
 

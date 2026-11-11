@@ -1,0 +1,273 @@
+/* =========================================================
+   AVALIAÇÕES (área da empresa) - prefixo "ae-"
+   Estrutura e componentes base vêm de Painel.css.
+   ========================================================= */
+
+.ae-kpi-alerta {
+  border-color: var(--alerta-borda);
+  background: var(--alerta-fundo);
+}
+
+.ae-kpi-alerta .pn-kpi-icone {
+  background: var(--surface);
+  color: var(--alerta);
+}
+
+.ae-contagem {
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--page);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.ae-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ae-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ae-topo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ae-autor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ae-autor > span {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.ae-topo time {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.ae-estrelas {
+  display: inline-flex;
+  gap: 1px;
+  color: var(--estrela-vazia);
+}
+
+.ae-estrelas svg {
+  fill: currentColor;
+}
+
+.ae-estrelas .on {
+  color: var(--pn-gold);
+}
+
+.ae-texto {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.ae-aspectos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ae-aspectos span {
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: var(--page);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ae-responder {
+  align-self: flex-start;
+}
+
+/* Resposta publicada */
+
+.ae-resposta {
+  margin-left: 22px;
+  padding: 14px 16px;
+  border-left: 3px solid var(--green-texto);
+  border-radius: 0 12px 12px 0;
+  background: var(--surface-2);
+}
+
+.ae-resposta-topo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.ae-resposta-topo time {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.ae-resposta p {
+  margin: 6px 0 8px;
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.ae-resposta-acoes {
+  display: flex;
+  gap: 4px;
+}
+
+.ae-acao {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 32px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--green-texto);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ae-acao:hover {
+  background: var(--green-light);
+}
+
+.ae-acao.perigo {
+  color: var(--erro);
+}
+
+.ae-acao.perigo:hover {
+  background: var(--erro-fundo);
+}
+
+/* Formulário */
+
+.ae-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-left: 22px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+
+.ae-form-rotulo {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.ae-sugestoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ae-sugestoes .pn-chip {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.ae-form textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 11px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.ae-form textarea:focus {
+  outline: none;
+  border-color: var(--green-texto);
+  box-shadow: 0 0 0 4px rgba(7, 131, 78, 0.12);
+}
+
+.ae-form textarea[aria-invalid="true"] {
+  border-color: var(--erro);
+}
+
+.ae-form-rodape {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.ae-form-rodape .pn-erro {
+  margin: 0;
+}
+
+.ae-form-rodape small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.ae-form-acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.ae-form-acoes .pn-botao:disabled {
+  opacity: 0.75;
+  cursor: wait;
+}
+
+.ae-girando {
+  animation: ae-girar 0.8s linear infinite;
+}
+
+@keyframes ae-girar {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 600px) {
+  .ae-resposta,
+  .ae-form {
+    margin-left: 0;
+  }
+
+  .ae-form-acoes .pn-botao {
+    flex: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ae-girando {
+    animation: none;
+  }
+}

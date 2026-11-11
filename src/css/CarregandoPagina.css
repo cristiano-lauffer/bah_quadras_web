@@ -1,0 +1,39 @@
+.carregando-pagina {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 100vh;
+  background: var(--page);
+  color: var(--muted);
+  /* Só aparece se o carregamento demorar: evita "piscar" em conexões rápidas. */
+  animation: carregando-surgir 0.2s ease-out 0.25s both;
+}
+
+.carregando-pagina-bola {
+  font-size: 36px;
+  animation: carregando-quicar 0.7s ease-in-out infinite alternate;
+}
+
+.carregando-pagina-texto {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+@keyframes carregando-surgir {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes carregando-quicar {
+  from { transform: translateY(0); }
+  to { transform: translateY(-14px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carregando-pagina,
+  .carregando-pagina-bola {
+    animation: none;
+  }
+}

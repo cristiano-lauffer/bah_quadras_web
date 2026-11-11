@@ -55,7 +55,7 @@
 
 .pe-verificada {
   display: inline-flex;
-  color: var(--green);
+  color: var(--green-texto);
 }
 
 .pe-slogan {
@@ -155,7 +155,7 @@
 }
 
 .pe-quadra-modalidade {
-  color: var(--green);
+  color: var(--green-texto);
   font-size: 12px;
   font-weight: 700;
 }
@@ -170,7 +170,7 @@
 }
 
 .pe-quadra strong a:hover {
-  color: var(--green);
+  color: var(--green-texto);
   text-decoration: underline;
 }
 
@@ -199,7 +199,7 @@
   padding: 14px 16px;
   border-radius: 12px;
   background: var(--page);
-  color: #3d5048;
+  color: var(--text-2);
   font-size: 14px;
   line-height: 1.6;
 }
@@ -229,7 +229,7 @@
 
 .pe-checklist li svg {
   flex-shrink: 0;
-  color: #b8c4bf;
+  color: var(--line-forte);
 }
 
 .pe-checklist li.feito {
@@ -237,7 +237,7 @@
 }
 
 .pe-checklist li.feito svg {
-  color: var(--green);
+  color: var(--green-texto);
 }
 
 /* ===== Contatos ===== */
@@ -263,7 +263,7 @@
 .pe-contatos li > svg {
   flex-shrink: 0;
   margin-top: 12px;
-  color: var(--green);
+  color: var(--green-texto);
 }
 
 .pe-contatos small {
@@ -309,7 +309,7 @@
 }
 
 .pe-horarios tr.hoje td {
-  color: var(--green-dark);
+  color: var(--green-forte);
   font-weight: 700;
 }
 

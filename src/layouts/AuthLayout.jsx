@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Check } from "lucide-react";
+import BotaoTema from "../components/BotaoTema.jsx";
 import "../css/Auth.css";
 
 const vantagensPadrao = [
@@ -61,7 +62,10 @@ export default function AuthLayout({
               BAH <strong>QUADRAS</strong>
             </span>
           </Link>
-          <div className="auth-topo-acao">{topo}</div>
+          <div className="auth-topo-acao">
+            {topo}
+            <BotaoTema />
+          </div>
         </div>
 
         <div className="auth-caixa">{children}</div>

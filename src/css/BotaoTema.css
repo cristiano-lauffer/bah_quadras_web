@@ -1,0 +1,36 @@
+.botao-tema {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.botao-tema:hover {
+  border-color: var(--green-texto);
+  color: var(--green-texto);
+}
+
+.botao-tema:focus-visible {
+  outline: 3px solid rgba(7, 131, 78, 0.45);
+  outline-offset: 2px;
+}
+
+/* Sobre o cabeçalho verde-escuro do site */
+.botao-tema.sobre-escuro {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: transparent;
+  color: #fff;
+}
+
+.botao-tema.sobre-escuro:hover {
+  border-color: #8be7b2;
+  background: rgba(255, 255, 255, 0.08);
+  color: #8be7b2;
+}

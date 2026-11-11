@@ -1,9 +1,10 @@
 import { Link, useParams } from "react-router-dom";
-import { Clock, LoaderCircle, SearchX } from "lucide-react";
+import { Clock, SearchX } from "lucide-react";
 import EmpresaLayout from "../layouts/EmpresaLayout.jsx";
 import FormularioQuadra from "../components/FormularioQuadra.jsx";
 import { useDados } from "../hooks/useDados.js";
 import { buscarQuadra } from "../services/quadrasService.js";
+import Esqueleto from "../components/Esqueleto.jsx";
 
 // US4 e US6 - Empresa edita a quadra e atualiza o preço
 export default function EditarQuadra() {
@@ -23,9 +24,7 @@ export default function EditarQuadra() {
       }
     >
       {carregando ? (
-        <p className="pn-texto-suave" role="status">
-          <LoaderCircle size={16} aria-hidden="true" /> Carregando...
-        </p>
+        <Esqueleto tipo="lista" quantidade={4} rotulo="Carregando quadra..." />
       ) : erro ? (
         <div className="pn-vazio">
           <SearchX size={40} aria-hidden="true" />

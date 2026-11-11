@@ -116,6 +116,7 @@
 .cabecalho-acoes {
   display: flex;
   align-items: center;
+  gap: 10px;
 }
 
 .botao-entrar {
@@ -145,71 +146,103 @@
   background: #0aa661;
 }
 
-/* TABLET E CELULAR */
+/* "Entrar" dentro do menu aparece só no celular */
+.menu-entrar-celular {
+  display: none;
+}
 
-@media (max-width: 600px) {
+/* BOTÃO DO MENU (celular) */
+
+.botao-menu {
+  display: none;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 12px;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+
+.botao-menu:hover {
+  border-color: #8be7b2;
+  color: #8be7b2;
+}
+
+.cabecalho :is(a, button):focus-visible {
+  outline: 3px solid #8be7b2;
+  outline-offset: 2px;
+}
+
+/* TABLET E CELULAR: links vão para um menu que abre pelo botão */
+
+@media (max-width: 700px) {
   .cabecalho-conteudo {
-    width: calc(100% - 28px);
-    min-height: 66px;
+    width: calc(100% - 32px);
+    min-height: 64px;
     gap: 12px;
   }
 
   .logo {
-    gap: 6px;
+    gap: 7px;
   }
 
   .logo-simbolo {
-    width: 32px;
-    height: 32px;
-    font-size: 19px;
+    width: 34px;
+    height: 34px;
+    font-size: 20px;
   }
 
   .logo-texto strong {
-    font-size: 14px;
+    font-size: 15px;
   }
 
-  .logo-texto span {
-    font-size: 9px;
-  }
-
-  .menu-principal {
-    gap: 13px;
-  }
-
-  .menu-link {
-    padding: 25px 0;
-    font-size: 11px;
-  }
-
-  .menu-link::after {
-    bottom: 17px;
-  }
-
-  .botao-entrar {
-    min-height: 34px;
-    padding: 0 11px;
-    font-size: 11px;
-  }
-}
-
-@media (max-width: 390px) {
-  .cabecalho-conteudo {
-    gap: 8px;
-  }
-
-  .menu-principal {
-    gap: 9px;
-  }
-
-  .menu-link {
-    font-size: 10px;
-  }
-
-  .logo-simbolo {
+  .cabecalho-acoes > .botao-entrar {
     display: none;
   }
 
-  .botao-entrar {
-    padding: 0 9px;
+  .botao-menu {
+    display: grid;
+  }
+
+  .menu-principal {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+    padding: 10px 16px 18px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: #062f27;
+    box-shadow: 0 16px 30px rgba(0, 0, 0, 0.25);
+  }
+
+  .menu-aberto .menu-principal {
+    display: flex;
+  }
+
+  .menu-link {
+    padding: 14px 12px;
+    border-radius: 10px;
+    font-size: 16px;
+  }
+
+  .menu-link::after {
+    display: none;
+  }
+
+  .menu-link:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .menu-entrar-celular {
+    display: flex;
+    min-height: 48px;
+    margin-top: 8px;
+    font-size: 15px;
   }
 }

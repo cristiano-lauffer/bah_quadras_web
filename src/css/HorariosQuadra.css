@@ -48,10 +48,10 @@
 .hq-aviso {
   margin: 0;
   padding: 12px 16px;
-  border: 1px solid #f6d9a8;
+  border: 1px solid var(--alerta-borda);
   border-radius: 12px;
   background: var(--pn-alerta-fundo);
-  color: #7c3d06;
+  color: var(--alerta-texto);
   font-size: 14px;
   line-height: 1.5;
 }
@@ -90,7 +90,7 @@
 }
 
 .hq-legenda i.aberto {
-  border-color: var(--green);
+  border-color: var(--green-texto);
   background: var(--green);
 }
 
@@ -162,7 +162,7 @@
 .hq-cabecalho:hover,
 .hq-hora:hover {
   background: var(--page);
-  color: var(--green-dark);
+  color: var(--green-forte);
 }
 
 .hq-celula {
@@ -178,11 +178,11 @@
 }
 
 .hq-celula:hover {
-  border-color: var(--green);
+  border-color: var(--green-texto);
 }
 
 .hq-celula.aberto {
-  border-color: var(--green);
+  border-color: var(--green-texto);
   background: var(--green);
 }
 
@@ -210,7 +210,7 @@
 }
 
 .hq-barra.visivel {
-  border-color: var(--green);
+  border-color: var(--green-texto);
   box-shadow: 0 12px 34px rgba(7, 131, 78, 0.22);
 }
 

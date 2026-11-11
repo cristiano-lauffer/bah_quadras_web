@@ -1,51 +1,135 @@
 /* =========================================================
    ESTILOS GLOBAIS - BAH QUADRAS
-   - Variáveis de cor usadas por todas as páginas
+   - Variáveis de cor (tema claro e escuro) usadas por todas as páginas
    - Layout base das páginas públicas
-   - Estilos de "Editar perfil" da empresa
    O painel logado (menu lateral, cards, KPIs) fica em src/css/Painel.css.
    Estilos específicos de cada página ficam em src/css/.
+
+   Tema escuro: segue o sistema (prefers-color-scheme) ou a escolha
+   salva no botão de tema (atributo data-tema="claro|escuro" no <html>).
+   Use SEMPRE as variáveis abaixo em vez de cores fixas, para a tela
+   funcionar nos dois temas.
    ========================================================= */
 
 :root {
-  --green: #07834e;
-  --green-dark: #064b37;
-  --green-deep: #063d30;
-  --green-light: #e8f5ee;
+  color-scheme: light;
+
+  /* Marca */
+  --green: #07834e;          /* fundo de botões (texto branco por cima) */
+  --green-dark: #064b37;     /* hover de botões */
+  --green-deep: #063d30;     /* faixas escuras, menu da empresa */
+  --green-light: #e8f5ee;    /* fundos suaves, chips selecionados */
+  --green-texto: #067646;    /* links, ícones e textos em verde (contraste 5:1 sobre o verde-claro) */
+  --green-forte: #064b37;    /* texto verde sobre --green-light */
+
+  /* Superfícies e texto */
   --text: #17332b;
-  --muted: #6b7b75;
+  --text-2: #3d5048;         /* texto secundário mais forte que o muted */
+  --muted: #5e6e68;
   --line: #dfe7e3;
-  --surface: #ffffff;
-  --page: #f4f6f5;
+  --line-forte: #c5d3cc;
+  --surface: #ffffff;        /* cards */
+  --surface-2: #f7faf8;      /* fundo levemente destacado dentro de cards */
+  --surface-translucida: rgba(255, 255, 255, 0.95); /* etiquetas sobre fotos */
+  --page: #f4f6f5;           /* fundo da página */
+  --page-translucida: rgba(244, 246, 245, 0.88);    /* barra superior do painel */
+  --grade: #edf1ef;          /* linhas de gráfico */
+  --estrela-vazia: #d5ddd9;
+  --listrado-1: #e3e9e6;     /* horários ocupados */
+  --listrado-2: #f3f6f4;
+
+  /* Estados */
+  --erro: #c0392b;
+  --erro-botao: #c0392b;     /* fundo de botão de perigo (texto branco) */
+  --erro-fundo: #fdecea;
+  --erro-borda: #f3c7c1;
+  --alerta: #b45309;
+  --alerta-fundo: #fef3e2;
+  --alerta-borda: #f6d9a8;
+  --alerta-texto: #7c3d06;
+  --info: #1d4ed8;
+  --info-fundo: #e8eefc;
+  --neutro-fundo: #eef1f0;
+  --amarelo-fundo: #fff6e0;
+  --estrela: #b7791f;        /* ícone de estrela sobre --amarelo-fundo */
+  --coracao: #e11d48;        /* favorito marcado */
+}
+
+/* Variáveis do tema escuro (repetidas nos dois seletores abaixo). */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema="claro"]) {
+    color-scheme: dark;
+    --green-dark: #066b40;
+    --green-deep: #08261e;
+    --green-light: #163a2c;
+    --green-texto: #4fd08f;
+    --green-forte: #9be8c0;
+    --text: #e4ede9;
+    --text-2: #c9d6d0;
+    --muted: #9db0a8;
+    --line: #2b3a34;
+    --line-forte: #3b4d46;
+    --surface: #17211d;
+    --surface-2: #1c2823;
+    --surface-translucida: rgba(23, 33, 29, 0.92);
+    --page: #0f1613;
+    --page-translucida: rgba(15, 22, 19, 0.85);
+    --grade: #24312c;
+    --estrela-vazia: #3b4a44;
+    --listrado-1: #24312c;
+    --listrado-2: #1b2622;
+    --erro: #ff8a7a;
+    --erro-fundo: #3a1d1a;
+    --erro-borda: #6b2e27;
+    --alerta: #f5b041;
+    --alerta-fundo: #3a2a12;
+    --alerta-borda: #6b4b17;
+    --alerta-texto: #f6d29a;
+    --info: #93b4ff;
+    --info-fundo: #1b2647;
+    --neutro-fundo: #25302c;
+    --amarelo-fundo: #3a3014;
+    --estrela: #ffb020;
+    --coracao: #fb7185;
+  }
+}
+
+:root[data-tema="escuro"] {
+  color-scheme: dark;
+  --green-dark: #066b40;
+  --green-deep: #08261e;
+  --green-light: #163a2c;
+  --green-texto: #4fd08f;
+  --green-forte: #9be8c0;
+  --text: #e4ede9;
+  --text-2: #c9d6d0;
+  --muted: #9db0a8;
+  --line: #2b3a34;
+  --line-forte: #3b4d46;
+  --surface: #17211d;
+  --surface-2: #1c2823;
+  --surface-translucida: rgba(23, 33, 29, 0.92);
+  --page: #0f1613;
+  --page-translucida: rgba(15, 22, 19, 0.85);
+  --grade: #24312c;
+  --estrela-vazia: #3b4a44;
+  --listrado-1: #24312c;
+  --listrado-2: #1b2622;
+  --erro: #ff8a7a;
+  --erro-fundo: #3a1d1a;
+  --erro-borda: #6b2e27;
+  --alerta: #f5b041;
+  --alerta-fundo: #3a2a12;
+  --alerta-borda: #6b4b17;
+  --alerta-texto: #f6d29a;
+  --info: #93b4ff;
+  --info-fundo: #1b2647;
+  --neutro-fundo: #25302c;
+  --amarelo-fundo: #3a3014;
+  --estrela: #ffb020;
+  --coracao: #fb7185;
 }
 
 #root { min-height: 100vh; }
 .public-page { min-height: 100vh; display: flex; flex-direction: column; }
 .public-page main { flex: 1; }
-
-/* ===== Botões ===== */
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 10px 18px; border: 1px solid transparent; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 700; cursor: pointer; transition: .18s ease; }
-.btn-primary { background: var(--green); color: #fff; }
-.btn-primary:hover { background: #066b40; transform: translateY(-1px); }
-.btn-outline { border-color: var(--line); color: var(--green-dark); background: #fff; }
-.btn-outline:hover { border-color: var(--green); background: #f4fbf7; }
-
-/* ===== Editar perfil da empresa ===== */
-.form-stack { display: flex; flex-direction: column; gap: 15px; }
-.form-stack label { display: flex; flex-direction: column; gap: 7px; color: #34483f; font-size: 12px; font-weight: 700; }
-.form-stack input, .form-stack textarea { width: 100%; min-width: 0; border: 1px solid #d8e1dc; border-radius: 7px; background: #fff; padding: 12px 13px; color: var(--text); font-size: 13px; outline: none; }
-.form-stack input:focus, .form-stack textarea:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(7,131,78,.10); }
-.form-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-.form-actions { display: flex; justify-content: flex-end; gap: 10px; padding-top: 6px; }
-
-.edit-card { display: flex; flex-direction: column; gap: 18px; padding: 25px; border: 1px solid #e5ece8; border-radius: 16px; background: #fff; box-shadow: 0 4px 16px rgba(20,50,37,.04); }
-.edit-card h2 { margin: 0; font-size: 14px; }
-.edit-card textarea { resize: vertical; }
-
-/* ===== Responsivo ===== */
-@media (max-width: 520px) {
-  .form-two { grid-template-columns: 1fr; }
-  .edit-card { padding: 18px; }
-  .form-actions { flex-direction: column-reverse; }
-  .form-actions .btn { width: 100%; }
-}

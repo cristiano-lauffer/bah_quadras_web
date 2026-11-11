@@ -1,0 +1,136 @@
+/* =========================================================
+   ESQUELETOS DE CARREGAMENTO - prefixo "esq-"
+   ========================================================= */
+
+.esq-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Bloco base que "pisca" suavemente */
+.esq-bloco {
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--listrado-1) 0%, var(--listrado-2) 50%, var(--listrado-1) 100%);
+  background-size: 200% 100%;
+  animation: esq-brilho 1.4s ease-in-out infinite;
+}
+
+@keyframes esq-brilho {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}
+
+.esq-linha {
+  width: 100%;
+  height: 12px;
+}
+
+.esq-linha.grossa { height: 18px; }
+.esq-linha.media { width: 65%; }
+.esq-linha.curta { width: 40%; }
+
+/* Cards */
+.esq-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.esq-card {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.esq-foto {
+  aspect-ratio: 16 / 9;
+  border-radius: 0;
+}
+
+.esq-card-corpo {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+}
+
+/* Lista */
+.esq-lista {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.esq-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+}
+
+.esq-item + .esq-item {
+  border-top: 1px solid var(--line);
+}
+
+.esq-quadrado {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+}
+
+.esq-item-texto {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.esq-pilula {
+  flex-shrink: 0;
+  width: 90px;
+  height: 26px;
+  border-radius: 999px;
+}
+
+/* Indicadores */
+.esq-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.esq-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+/* Grade de botões (horários) */
+.esq-botoes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 8px;
+}
+
+.esq-botao {
+  height: 44px;
+  border-radius: 11px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .esq-bloco {
+    animation: none;
+  }
+}

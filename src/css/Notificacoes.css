@@ -1,0 +1,125 @@
+/* =========================================================
+   NOTIFICAÇÕES - prefixo "no-"
+   Estrutura e componentes base vêm de Painel.css.
+   ========================================================= */
+
+.no-contagem {
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--pn-gold);
+  color: #3d2a00;
+  font-size: 11px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.no-lista {
+  margin: 0;
+  padding: 6px 0;
+  list-style: none;
+}
+
+.no-item {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 20px;
+}
+
+.no-item + .no-item {
+  border-top: 1px solid var(--line);
+}
+
+.no-item.nao-lida {
+  background: var(--surface-2);
+}
+
+/* Bolinha de "não lida" */
+.no-item.nao-lida::before {
+  content: "";
+  position: absolute;
+  top: 24px;
+  left: 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+}
+
+.no-icone {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+}
+
+.no-icone.reserva { background: var(--green-light); color: var(--green-texto); }
+.no-icone.cancelamento { background: var(--erro-fundo); color: var(--pn-erro); }
+.no-icone.pagamento { background: var(--pn-alerta-fundo); color: var(--pn-alerta); }
+.no-icone.avaliacao { background: var(--amarelo-fundo); color: var(--estrela); }
+.no-icone.financeiro { background: var(--info-fundo); color: var(--info); }
+.no-icone.sistema { background: var(--page); color: var(--muted); }
+
+.no-texto {
+  flex: 1;
+  min-width: 0;
+}
+
+.no-texto strong {
+  font-size: 15px;
+}
+
+.no-item:not(.nao-lida) .no-texto strong {
+  font-weight: 600;
+}
+
+.no-texto p {
+  margin: 3px 0 4px;
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.no-texto time {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.no-acoes {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.no-marcar {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 9px;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.no-marcar:hover {
+  background: var(--green-light);
+  color: var(--green-texto);
+}
+
+@media (max-width: 600px) {
+  .no-item {
+    flex-wrap: wrap;
+    padding: 14px 16px 14px 20px;
+  }
+
+  .no-acoes {
+    width: 100%;
+    padding-left: 54px;
+  }
+}

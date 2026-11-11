@@ -5,7 +5,6 @@ import {
   CirclePause,
   Clock,
   LayoutGrid,
-  LoaderCircle,
   PencilLine,
   Plus,
   Power,
@@ -16,8 +15,9 @@ import EmpresaLayout from "../layouts/EmpresaLayout.jsx";
 import Toast from "../components/Toast.jsx";
 import { useDados } from "../hooks/useDados.js";
 import { alterarStatus, listarQuadras, statusQuadra, totalHorariosSemana } from "../services/quadrasService.js";
-import { formatarPreco } from "../utils/formatadores.js";
+import { formatarPreco, foto } from "../utils/formatadores.js";
 import "../css/QuadrasEmpresa.css";
+import Esqueleto from "../components/Esqueleto.jsx";
 
 const filtros = [
   { valor: "todas", texto: "Todas" },
@@ -125,9 +125,7 @@ export default function QuadrasEmpresa() {
         </div>
 
         {carregando && !quadras ? (
-          <div className="qe-carregando" role="status">
-            <LoaderCircle size={22} className="qe-girando" aria-hidden="true" /> Carregando quadras...
-          </div>
+          <Esqueleto tipo="cards" quantidade={4} rotulo="Carregando quadras..." />
         ) : visiveis.length === 0 ? (
           <div className="pn-vazio">
             <LayoutGrid size={40} aria-hidden="true" />
@@ -151,7 +149,7 @@ export default function QuadrasEmpresa() {
               return (
                 <li key={q.id} className={`qe-card ${q.status !== "ativa" ? "apagada" : ""}`}>
                   <div className="qe-foto">
-                    {q.imagem ? <img src={q.imagem} alt="" loading="lazy" /> : <LayoutGrid size={36} aria-hidden="true" />}
+                    {q.imagem ? <img {...foto(q.imagem, 420)} alt="" loading="lazy" /> : <LayoutGrid size={36} aria-hidden="true" />}
                     <span className={`pn-status ${visual.classe} qe-foto-status`}>
                       <visual.icone size={13} aria-hidden="true" />
                       {statusQuadra[q.status]}
