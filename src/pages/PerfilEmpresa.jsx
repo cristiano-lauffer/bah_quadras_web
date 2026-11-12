@@ -25,14 +25,11 @@ import EmpresaLayout from "../layouts/EmpresaLayout.jsx";
 import Toast from "../components/Toast.jsx";
 import { quadrasEmpresa } from "../data/empresa.js";
 import { empresaAtual, obterEmpresa } from "../services/empresaService.js";
-import { contarSemResposta } from "../services/respostasService.js";
-import { buscarQuadraPorId } from "../data/quadras.js";
+import { contarSemResposta, resumoAvaliacoesDaEmpresa } from "../services/respostasService.js";
 import { useDados } from "../hooks/useDados.js";
 import { idPublico, listarQuadras } from "../services/quadrasService.js";
 import { formatarData, formatarNota, formatarPreco, foto as fotoTamanho } from "../utils/formatadores.js";
 import "../css/PerfilEmpresa.css";
-
-const quadraPublica = buscarQuadraPorId("arena-sport");
 
 const paraMinutos = (h) => (h === "00:00" ? 24 * 60 : Number(h.slice(0, 2)) * 60 + Number(h.slice(3, 5)));
 
@@ -75,6 +72,8 @@ export default function PerfilEmpresa() {
   const { dados } = useDados(listarQuadras);
   const quadrasVisiveis = (dados ?? quadrasEmpresa).filter((q) => q.status !== "inativa");
   const { aberto, hoje } = situacaoAgora(empresa);
+  // Nota calculada a partir das avaliações de todas as quadras da empresa.
+  const avaliacoes = resumoAvaliacoesDaEmpresa();
 
   function fecharToast() {
     setToast("");
@@ -111,8 +110,16 @@ export default function PerfilEmpresa() {
               <ul className="pe-meta">
                 <li>
                   <Star size={15} aria-hidden="true" className="pe-estrela" />
-                  <strong>{formatarNota(quadraPublica.avaliacao)}</strong>
-                  <span>({quadraPublica.quantidadeAvaliacoes} avaliações)</span>
+                  {avaliacoes.total ? (
+                    <Link to="/empresa/avaliacoes" className="pe-meta-link">
+                      <strong>{formatarNota(avaliacoes.media)}</strong>
+                      <span>
+                        ({avaliacoes.total} {avaliacoes.total === 1 ? "avaliação" : "avaliações"})
+                      </span>
+                    </Link>
+                  ) : (
+                    <span>Ainda sem avaliações</span>
+                  )}
                 </li>
                 <li>
                   <MapPin size={15} aria-hidden="true" /> {bairro}, {cidade}/{estado}

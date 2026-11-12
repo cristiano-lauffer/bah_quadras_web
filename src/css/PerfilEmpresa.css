@@ -387,3 +387,15 @@
     font-size: 40px;
   }
 }
+
+.pe-meta-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.pe-meta-link:hover span {
+  text-decoration: underline;
+}

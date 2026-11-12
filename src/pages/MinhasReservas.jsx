@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
+  Check,
   CalendarDays,
+  CalendarClock,
   CalendarPlus,
   CircleCheck,
   CircleX,
@@ -16,6 +18,7 @@ import UsuarioLayout from "../layouts/UsuarioLayout.jsx";
 import Toast from "../components/Toast.jsx";
 import { baixarIcs, eventoDaReserva } from "../utils/agenda.js";
 import { useDados } from "../hooks/useDados.js";
+import { jaAvaliou } from "../services/avaliacoesService.js";
 import { buscarQuadraPublica } from "../services/catalogoService.js";
 import { cancelarReserva, fimDaReserva, inicioDaReserva, listarReservas, separarReservas } from "../services/reservasService.js";
 import { descreverDuracao, formatarData, formatarPreco, paraData, tempoRelativo, foto } from "../utils/formatadores.js";
@@ -29,13 +32,22 @@ const statusReserva = {
 };
 
 const HORAS_CANCELAMENTO_GRATIS = 24;
+const HORAS_MINIMAS_REMARCAR = 2; // dá para remarcar até 2h antes do jogo
 
 export default function MinhasReservas() {
   const { dados, carregando, recarregar } = useDados(listarReservas);
   const [aba, setAba] = useState("proximas");
   const [confirmando, setConfirmando] = useState(null);
   const [cancelando, setCancelando] = useState(null);
-  const [toast, setToast] = useState("");
+  const location = useLocation();
+  const navigate = useNavigate();
+  // Aviso vindo de outra página (ex.: "Reserva remarcada para...").
+  const [toast, setToast] = useState(location.state?.aviso ?? "");
+
+  function fecharToast() {
+    setToast("");
+    if (location.state?.aviso) navigate(location.pathname, { replace: true, state: null });
+  }
 
   const { proximas, historico } = separarReservas(dados ?? []);
   const abas = [
@@ -135,6 +147,12 @@ export default function MinhasReservas() {
                           {formatarData(r.data, { weekday: "long", day: "numeric", month: "long" })}
                           {r.status === "confirmada" && <em> · {tempoRelativo(r.data)}</em>}
                         </li>
+                        {r.anterior && r.status === "confirmada" && (
+                          <li className="mr-remarcada">
+                            <CalendarClock size={15} aria-hidden="true" />
+                            Remarcada (antes: {formatarData(r.anterior.data, { day: "2-digit", month: "2-digit" })} às {r.anterior.hora})
+                          </li>
+                        )}
                         <li>
                           <Clock size={15} aria-hidden="true" /> {r.hora} às {fimDaReserva(r)} ({descreverDuracao(r)})
                         </li>
@@ -180,6 +198,15 @@ export default function MinhasReservas() {
                                 >
                                   <CalendarPlus size={15} aria-hidden="true" /> Agenda
                                 </button>
+                                {horasAte >= HORAS_MINIMAS_REMARCAR && (
+                                  <Link
+                                    to={`/agendamento/${r.quadraId}?remarcar=${r.id}`}
+                                    className="pn-botao pn-botao-contorno"
+                                    title="Trocar o dia ou o horário desta reserva"
+                                  >
+                                    <CalendarClock size={15} aria-hidden="true" /> Remarcar
+                                  </Link>
+                                )}
                                 <button
                                   type="button"
                                   className="mr-cancelar"
@@ -190,11 +217,16 @@ export default function MinhasReservas() {
                                 </button>
                               </>
                             )}
-                            {r.status === "concluida" && (
-                              <Link to={`/avaliacoes/${r.quadraId}?escrever=1`} className="pn-botao pn-botao-contorno">
-                                <Star size={15} aria-hidden="true" /> Avaliar
-                              </Link>
-                            )}
+                            {r.status === "concluida" &&
+                              (jaAvaliou(r.quadraId) ? (
+                                <Link to={`/avaliacoes/${r.quadraId}`} className="pn-botao pn-botao-contorno mr-avaliada">
+                                  <Check size={15} aria-hidden="true" /> Avaliada
+                                </Link>
+                              ) : (
+                                <Link to={`/avaliacoes/${r.quadraId}?escrever=1`} className="pn-botao pn-botao-contorno">
+                                  <Star size={15} aria-hidden="true" /> Avaliar
+                                </Link>
+                              ))}
                             {r.status !== "confirmada" && (
                               <Link to={`/agendamento/${r.quadraId}`} className="pn-botao">
                                 <RotateCcw size={15} aria-hidden="true" /> Reservar de novo
@@ -212,7 +244,7 @@ export default function MinhasReservas() {
         </section>
       </div>
 
-      <Toast mensagem={toast} onFechar={() => setToast("")} />
+      <Toast mensagem={toast} onFechar={fecharToast} />
     </UsuarioLayout>
   );
 }

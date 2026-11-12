@@ -8,7 +8,7 @@ import SecaoFavoritas from "../components/perfil/SecaoFavoritas.jsx";
 import SecaoDados from "../components/perfil/SecaoDados.jsx";
 import SecaoConfiguracoes from "../components/perfil/SecaoConfiguracoes.jsx";
 import { useDados } from "../hooks/useDados.js";
-import { usuarioDemo } from "../data/usuario.js";
+import { dadosDoUsuario, salvarDadosDoUsuario } from "../services/usuarioService.js";
 import { listarReservas, separarReservas } from "../services/reservasService.js";
 import { listarFavoritos, removerFavorito as removerFavoritoSalvo } from "../services/favoritosService.js";
 import { iniciais } from "../utils/formatadores.js";
@@ -30,7 +30,8 @@ export default function PerfilUsuario() {
   const { dados: listaReservas } = useDados(listarReservas);
   const resumo = separarReservas(listaReservas ?? []);
 
-  const [usuario, setUsuario] = useState(usuarioDemo);
+  // Dados salvos do jogador (ou o nome/e-mail de quem entrou, na primeira vez).
+  const [usuario, setUsuario] = useState(dadosDoUsuario);
   // Favoritos salvos (os mesmos do coração nos cards da Home).
   const { dados: favoritosSalvos, recarregar: recarregarFavoritos } = useDados(listarFavoritos);
   const favoritos = favoritosSalvos ?? [];
@@ -74,9 +75,10 @@ export default function PerfilUsuario() {
             setFoto(URL.createObjectURL(arquivo));
             setToast("Foto atualizada nesta demonstração.");
           }}
-          onSalvar={(dados) => {
+          onSalvar={async (dados) => {
             setUsuario(dados);
-            setToast("Seus dados foram atualizados!");
+            await salvarDadosDoUsuario(dados);
+            setToast("Seus dados foram salvos!");
           }}
         />
       )}

@@ -255,6 +255,10 @@
 }
 
 .pn-sair {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
   display: grid;
   place-items: center;
   width: 34px;
@@ -841,10 +845,12 @@ button.pn-chip:hover {
 
   .pn-topo-acoes {
     width: 100%;
+    flex-wrap: wrap;
   }
 
   .pn-topo-acoes > :not(.botao-tema) {
-    flex: 1;
+    flex: 1 1 auto;
+    justify-content: center;
   }
 
   .pn-conteudo {

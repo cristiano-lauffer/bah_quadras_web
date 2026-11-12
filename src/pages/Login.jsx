@@ -1,17 +1,27 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { ArrowRight, Eye, EyeOff, Info, LoaderCircle, Lock, Mail } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { ArrowRight, CalendarCheck, CircleCheck, Eye, EyeOff, Info, LoaderCircle, Lock, LogOut, Mail, UserRound } from "lucide-react";
 import AuthLayout, { Campo } from "../layouts/AuthLayout.jsx";
 import { emailValido } from "../utils/mascaras.js";
 import { useTitulo } from "../hooks/useTitulo.js";
+import { useSessao } from "../hooks/useSessao.js";
+import { contasDemo, entrar as entrarNaConta, inicioDaConta, sair } from "../services/sessaoService.js";
+
+// Só aceita voltar para páginas do próprio site (evita redirecionar para fora).
+const destinoSeguro = (de) => (typeof de === "string" && de.startsWith("/") && !de.startsWith("//") && de !== "/login" ? de : null);
 
 export default function Login() {
   useTitulo("Entrar");
-  const [form, setForm] = useState({ email: "", senha: "", lembrar: false });
+  const location = useLocation();
+  const navigate = useNavigate();
+  const sessao = useSessao();
+  // Vindo da troca de senha: mostra o aviso e já preenche o e-mail.
+  const [form, setForm] = useState({ email: location.state?.email ?? "", senha: "", lembrar: false });
   const [erros, setErros] = useState({});
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [aviso, setAviso] = useState("");
+  const [sucesso, setSucesso] = useState(location.state?.aviso ?? "");
 
   function atualizar(e) {
     const { name, value, type, checked } = e.target;
@@ -28,17 +38,28 @@ export default function Login() {
     return Object.keys(novos).length === 0;
   }
 
-  function entrar(e) {
+  async function entrar(e) {
     e.preventDefault();
     setAviso("");
+    setSucesso("");
     if (!validar()) return;
 
-    // TODO: substituir pela chamada de autenticação do backend.
     setEnviando(true);
-    setTimeout(() => {
+    try {
+      const nova = await entrarNaConta(form.email, form.senha, form.lembrar);
+      // Volta para onde a pessoa estava (ex.: o agendamento). A empresa vai sempre para o painel.
+      const de = destinoSeguro(location.state?.de);
+      const destino = nova.tipo === "usuario" && de && !de.startsWith("/empresa") ? de : inicioDaConta(nova);
+      navigate(destino, { replace: true });
+    } catch (erro) {
       setEnviando(false);
-      setAviso("Login de demonstração: a autenticação ainda será conectada ao backend.");
-    }, 900);
+      setAviso(erro.message);
+    }
+  }
+
+  function preencher(email) {
+    setForm((f) => ({ ...f, email, senha: f.senha || "demo1234" }));
+    setErros({});
   }
 
   return (
@@ -46,12 +67,45 @@ export default function Login() {
       topo={
         <>
           <span>Ainda não tem conta?</span>
-          <Link to="/cadastro" className="auth-link-forte">
+          <Link
+            to={location.state?.motivo ? "/cadastro/usuario" : "/cadastro"}
+            state={location.state?.motivo ? location.state : undefined}
+            className="auth-link-forte"
+          >
             Criar conta
           </Link>
         </>
       }
     >
+      {sessao && !enviando && (
+        <div className="auth-logado" role="status">
+          <span className="auth-logado-avatar" aria-hidden="true">{sessao.avatar}</span>
+          <div>
+            <strong>Você já está conectado</strong>
+            <span>como {sessao.nome}</span>
+          </div>
+          <div className="auth-logado-acoes">
+            <Link to={inicioDaConta(sessao)} className="auth-botao">
+              {sessao.tipo === "empresa" ? "Ir para o painel" : "Ir para minha área"} <ArrowRight size={16} aria-hidden="true" />
+            </Link>
+            <button type="button" className="auth-botao auth-botao-contorno" onClick={sair}>
+              <LogOut size={16} aria-hidden="true" /> Sair
+            </button>
+          </div>
+        </div>
+      )}
+
+      {location.state?.motivo && (
+        <p className="auth-aviso auth-motivo" role="status">
+          <CalendarCheck size={18} aria-hidden="true" />
+          <span>
+            Entre na sua conta para {location.state.motivo === "remarcar" ? "remarcar" : "confirmar"} sua reserva
+            {location.state.quadra ? <> na <strong>{location.state.quadra}</strong></> : null}. O horário que você escolheu
+            fica guardado.
+          </span>
+        </p>
+      )}
+
       <header className="auth-cabecalho">
         <h2>Bem-vindo de volta!</h2>
         <p>Entre na sua conta para reservar sua próxima partida.</p>
@@ -78,13 +132,12 @@ export default function Login() {
           icone={Lock}
           erro={erros.senha}
           acao={
-            <button
-              type="button"
+            <Link
+              to={form.email && emailValido(form.email) ? `/recuperar-senha?email=${encodeURIComponent(form.email)}` : "/recuperar-senha"}
               className="auth-link"
-              onClick={() => setAviso("A recuperação de senha será implementada em breve.")}
             >
               Esqueci minha senha
-            </button>
+            </Link>
           }
         >
           <input
@@ -113,6 +166,13 @@ export default function Login() {
           <input type="checkbox" name="lembrar" checked={form.lembrar} onChange={atualizar} />
           <span>Manter conectado</span>
         </label>
+
+        {sucesso && (
+          <p className="auth-aviso auth-aviso-ok" role="status">
+            <CircleCheck size={18} aria-hidden="true" />
+            {sucesso}
+          </p>
+        )}
 
         {aviso && (
           <p className="auth-aviso" role="status">
@@ -151,6 +211,21 @@ export default function Login() {
         </svg>
         Continuar com Google
       </button>
+
+      <div className="auth-demo">
+        <p>
+          <UserRound size={16} aria-hidden="true" /> <strong>Demonstração:</strong> qualquer e-mail e senha entram como
+          jogador. Ou use uma das contas:
+        </p>
+        <div>
+          {Object.values(contasDemo).map((c) => (
+            <button key={c.email} type="button" onClick={() => preencher(c.email)}>
+              <span>{c.rotulo}</span>
+              {c.email}
+            </button>
+          ))}
+        </div>
+      </div>
 
       <p className="auth-nota">
         Tem uma quadra e quer anunciar?{" "}

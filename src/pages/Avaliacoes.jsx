@@ -7,6 +7,7 @@ import {
   MessageSquarePlus,
   PencilLine,
   ThumbsUp,
+  Trash2,
   X,
 } from "lucide-react";
 import Header from "../components/Header.jsx";
@@ -19,12 +20,13 @@ import Estrelas from "../components/avaliacoes/Estrelas.jsx";
 import FormAvaliacao from "../components/avaliacoes/FormAvaliacao.jsx";
 import ResumoAvaliacoes from "../components/avaliacoes/ResumoAvaliacoes.jsx";
 import { buscarQuadraPublica, quadrasPublicas } from "../services/catalogoService.js";
-import { aspectosAvaliacao, avaliacoesDaQuadra, rotulosNota } from "../data/avaliacoes.js";
+import { aspectosAvaliacao, rotulosNota } from "../data/avaliacoes.js";
+import { apagarAvaliacao, avaliacoesDaQuadra, publicarAvaliacao } from "../services/avaliacoesService.js";
+import { sessaoAtual } from "../services/sessaoService.js";
 import {
   corDoNome,
   formatarData,
   iniciais,
-  isoComDias,
   tempoRelativo,
   foto,
 } from "../utils/formatadores.js";
@@ -52,7 +54,9 @@ function Avaliacoes({ id }) {
   const quadra = id ? buscarQuadraPublica(id) : quadrasPublicas()[0];
   useTitulo(quadra ? `Avaliações · ${quadra.nome}` : "Avaliações");
 
-  const [novas, setNovas] = useState([]);
+  // Lista lida do serviço (de novo a cada avaliação publicada ou apagada).
+  const [avaliacoesLidas, setAvaliacoesLidas] = useState(() => (quadra ? avaliacoesDaQuadra(quadra.id) : []));
+  const recarregarLista = () => setAvaliacoesLidas(avaliacoesDaQuadra(quadra.id));
   const { dados: respostas } = useDados(listarRespostas);
   const [marcadasUteis, setMarcadasUteis] = useState(() => new Set());
   const [filtroNota, setFiltroNota] = useState(0);
@@ -89,7 +93,7 @@ function Avaliacoes({ id }) {
     );
   }
 
-  const lista = [...novas, ...avaliacoesDaQuadra(quadra.id)];
+  const lista = avaliacoesLidas;
   const total = lista.length;
   const media = total ? lista.reduce((s, a) => s + a.nota, 0) / total : 0;
   const porNota = [5, 4, 3, 2, 1].map((n) => ({ nota: n, qtd: lista.filter((a) => a.nota === n).length }));
@@ -130,15 +134,19 @@ function Avaliacoes({ id }) {
     });
   }
 
-  function publicar(dados) {
-    setNovas((atual) => [
-      { id: Date.now(), quadraId: quadra.id, data: isoComDias(0), util: 0, propria: true, ...dados },
-      ...atual,
-    ]);
+  async function publicar(dados) {
+    await publicarAvaliacao({ quadraId: quadra.id, ...dados });
+    recarregarLista();
     limparFiltros();
     setOrdem("recentes");
     setFormAberto(false);
-    setToast("Obrigado! Sua avaliação foi publicada (demonstração).");
+    setToast("Obrigado! Sua avaliação foi publicada.");
+  }
+
+  async function apagar(id) {
+    await apagarAvaliacao(id);
+    recarregarLista();
+    setToast("Sua avaliação foi apagada.");
   }
 
   return (
@@ -278,6 +286,11 @@ function Avaliacoes({ id }) {
                             <span key={asp}>{asp}</span>
                           ))}
                         </div>
+                        {a.propria && (
+                          <button type="button" className="av-util av-apagar" onClick={() => apagar(a.id)}>
+                            <Trash2 size={15} aria-hidden="true" /> Apagar
+                          </button>
+                        )}
                         {!a.propria && (
                           <button
                             type="button"
@@ -338,7 +351,12 @@ function Avaliacoes({ id }) {
         onClick={(e) => e.target === e.currentTarget && setFormAberto(false)}
       >
         {formAberto && (
-          <FormAvaliacao quadra={quadra} onEnviar={publicar} onCancelar={() => setFormAberto(false)} />
+          <FormAvaliacao
+            quadra={quadra}
+            nomeInicial={sessaoAtual()?.tipo === "usuario" ? sessaoAtual().nome : ""}
+            onEnviar={publicar}
+            onCancelar={() => setFormAberto(false)}
+          />
         )}
       </dialog>
 

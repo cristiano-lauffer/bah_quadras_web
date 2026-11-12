@@ -628,3 +628,200 @@
     transition: none !important;
   }
 }
+
+/* ===== RECUPERAR / REDEFINIR SENHA (prefixo rs-) ===== */
+
+.auth-aviso-ok {
+  border: 1px solid var(--green-texto);
+  font-weight: 600;
+}
+
+.auth-sucesso .auth-aviso {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.rs-botao {
+  width: 100%;
+}
+
+.rs-reenviar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 20px;
+  margin-top: 18px;
+  font-size: 13px;
+}
+
+.rs-reenviar span {
+  width: 100%;
+  color: var(--green-texto);
+  font-weight: 700;
+}
+
+.rs-reenviar .auth-link:disabled {
+  color: var(--muted);
+  cursor: default;
+  text-decoration: none;
+}
+
+.rs-regras {
+  display: grid;
+  gap: 6px;
+  margin: -6px 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.rs-regras li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rs-regras svg {
+  padding: 2px;
+  border-radius: 50%;
+  background: var(--line);
+  color: transparent;
+  transition: background 0.2s, color 0.2s;
+}
+
+.rs-regras li.ok {
+  color: var(--green-texto);
+  font-weight: 600;
+}
+
+.rs-regras li.ok svg {
+  background: var(--green-texto);
+  color: var(--surface);
+}
+
+.rs-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ===== SESSÃO (login de demonstração) ===== */
+
+.auth-logado {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-2);
+}
+
+.auth-logado > div:nth-child(2) {
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-logado > div:nth-child(2) span {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.auth-logado-avatar {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--green);
+  color: #fff;
+  font-weight: 800;
+}
+
+.auth-logado-acoes {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.auth-logado-acoes .auth-botao {
+  flex: 1;
+  min-width: 150px;
+}
+
+.auth-demo {
+  margin-top: 22px;
+  padding: 14px;
+  border: 1px dashed var(--line-forte);
+  border-radius: 12px;
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.auth-demo p {
+  margin: 0 0 10px;
+  line-height: 1.5;
+}
+
+.auth-demo p svg {
+  vertical-align: -3px;
+  color: var(--green-texto);
+}
+
+.auth-demo > div {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 8px;
+}
+
+.auth-demo button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+  text-align: left;
+  cursor: pointer;
+}
+
+.auth-demo button span {
+  color: var(--green-texto);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.auth-demo button:hover {
+  border-color: var(--green-texto);
+}
+
+.cad-acoes {
+  width: 100%;
+  margin-top: 0;
+}
+
+.cad-acoes .auth-botao {
+  flex: 1;
+  min-width: 170px;
+}
+
+.auth-motivo {
+  margin-bottom: 20px;
+  border: 1px solid var(--green-texto);
+}

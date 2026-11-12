@@ -1,0 +1,84 @@
+/* Tela de erro (página que não carregou). Prefixo "le-". */
+
+.le {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+  background: var(--page);
+  color: var(--text);
+}
+
+.le-caixa {
+  max-width: 460px;
+  padding: 36px 28px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  text-align: center;
+}
+
+.le-icone {
+  display: inline-grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 14px;
+  border-radius: 18px;
+  background: var(--green-light);
+  font-size: 34px;
+}
+
+.le h1 {
+  margin: 0 0 10px;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.le p {
+  margin: 0 0 24px;
+  color: var(--text-2);
+  line-height: 1.6;
+}
+
+.le-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.le-botao {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 20px;
+  border: 1.5px solid var(--green);
+  border-radius: 10px;
+  background: var(--green);
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.le-botao:hover {
+  background: var(--green-dark);
+}
+
+.le-botao-contorno {
+  border-color: var(--line-forte);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.le-botao-contorno:hover {
+  background: var(--green-light);
+}
+
+.le :is(a, button):focus-visible {
+  outline: 3px solid var(--green-texto);
+  outline-offset: 2px;
+}

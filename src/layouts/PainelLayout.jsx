@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { LogOut, Menu, X } from "lucide-react";
 import { useTitulo } from "../hooks/useTitulo.js";
+import { sair } from "../services/sessaoService.js";
 import BotaoTema from "../components/BotaoTema.jsx";
 import "../css/Painel.css";
 
@@ -21,6 +22,12 @@ import "../css/Painel.css";
 export default function PainelLayout({ variante = "empresa", rotulo, menu, perfil, titulo, tituloAba, subtitulo, acoes, children }) {
   const [menuAberto, setMenuAberto] = useState(false);
   const { pathname, search } = useLocation();
+  const navigate = useNavigate();
+
+  function sairDaConta() {
+    sair();
+    navigate("/login", { state: { aviso: "Você saiu da sua conta. Até a próxima partida!" } });
+  }
   // O título da página vira o título da aba (ex.: "Dashboard · Bah Quadras").
   // "tituloAba" permite um texto diferente do cabeçalho (ex.: "Minha área" em vez de "Olá, João!").
   useTitulo(tituloAba ?? (typeof titulo === "string" ? titulo : undefined));
@@ -82,9 +89,9 @@ export default function PainelLayout({ variante = "empresa", rotulo, menu, perfi
             <strong>{perfil.nome}</strong>
             <span>{perfil.subtitulo}</span>
           </div>
-          <Link to="/login" className="pn-sair" aria-label="Sair da conta" title="Sair">
+          <button type="button" className="pn-sair" onClick={sairDaConta} aria-label="Sair da conta" title="Sair">
             <LogOut size={18} />
-          </Link>
+          </button>
         </div>
       </aside>
 

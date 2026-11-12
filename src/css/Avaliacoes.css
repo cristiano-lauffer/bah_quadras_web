@@ -904,3 +904,9 @@
     transition: none !important;
   }
 }
+
+/* Apagar a própria avaliação */
+.av-apagar:hover {
+  border-color: var(--erro);
+  color: var(--erro);
+}

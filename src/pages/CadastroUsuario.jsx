@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   ArrowLeft,
   ArrowRight,
@@ -12,14 +12,16 @@ import {
   Phone,
   User,
 } from "lucide-react";
-import AuthLayout, { Campo } from "../layouts/AuthLayout.jsx";
-import { emailValido, forcaSenha, mascaraTelefone, telefoneValido } from "../utils/mascaras.js";
+import AuthLayout, { Campo, ForcaSenha } from "../layouts/AuthLayout.jsx";
+import { emailValido, mascaraTelefone, telefoneValido } from "../utils/mascaras.js";
 import { useTitulo } from "../hooks/useTitulo.js";
-
-const niveisSenha = ["", "Fraca", "Razoável", "Boa", "Forte"];
+import { entrarAposCadastro } from "../services/sessaoService.js";
 
 export default function CadastroUsuario() {
   useTitulo("Criar conta de jogador");
+  const location = useLocation();
+  // Veio do agendamento (via Login): depois de criar a conta, volta para a reserva.
+  const deReserva = typeof location.state?.de === "string" && location.state.de.startsWith("/agendamento/") ? location.state.de : null;
   const [form, setForm] = useState({
     nome: "",
     email: "",
@@ -32,7 +34,6 @@ export default function CadastroUsuario() {
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [concluido, setConcluido] = useState(false);
-  const forca = forcaSenha(form.senha);
 
   function atualizar(e) {
     const { name, value, type, checked } = e.target;
@@ -61,6 +62,7 @@ export default function CadastroUsuario() {
     setEnviando(true);
     setTimeout(() => {
       setEnviando(false);
+      entrarAposCadastro(form); // já entra na conta recém-criada
       setConcluido(true);
     }, 900);
   }
@@ -81,12 +83,23 @@ export default function CadastroUsuario() {
           <CircleCheck size={56} aria-hidden="true" />
           <h2>Conta criada, {form.nome.split(" ")[0]}!</h2>
           <p>
-            Esta é uma demonstração: os dados ainda não foram salvos no servidor. Quando o backend
-            estiver conectado, você já poderá entrar com <strong>{form.email}</strong>.
+            Você já está conectado com <strong>{form.email}</strong>. Esta é uma demonstração: os dados
+            ainda não vão para o servidor, isso acontece quando o backend estiver conectado.
           </p>
-          <Link to="/" className="auth-botao">
-            Encontrar quadras <ArrowRight size={18} aria-hidden="true" />
-          </Link>
+          <div className="rs-reenviar cad-acoes">
+            {deReserva ? (
+              <Link to={deReserva} className="auth-botao">
+                Continuar a reserva <ArrowRight size={18} aria-hidden="true" />
+              </Link>
+            ) : (
+              <Link to="/" className="auth-botao">
+                Encontrar quadras <ArrowRight size={18} aria-hidden="true" />
+              </Link>
+            )}
+            <Link to="/usuario/perfil" className="auth-botao auth-botao-contorno">
+              Ir para minha área
+            </Link>
+          </div>
         </div>
       </AuthLayout>
     );
@@ -177,16 +190,7 @@ export default function CadastroUsuario() {
           </button>
         </Campo>
 
-        {form.senha && (
-          <div className={`auth-forca nivel-${forca}`} aria-live="polite">
-            <div className="auth-forca-barras">
-              {[1, 2, 3, 4].map((n) => (
-                <span key={n} className={n <= forca ? "ativa" : ""} />
-              ))}
-            </div>
-            <small>Senha {niveisSenha[forca].toLowerCase()}</small>
-          </div>
-        )}
+        <ForcaSenha senha={form.senha} />
 
         <Campo id="cad-confirmar" rotulo="Confirmar senha" icone={Lock} erro={erros.confirmar}>
           <input
@@ -204,7 +208,11 @@ export default function CadastroUsuario() {
         <div>
           <label className="auth-checkbox">
             <input type="checkbox" name="termos" checked={form.termos} onChange={atualizar} />
-            <span>Li e aceito os Termos de Uso e a Política de Privacidade.</span>
+            <span>
+              Li e aceito os{" "}
+              <Link to="/termos" target="_blank" className="auth-link-forte">Termos de Uso</Link> e a{" "}
+              <Link to="/privacidade" target="_blank" className="auth-link-forte">Política de Privacidade</Link>.
+            </span>
           </label>
           {erros.termos && (
             <p className="auth-erro" role="alert">

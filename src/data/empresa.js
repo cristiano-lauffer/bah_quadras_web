@@ -71,6 +71,7 @@ export const historicoMensal = faturamento.map((valor, i) => {
   return {
     mes: data.toLocaleDateString("pt-BR", { month: "short" }).replace(".", ""),
     mesLongo: data.toLocaleDateString("pt-BR", { month: "long", year: "numeric" }),
+    mesNome: data.toLocaleDateString("pt-BR", { month: "long" }), // "outubro"
     faturamento: valor,
     reservas: reservasMes[i],
   };

@@ -29,6 +29,8 @@ function irParaQuadras() {
   document.getElementById("quadras")?.scrollIntoView({ behavior: "smooth" });
 }
 
+const CARDS_NO_CELULAR = 8;
+
 export default function Home() {
   useTitulo("Encontre sua quadra");
   const { hash } = useLocation();
@@ -43,6 +45,11 @@ export default function Home() {
   const [ordem, setOrdem] = useState("relevancia");
   const [cidade, setCidade] = useState("todas");
   const [faixaPreco, setFaixaPreco] = useState("qualquer");
+  // No celular a lista começa com 8 quadras (o resto aparece no "Ver mais").
+  // Mudar a busca ou um filtro volta a mostrar só as primeiras.
+  const chaveFiltros = [busca, modalidade, cidade, faixaPreco, ordem].join("|");
+  const [expandidaPara, setExpandidaPara] = useState(null);
+  const expandida = expandidaPara === chaveFiltros;
 
   // Favoritos salvos (os mesmos da aba "Favoritas" do perfil do jogador).
   const { dados: favoritosSalvos } = useDados(listarFavoritos);
@@ -165,13 +172,20 @@ export default function Home() {
             </div>
 
             {resultado.length > 0 ? (
-              <ul className="home-grid">
+              <>
+              <ul className={`home-grid ${expandida ? "expandida" : ""}`}>
                 {resultado.map((q) => (
                   <li key={q.id}>
                     <CardQuadra quadra={q} favorito={favoritos.has(q.id)} onFavoritar={trocarFavorito} />
                   </li>
                 ))}
               </ul>
+              {resultado.length > CARDS_NO_CELULAR && !expandida && (
+                <button type="button" className="home-ver-mais" onClick={() => setExpandidaPara(chaveFiltros)}>
+                  Ver mais quadras ({resultado.length - CARDS_NO_CELULAR})
+                </button>
+              )}
+              </>
             ) : (
               <div className="home-vazio">
                 <SearchX size={40} aria-hidden="true" />

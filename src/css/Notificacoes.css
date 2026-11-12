@@ -63,6 +63,7 @@
 .no-icone.avaliacao { background: var(--amarelo-fundo); color: var(--estrela); }
 .no-icone.financeiro { background: var(--info-fundo); color: var(--info); }
 .no-icone.sistema { background: var(--page); color: var(--muted); }
+.no-icone.lembrete { background: var(--info-fundo); color: var(--info); }
 
 .no-texto {
   flex: 1;

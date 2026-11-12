@@ -7,6 +7,7 @@
 //   export const listarQuadrasPublicas = () => api.get("/quadras").then(r => r.data);
 // =========================================================
 import { quadras as quadrasFixas } from "../data/quadras.js";
+import { notaDaQuadra } from "./avaliacoesService.js";
 import { responder } from "./armazenamento.js";
 import { empresaAtual } from "./empresaService.js";
 import { quadrasDaEmpresaAtual } from "./quadrasService.js";
@@ -22,8 +23,6 @@ function paraPublica(quadra, empresa) {
     cidade: `${cidade}/${estado}`,
     endereco: `${rua}, ${numero} - ${cidade}/${estado}`,
     preco: quadra.preco,
-    avaliacao: null,
-    quantidadeAvaliacoes: 0,
     descricao: quadra.descricao || `${quadra.modalidade} na ${empresa.nome}.`,
     imagens: quadra.imagem ? [quadra.imagem] : [],
     estrutura: quadra.comodidades ?? [],
@@ -41,7 +40,8 @@ export function quadrasPublicas() {
   const daEmpresa = quadrasDaEmpresaAtual()
     .filter((q) => !q.publicaId && q.status !== "inativa")
     .map((q) => paraPublica(q, empresa));
-  return [...quadrasFixas, ...daEmpresa];
+  // A nota vem das avaliações (com o backend, a API já devolve a média pronta).
+  return [...quadrasFixas, ...daEmpresa].map((q) => ({ ...q, ...notaDaQuadra(q.id) }));
 }
 
 /** Uma quadra do catálogo pelo id da página pública (leitura imediata). */

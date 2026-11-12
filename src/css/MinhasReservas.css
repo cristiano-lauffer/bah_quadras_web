@@ -292,3 +292,13 @@
     flex: 1;
   }
 }
+
+/* Reserva já avaliada */
+.mr-avaliada {
+  color: var(--green-texto);
+}
+
+.mr-remarcada {
+  color: var(--info);
+  font-weight: 600;
+}

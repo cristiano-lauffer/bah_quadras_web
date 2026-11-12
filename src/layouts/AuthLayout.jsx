@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Check } from "lucide-react";
 import BotaoTema from "../components/BotaoTema.jsx";
+import { forcaSenha } from "../utils/mascaras.js";
 import "../css/Auth.css";
 
 const vantagensPadrao = [
@@ -97,6 +98,24 @@ export function Campo({ id, rotulo, icone: Icone, erro, dica, acao, children }) 
       ) : (
         dica && <p className="auth-dica">{dica}</p>
       )}
+    </div>
+  );
+}
+
+const niveisSenha = ["", "Fraca", "Razoável", "Boa", "Forte"];
+
+/** Barrinha de força da senha (usada no cadastro e na troca de senha). */
+export function ForcaSenha({ senha }) {
+  if (!senha) return null;
+  const forca = forcaSenha(senha);
+  return (
+    <div className={`auth-forca nivel-${forca}`} aria-live="polite">
+      <div className="auth-forca-barras">
+        {[1, 2, 3, 4].map((n) => (
+          <span key={n} className={n <= forca ? "ativa" : ""} />
+        ))}
+      </div>
+      <small>Senha {niveisSenha[forca].toLowerCase()}</small>
     </div>
   );
 }

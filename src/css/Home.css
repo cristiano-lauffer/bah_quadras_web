@@ -375,6 +375,11 @@
   flex-direction: column;
 }
 
+/* As estrelas ficam em linha (a regra acima é para os textos do balão). */
+.home-flutuante .home-estrelas {
+  flex-direction: row;
+}
+
 .home-flutuante strong {
   font-size: 14px;
 }
@@ -1279,5 +1284,36 @@
   .home *::after {
     animation: none !important;
     transition: none !important;
+  }
+}
+
+/* ===== "Ver mais quadras" (só no celular) ===== */
+.home-ver-mais {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .home-grid:not(.expandida) > li:nth-child(n + 9) {
+    display: none;
+  }
+
+  .home-ver-mais {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 48px;
+    margin-top: 20px;
+    border: 1.5px solid var(--green-texto);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--green-texto);
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .home-ver-mais:hover {
+    background: var(--green-light);
   }
 }

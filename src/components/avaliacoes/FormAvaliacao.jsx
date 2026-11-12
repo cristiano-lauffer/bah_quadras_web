@@ -3,10 +3,10 @@ import { Star, X } from "lucide-react";
 import { aspectosAvaliacao, rotulosNota } from "../../data/avaliacoes.js";
 
 /** Formulário de nova avaliação (aberto no modal da página de Avaliações). */
-export default function FormAvaliacao({ quadra, onEnviar, onCancelar }) {
+export default function FormAvaliacao({ quadra, nomeInicial = "", onEnviar, onCancelar }) {
   const [nota, setNota] = useState(0);
   const [hover, setHover] = useState(0);
-  const [nome, setNome] = useState("");
+  const [nome, setNome] = useState(nomeInicial);
   const [aspectos, setAspectos] = useState([]);
   const [texto, setTexto] = useState("");
   const [erros, setErros] = useState({});

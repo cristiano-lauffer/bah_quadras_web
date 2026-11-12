@@ -11,18 +11,21 @@ import { somarMinutos } from "../utils/formatadores.js";
 
 const CHAVE = "bahquadras:usuario:reservas";
 
-// Guardamos só o que mudou: reservas novas e ids cancelados.
+// Guardamos só o que mudou: reservas novas, ids cancelados e remarcações.
 // Assim as reservas de exemplo continuam com datas relativas a hoje.
-const lerAlteracoes = () => lerSalvo(CHAVE) ?? { criadas: [], canceladas: [] };
+const lerAlteracoes = () => ({ criadas: [], canceladas: [], canceladasEm: {}, remarcadas: {}, ...lerSalvo(CHAVE) });
 
 function montarLista() {
-  const { criadas, canceladas } = lerAlteracoes();
-  return [...reservasExemplo, ...criadas].map((r) =>
-    canceladas.includes(r.id) ? { ...r, status: "cancelada" } : r
-  );
+  const { criadas, canceladas, canceladasEm, remarcadas } = lerAlteracoes();
+  return [...reservasExemplo, ...criadas]
+    .map((r) => (remarcadas[r.id] ? { ...r, ...remarcadas[r.id] } : r))
+    .map((r) => (canceladas.includes(r.id) ? { ...r, status: "cancelada", canceladaEm: canceladasEm[r.id] } : r));
 }
 
 /* ---------------- Funções públicas ---------------- */
+
+/** Leitura imediata (sem esperar), usada por contadores do menu e notificações. */
+export const reservasAtuais = () => montarLista();
 
 export function listarReservas() {
   return responder(montarLista());
@@ -35,9 +38,30 @@ export function criarReserva(dados) {
   return responder(nova, 600);
 }
 
+/** Uma reserva pelo id (leitura imediata). */
+export const buscarReserva = (id) => montarLista().find((r) => String(r.id) === String(id));
+
+/**
+ * Troca o dia/horário (e a duração) de uma reserva confirmada.
+ * novos: { data, hora, duracao, baterias?, valor }
+ * Com o backend: api.patch(`/reservas/${id}`, novos)
+ */
+export function remarcarReserva(id, novos) {
+  const alteracoes = lerAlteracoes();
+  const original = buscarReserva(id);
+  const anterior = original ? { data: original.data, hora: original.hora } : null;
+  const remarcacao = { ...novos, anterior, remarcadaEm: new Date().toISOString() };
+  salvar(CHAVE, { ...alteracoes, remarcadas: { ...alteracoes.remarcadas, [id]: remarcacao } });
+  return responder({ ...original, ...remarcacao }, 600);
+}
+
 export function cancelarReserva(id) {
   const alteracoes = lerAlteracoes();
-  salvar(CHAVE, { ...alteracoes, canceladas: [...new Set([...alteracoes.canceladas, id])] });
+  salvar(CHAVE, {
+    ...alteracoes,
+    canceladas: [...new Set([...alteracoes.canceladas, id])],
+    canceladasEm: { ...alteracoes.canceladasEm, [id]: new Date().toISOString() },
+  });
   return responder({ id, status: "cancelada" }, 400);
 }
 
@@ -46,9 +70,10 @@ export function cancelarReserva(id) {
  * Junta as reservas do jogador com algumas reservas "de outras pessoas"
  * geradas de forma fixa para a demonstração ficar realista.
  */
-export function horariosOcupados(quadraId, data) {
+export function horariosOcupados(quadraId, data, ignorarId = null) {
+  // ignorarId: ao remarcar, o horário atual da própria reserva conta como livre.
   const doJogador = montarLista()
-    .filter((r) => r.quadraId === quadraId && r.data === data && r.status === "confirmada")
+    .filter((r) => r.quadraId === quadraId && r.data === data && r.status === "confirmada" && String(r.id) !== String(ignorarId))
     .flatMap((r) =>
       Array.from({ length: r.duracao }, (_, i) => `${String(Number(r.hora.slice(0, 2)) + i).padStart(2, "0")}:00`)
     );
