@@ -19,10 +19,11 @@ import Header from "../components/Header.jsx";
 import Footer from "../components/Footer.jsx";
 import { useDados } from "../hooks/useDados.js";
 import { buscarQuadraPublica } from "../services/catalogoService.js";
-import { avaliacoesDaQuadra } from "../data/avaliacoes.js";
+import { avaliacoesDaQuadra } from "../services/avaliacoesService.js";
 import { buscarVinculoPublico, gradePadrao } from "../services/quadrasService.js";
 import { horariosOcupados } from "../services/reservasService.js";
 import {
+  cobraPorBateria,
   corDoNome,
   formatarNota,
   formatarPreco,
@@ -133,7 +134,7 @@ function Conteudo({ quadra }) {
           </header>
 
           <section className="dq-secao">
-            <h2>Sobre a quadra</h2>
+            <h2>{cobraPorBateria(quadra) ? "Sobre o kartódromo" : "Sobre a quadra"}</h2>
             <p>{quadra.descricao}</p>
           </section>
 

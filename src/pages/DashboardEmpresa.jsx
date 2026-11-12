@@ -22,7 +22,7 @@ import { agendaHoje, historicoMensal, quadrasEmpresa } from "../data/empresa.js"
 import { buscarQuadraPorId } from "../data/quadras.js";
 import { useDados } from "../hooks/useDados.js";
 import { listarQuadras } from "../services/quadrasService.js";
-import { avaliacoesDaQuadra } from "../data/avaliacoes.js";
+import { resumoAvaliacoesDaEmpresa } from "../services/respostasService.js";
 import { corDoNome, formatarNota, formatarPreco, iniciais, tempoRelativo, foto } from "../utils/formatadores.js";
 import "../css/DashboardEmpresa.css";
 
@@ -32,9 +32,6 @@ const metricas = {
 };
 
 const quadraPublica = buscarQuadraPorId("arena-sport");
-const avaliacoesRecentes = avaliacoesDaQuadra("arena-sport")
-  .sort((a, b) => b.data.localeCompare(a.data))
-  .slice(0, 3);
 
 
 const atual = historicoMensal.at(-1);
@@ -78,6 +75,9 @@ export default function DashboardEmpresa() {
   const { dados } = useDados(listarQuadras);
   const quadras = dados ?? quadrasEmpresa;
   const quadrasAtivas = quadras.filter((q) => q.status === "ativa");
+  // Avaliações de todas as quadras da empresa (nota e as 3 mais recentes).
+  const resumo = resumoAvaliacoesDaEmpresa();
+  const avaliacoesRecentes = resumo.recentes.slice(0, 3);
   const ocupacaoMedia = quadrasAtivas.length
     ? Math.round(quadrasAtivas.reduce((s, q) => s + q.ocupacao, 0) / quadrasAtivas.length)
     : 0;
@@ -141,7 +141,7 @@ export default function DashboardEmpresa() {
         <section className="pn-kpis" aria-label="Indicadores">
           <article className="pn-kpi">
             <div className="pn-kpi-topo">
-              Faturamento em {atual.mes}
+              Faturamento em {atual.mesNome}
               <span className="pn-kpi-icone" aria-hidden="true"><Wallet size={18} /></span>
             </div>
             <strong>{formatarPreco(atual.faturamento)}</strong>
@@ -152,7 +152,7 @@ export default function DashboardEmpresa() {
 
           <article className="pn-kpi">
             <div className="pn-kpi-topo">
-              Reservas em {atual.mes}
+              Reservas em {atual.mesNome}
               <span className="pn-kpi-icone" aria-hidden="true"><CalendarCheck size={18} /></span>
             </div>
             <strong>{atual.reservas}</strong>
@@ -175,8 +175,10 @@ export default function DashboardEmpresa() {
               Avaliação média
               <span className="pn-kpi-icone" aria-hidden="true"><Star size={18} /></span>
             </div>
-            <strong>{formatarNota(quadraPublica.avaliacao)}</strong>
-            <small>em {quadraPublica.quantidadeAvaliacoes} avaliações</small>
+            <strong>{resumo.total ? formatarNota(resumo.media) : "–"}</strong>
+            <small>
+              {resumo.total ? `em ${resumo.total} ${resumo.total === 1 ? "avaliação" : "avaliações"}` : "ainda sem avaliações"}
+            </small>
           </article>
         </section>
 

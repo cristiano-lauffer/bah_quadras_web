@@ -5,7 +5,7 @@
 // fica salvo no navegador.
 // Com o backend: troque por chamadas à API (ou por notificações em tempo real).
 // =========================================================
-import { avaliacoesDaQuadra } from "../data/avaliacoes.js";
+import { avaliacoesDaQuadra } from "./avaliacoesService.js";
 import { lerSalvo, responder, salvar } from "./armazenamento.js";
 
 const CHAVE = "bahquadras:empresa:notificacoes-lidas";

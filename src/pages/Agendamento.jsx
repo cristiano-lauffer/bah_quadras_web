@@ -1,13 +1,15 @@
 import { useState } from "react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft,
   ArrowRight,
+  CalendarClock,
   CircleAlert,
   CircleCheck,
   Clock,
   CreditCard,
   LoaderCircle,
+  LogIn,
   MapPin,
   Star,
 } from "lucide-react";
@@ -18,10 +20,18 @@ import QuadraNaoEncontrada from "../components/agendamento/QuadraNaoEncontrada.j
 import ReservaConfirmada from "../components/agendamento/ReservaConfirmada.jsx";
 import { buscarQuadraPublica } from "../services/catalogoService.js";
 import { buscarVinculoPublico, gradePadrao } from "../services/quadrasService.js";
-import { criarReserva, horariosOcupados } from "../services/reservasService.js";
+import {
+  buscarReserva,
+  criarReserva,
+  horariosOcupados,
+  inicioDaReserva,
+  remarcarReserva,
+} from "../services/reservasService.js";
+import { useSessao } from "../hooks/useSessao.js";
 import { empresaAtual } from "../services/empresaService.js";
 import {
   cobraPorBateria,
+  descreverDuracao,
   formatarData,
   formatarNota,
   formatarPreco,
@@ -50,21 +60,47 @@ export default function Agendamento() {
   const [params] = useSearchParams();
 
   const quadra = id ? buscarQuadraPublica(id) : null;
-  useTitulo(!id ? "Escolha uma quadra" : quadra ? `Reservar ${quadra.nome}` : "Quadra não encontrada");
+  const remarcarId = params.get("remarcar");
+  useTitulo(
+    !id ? "Escolha uma quadra" : !quadra ? "Quadra não encontrada" : `${remarcarId ? "Remarcar" : "Reservar"} ${quadra.nome}`
+  );
 
   if (!id) return <EscolherQuadra />;
   if (!quadra) return <QuadraNaoEncontrada />;
 
-  return <Reserva key={id} quadra={quadra} dataInicial={params.get("data")} horaInicial={params.get("hora")} />;
+  return (
+    <Reserva
+      key={`${id}-${remarcarId ?? ""}`}
+      quadra={quadra}
+      dataInicial={params.get("data")}
+      horaInicial={params.get("hora")}
+      duracaoInicial={Number(params.get("duracao")) || null}
+      etapaInicial={params.get("etapa")}
+      remarcarId={remarcarId}
+    />
+  );
 }
 
 /* ================================================================
    RESERVA
    ================================================================ */
 
-function Reserva({ quadra, dataInicial, horaInicial }) {
+function Reserva({ quadra, dataInicial, horaInicial, duracaoInicial, etapaInicial, remarcarId }) {
   const dias = Array.from({ length: DIAS_VISIVEIS }, (_, i) => isoComDias(i));
   const hoje = dias[0];
+  const navigate = useNavigate();
+
+  // Só jogadores logados reservam. Sem login, o "Continuar" leva ao Login e volta para cá.
+  const sessao = useSessao();
+  const logadoComoJogador = sessao?.tipo === "usuario";
+
+  // Remarcação: /agendamento/:id?remarcar=<id da reserva>
+  const original = remarcarId ? buscarReserva(remarcarId) : null;
+  const remarcando = Boolean(
+    original && original.quadraId === quadra.id && original.status === "confirmada" && inicioDaReserva(original) > new Date()
+  );
+  const remarcacaoInvalida = Boolean(remarcarId) && !remarcando;
+  const duracaoOriginal = remarcando ? original.baterias ?? original.duracao : 1;
 
   // Dados que a empresa controla (preço, situação e grade de horários).
   const { dados: vinculo, carregando: carregandoVinculo } = useDados(() => buscarVinculoPublico(quadra.id), [quadra.id]);
@@ -72,26 +108,35 @@ function Reserva({ quadra, dataInicial, horaInicial }) {
   const situacao = vinculo?.status ?? "ativa";
   const grade = vinculo?.horarios ?? gradePadrao();
 
-  const [data, setData] = useState(dias.includes(dataInicial) ? dataInicial : hoje);
+  const [data, setData] = useState(
+    dias.includes(dataInicial) ? dataInicial : remarcando && dias.includes(original.data) ? original.data : hoje
+  );
   const [hora, setHora] = useState(horaInicial ?? "");
-  const [duracao, setDuracao] = useState(1);
-  const [etapa, setEtapa] = useState("escolher");
+  const [duracao, setDuracao] = useState(duracaoInicial ?? duracaoOriginal);
+  // Voltando do Login, já abre direto na confirmação.
+  const [etapa, setEtapa] = useState(etapaInicial === "confirmar" && horaInicial && logadoComoJogador ? "confirmar" : "escolher");
   const [pagamento, setPagamento] = useState("Pix");
   const [aceite, setAceite] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [reserva, setReserva] = useState(null);
 
   const { dados: ocupados, carregando: carregandoHorarios } = useDados(
-    () => horariosOcupados(quadra.id, data),
-    [quadra.id, data]
+    () => horariosOcupados(quadra.id, data, remarcando ? original.id : null),
+    [quadra.id, data, remarcando]
   );
+
+  // Ao remarcar, as horas da própria reserva contam como livres.
+  const horasProprias =
+    remarcando && data === original.data
+      ? Array.from({ length: original.duracao }, (_, i) => somarHoras(original.hora, i))
+      : [];
 
   const diaSemana = (iso) => paraData(iso).getDay();
   const agora = new Date();
   const horarios = (grade[diaSemana(data)] ?? []).map((h) => {
     let estado = "livre";
     if (data === hoje && Number(h.slice(0, 2)) <= agora.getHours()) estado = "passado";
-    else if (ocupados?.includes(h)) estado = "ocupado";
+    else if (ocupados?.includes(h) && !horasProprias.includes(h)) estado = "ocupado";
     return { hora: h, estado };
   });
   const livre = (h) => horarios.find((x) => x.hora === h)?.estado === "livre";
@@ -99,12 +144,14 @@ function Reserva({ quadra, dataInicial, horaInicial }) {
   // Kart é cobrado por bateria: as baterias cabem dentro de um horário de 1 hora.
   const kart = cobraPorBateria(quadra);
   const minBateria = minutosBateria(quadra);
-  const maximoOpcoes = kart ? BATERIAS_MAXIMAS : DURACAO_MAXIMA;
+  // Só as baterias que cabem na hora reservada (15 min: até 4; 20 min: até 3; 10 min: até 4).
+  const bateriasNaHora = Math.max(1, Math.min(BATERIAS_MAXIMAS, Math.floor(60 / minBateria)));
+  const maximoOpcoes = kart ? bateriasNaHora : DURACAO_MAXIMA;
 
   // Quantas opções (horas seguidas ou baterias) estão disponíveis no horário escolhido.
   let duracaoPossivel = 0;
   if (hora && livre(hora)) {
-    if (kart) duracaoPossivel = BATERIAS_MAXIMAS;
+    if (kart) duracaoPossivel = bateriasNaHora;
     else while (duracaoPossivel < DURACAO_MAXIMA && livre(somarHoras(hora, duracaoPossivel))) duracaoPossivel++;
   }
   const horaValida = duracaoPossivel > 0;
@@ -113,15 +160,47 @@ function Reserva({ quadra, dataInicial, horaInicial }) {
   const fimEscolhido = (n) => (kart ? somarMinutos(hora, n * minBateria) : somarHoras(hora, n));
   const politica = vinculo ? empresaAtual().politicaCancelamento : POLITICA_PADRAO;
   const livresNoDia = horarios.filter((h) => h.estado === "livre").length;
+  const mesmoHorario =
+    remarcando && data === original.data && hora === original.hora && duracaoFinal === duracaoOriginal;
+  const diferenca = remarcando ? total - original.valor : 0;
 
   function escolherData(novaData) {
     setData(novaData);
     setHora("");
-    setDuracao(1);
+    setDuracao(duracaoOriginal);
+  }
+
+  function irParaLogin() {
+    const volta = new URLSearchParams({ data, hora, duracao: String(duracaoFinal), etapa: "confirmar" });
+    if (remarcando) volta.set("remarcar", String(original.id));
+    navigate("/login", {
+      state: { de: `/agendamento/${quadra.id}?${volta}`, motivo: remarcando ? "remarcar" : "reservar", quadra: quadra.nome },
+    });
+  }
+
+  function continuar() {
+    if (!logadoComoJogador) return irParaLogin();
+    setEtapa("confirmar");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   async function confirmar() {
+    if (!logadoComoJogador) return irParaLogin();
     setEnviando(true);
+
+    if (remarcando) {
+      await remarcarReserva(original.id, {
+        data,
+        hora,
+        duracao: kart ? 1 : duracaoFinal,
+        ...(kart && { baterias: duracaoFinal, minutosBateria: minBateria }),
+        valor: total,
+      });
+      const quando = formatarData(data, { weekday: "short", day: "2-digit", month: "2-digit" });
+      navigate("/usuario/reservas", { state: { aviso: `Reserva na ${quadra.nome} remarcada para ${quando} às ${hora}.` } });
+      return;
+    }
+
     const nova = await criarReserva({
       quadraId: quadra.id,
       quadra: quadra.nome,
@@ -161,7 +240,7 @@ function Reserva({ quadra, dataInicial, horaInicial }) {
         <img {...foto(quadra.imagens[0], 200)} alt="" />
         <div>
           <span className="ag-tag">{quadra.modalidade}</span>
-          <h1>Reservar {quadra.nome}</h1>
+          <h1>{remarcando ? "Remarcar" : "Reservar"} {quadra.nome}</h1>
           <p>
             <span><MapPin size={14} aria-hidden="true" /> {quadra.bairro}, {quadra.cidade}</span>
             {semAvaliacoes(quadra) ? (
@@ -172,6 +251,23 @@ function Reserva({ quadra, dataInicial, horaInicial }) {
           </p>
         </div>
       </header>
+
+      {remarcando && (
+        <div className="ag-remarcar" role="status">
+          <CalendarClock size={20} aria-hidden="true" />
+          <p>
+            <strong>Horário atual:</strong>{" "}
+            {formatarData(original.data, { weekday: "long", day: "numeric", month: "long" })} às {original.hora} (
+            {descreverDuracao(original)}). Escolha o novo dia e horário.
+          </p>
+        </div>
+      )}
+      {remarcacaoInvalida && (
+        <div className="ag-remarcar ag-remarcar-erro" role="alert">
+          <CircleAlert size={20} aria-hidden="true" />
+          <p>Essa reserva não pode mais ser remarcada (já passou ou foi cancelada). Você pode fazer uma reserva nova abaixo.</p>
+        </div>
+      )}
 
       <ol className="ag-passos" aria-label="Etapas">
         <li className={etapa === "escolher" ? "atual" : "feito"}>
@@ -258,7 +354,7 @@ function Reserva({ quadra, dataInicial, horaInicial }) {
                         className={`ag-horario ${h.estado}`}
                         onClick={() => {
                           setHora(h.hora);
-                          setDuracao(1);
+                          setDuracao(duracaoOriginal); // ao remarcar, mantém a duração da reserva
                         }}
                       >
                         {h.hora}
@@ -295,6 +391,42 @@ function Reserva({ quadra, dataInicial, horaInicial }) {
             </>
           ) : (
             /* ===== Confirmação ===== */
+            !carregandoHorarios && !horaValida ? (
+              <div className="ag-aviso-grande">
+                <CircleAlert size={40} aria-hidden="true" />
+                <h2>Esse horário não está mais livre</h2>
+                <p>Alguém reservou enquanto você entrava na conta. Escolha outro horário.</p>
+                <button type="button" className="ag-botao" onClick={() => setEtapa("escolher")}>
+                  Escolher outro horário
+                </button>
+              </div>
+            ) : remarcando ? (
+            <section className="ag-card" aria-labelledby="ag-confirmar-titulo">
+              <h2 id="ag-confirmar-titulo">Confirme a remarcação</h2>
+              <div className="ag-de-para">
+                <div>
+                  <small>De</small>
+                  <strong>{formatarData(original.data, { weekday: "short", day: "2-digit", month: "short" })}</strong>
+                  <span>{original.hora} · {descreverDuracao(original)}</span>
+                </div>
+                <ArrowRight size={20} aria-hidden="true" />
+                <div className="novo">
+                  <small>Para</small>
+                  <strong>{formatarData(data, { weekday: "short", day: "2-digit", month: "short" })}</strong>
+                  <span>
+                    {hora} · {kart ? descreverDuracao({ baterias: duracaoFinal, minutosBateria: minBateria }) : `${duracaoFinal}h`}
+                  </span>
+                </div>
+              </div>
+              <p className="ag-texto">
+                O pagamento continua no local ({original.pagamento ?? "na forma escolhida"}).
+                {diferenca !== 0 &&
+                  (diferenca > 0
+                    ? ` Com a nova duração, o valor aumenta ${formatarPreco(diferenca, 2)}.`
+                    : ` Com a nova duração, o valor diminui ${formatarPreco(-diferenca, 2)}.`)}
+              </p>
+            </section>
+            ) : (
             <section className="ag-card" aria-labelledby="ag-confirmar-titulo">
               <h2 id="ag-confirmar-titulo">Confirme sua reserva</h2>
               <p className="ag-texto">Confira os dados e escolha como prefere pagar no local.</p>
@@ -320,7 +452,12 @@ function Reserva({ quadra, dataInicial, horaInicial }) {
                 <input type="checkbox" checked={aceite} onChange={(e) => setAceite(e.target.checked)} />
                 Li e concordo com a política de cancelamento.
               </label>
+              <p className="ag-termos">
+                Ao confirmar, você também concorda com os{" "}
+                <Link to="/termos#reservas" target="_blank">Termos de Uso</Link> do Bah Quadras.
+              </p>
             </section>
+            )
           )}
         </div>
 
@@ -345,27 +482,50 @@ function Reserva({ quadra, dataInicial, horaInicial }) {
                 <dt>Total</dt>
                 <dd>{horaValida ? formatarPreco(total, 2) : "—"}</dd>
               </div>
+              {remarcando && horaValida && diferenca !== 0 && (
+                <div>
+                  <dt>Diferença</dt>
+                  <dd>{`${diferenca > 0 ? "+" : "−"} ${formatarPreco(Math.abs(diferenca), 2)}`}</dd>
+                </div>
+              )}
             </dl>
 
             {etapa === "escolher" ? (
-              <button
-                type="button"
-                className="ag-botao"
-                disabled={!horaValida}
-                onClick={() => {
-                  setEtapa("confirmar");
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                }}
-              >
-                Continuar <ArrowRight size={18} aria-hidden="true" />
-              </button>
+              <>
+                <button type="button" className="ag-botao" disabled={!horaValida || mesmoHorario} onClick={continuar}>
+                  {logadoComoJogador ? (
+                    <>
+                      Continuar <ArrowRight size={18} aria-hidden="true" />
+                    </>
+                  ) : (
+                    <>
+                      <LogIn size={18} aria-hidden="true" /> Entrar e continuar
+                    </>
+                  )}
+                </button>
+                {mesmoHorario && <p className="ag-nota-login">Escolha um dia ou horário diferente do atual.</p>}
+                {!logadoComoJogador && !mesmoHorario && (
+                  <p className="ag-nota-login">
+                    {sessao?.tipo === "empresa"
+                      ? "Você está na conta da empresa. Entre com uma conta de jogador para reservar."
+                      : "Para reservar, entre na sua conta. Seu horário fica guardado."}
+                  </p>
+                )}
+              </>
             ) : (
               <>
-                <button type="button" className="ag-botao" disabled={!aceite || enviando} onClick={confirmar}>
+                <button
+                  type="button"
+                  className="ag-botao"
+                  disabled={(!remarcando && !aceite) || enviando || !horaValida || mesmoHorario}
+                  onClick={confirmar}
+                >
                   {enviando ? (
                     <>
                       <LoaderCircle size={18} className="ag-girando" aria-hidden="true" /> Confirmando...
                     </>
+                  ) : remarcando ? (
+                    "Confirmar remarcação"
                   ) : (
                     "Confirmar reserva"
                   )}

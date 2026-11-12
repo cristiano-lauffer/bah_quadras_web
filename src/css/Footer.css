@@ -165,3 +165,27 @@
     padding: 16px 0;
   }
 }
+/* Links de Termos e Privacidade */
+.rodape-legal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin-left: auto;
+}
+
+.rodape-legal a {
+  color: #a9c0b5;
+  font-size: 11px;
+  text-decoration: none;
+}
+
+.rodape-legal a:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+@media (max-width: 520px) {
+  .rodape-legal {
+    margin-left: 0;
+  }
+}

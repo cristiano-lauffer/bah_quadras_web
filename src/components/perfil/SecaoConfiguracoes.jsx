@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ShieldCheck } from "lucide-react";
+import { preferenciasDoUsuario, salvarPreferencias } from "../../services/usuarioService.js";
 
 const opcoesNotificacao = [
   { id: "lembrete", titulo: "Lembrete antes do jogo", texto: "Receba um aviso no WhatsApp 2 horas antes da reserva." },
@@ -8,7 +9,15 @@ const opcoesNotificacao = [
 ];
 
 export default function SecaoConfiguracoes({ onAviso }) {
-  const [notificacoes, setNotificacoes] = useState({ lembrete: true, confirmacao: true, novidades: false });
+  // Preferências salvas (continuam iguais depois de recarregar a página).
+  const [notificacoes, setNotificacoes] = useState(preferenciasDoUsuario);
+
+  function alternar(id, titulo) {
+    const novas = { ...notificacoes, [id]: !notificacoes[id] };
+    setNotificacoes(novas);
+    salvarPreferencias(novas);
+    onAviso(`${titulo}: ${novas[id] ? "ativado" : "desativado"}.`);
+  }
   const [alterandoSenha, setAlterandoSenha] = useState(false);
   const [senha, setSenha] = useState({ atual: "", nova: "", confirmar: "" });
   const [erroSenha, setErroSenha] = useState("");
@@ -47,7 +56,7 @@ export default function SecaoConfiguracoes({ onAviso }) {
                 aria-checked={notificacoes[id]}
                 aria-labelledby={`notif-${id}`}
                 className="pn-switch"
-                onClick={() => setNotificacoes((n) => ({ ...n, [id]: !n[id] }))}
+                onClick={() => alternar(id, titulo)}
               >
                 <span />
               </button>

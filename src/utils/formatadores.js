@@ -84,14 +84,13 @@ export function tempoRelativo(iso) {
   return `há ${meses} ${meses === 1 ? "mês" : "meses"}`;
 }
 
-export const iniciais = (nome) =>
-  nome
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((p) => p[0])
-    .join("")
-    .toUpperCase();
+// Primeira letra do primeiro e do último nome: "João da Silva" -> "JS".
+export function iniciais(nome) {
+  const partes = nome.trim().split(/\s+/).filter(Boolean);
+  if (!partes.length) return "";
+  const letras = partes.length > 1 ? partes[0][0] + partes.at(-1)[0] : partes[0][0];
+  return letras.toUpperCase();
+}
 
 // Normaliza texto para buscas (sem acentos e em minúsculas).
 export const normalizar = (texto) =>

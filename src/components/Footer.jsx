@@ -57,6 +57,11 @@ export default function Footer() {
           reservados.
         </p>
 
+        <nav className="rodape-legal" aria-label="Documentos">
+          <Link to="/termos">Termos de Uso</Link>
+          <Link to="/privacidade">Privacidade</Link>
+        </nav>
+
         <Link to="/" className="rodape-voltar">
           Voltar ao início ↑
         </Link>
