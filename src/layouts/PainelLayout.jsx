@@ -25,8 +25,9 @@ export default function PainelLayout({ variante = "empresa", rotulo, menu, perfi
   const navigate = useNavigate();
 
   function sairDaConta() {
-    sair();
+    // Nas rotas protegidas, a RotaProtegida também leva ao Login com este aviso.
     navigate("/login", { state: { aviso: "Você saiu da sua conta. Até a próxima partida!" } });
+    sair(`${pathname}${search}`);
   }
   // O título da página vira o título da aba (ex.: "Dashboard · Bah Quadras").
   // "tituloAba" permite um texto diferente do cabeçalho (ex.: "Minha área" em vez de "Olá, João!").

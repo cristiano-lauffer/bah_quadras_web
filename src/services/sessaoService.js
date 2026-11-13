@@ -73,6 +73,16 @@ export function observarSessao(avisar) {
   return () => ouvintes.delete(avisar);
 }
 
+// Entrou ou saiu em outra aba (sessão com "Manter conectado", no localStorage):
+// relê a sessão para esta aba também atualizar o cabeçalho e as áreas protegidas.
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (e) => {
+    if (e.key !== CHAVE && e.key !== null) return; // null = o armazenamento todo foi limpo
+    atual = ler();
+    ouvintes.forEach((avisar) => avisar());
+  });
+}
+
 /**
  * Entra na conta. Devolve a sessão criada.
  * Com o backend: const { data } = await api.post("/auth/login", { email, senha });
@@ -109,9 +119,17 @@ export function atualizarSessao({ nome, email }) {
   gravar({ ...montarSessao(sessao.tipo, { nome: nome.trim(), email: email.trim().toLowerCase() }) }, lembrar);
 }
 
-export function sair() {
+// Onde e quando a pessoa clicou em "Sair" (para a área protegida mostrar o aviso certo).
+let saida = { pagina: null, em: 0 };
+
+/** Sai da conta. paginaAtual: a página do painel onde a pessoa clicou em "Sair". */
+export function sair(paginaAtual = null) {
+  saida = { pagina: paginaAtual, em: Date.now() };
   gravar(null);
 }
+
+/** Acabou de sair estando nesta página? */
+export const acabouDeSair = (pagina) => saida.pagina === pagina && Date.now() - saida.em < 3000;
 
 /** Página inicial de cada tipo de conta depois do login. */
 export const inicioDaConta = (sessao) => (sessao?.tipo === "empresa" ? "/empresa/dashboard" : "/usuario/perfil");

@@ -8,6 +8,15 @@
 import { reservas as reservasExemplo } from "../data/reservas.js";
 import { lerSalvo, responder, salvar } from "./armazenamento.js";
 import { somarMinutos } from "../utils/formatadores.js";
+import { buscarQuadraPorId } from "../data/quadras.js";
+
+// Mostra a reserva com o nome atual da quadra (se a quadra mudar de nome, como o
+// "Velopark Kart", que hoje é "Autódromo FuelTech Velopark - Kart").
+// Quadras cadastradas pela empresa não estão em data/quadras.js e ficam como foram salvas.
+function atualizarQuadra(r) {
+  const nome = buscarQuadraPorId(r.quadraId)?.nome ?? r.quadra;
+  return nome === r.quadra ? r : { ...r, quadra: nome };
+}
 
 const CHAVE = "bahquadras:usuario:reservas";
 
@@ -18,6 +27,7 @@ const lerAlteracoes = () => ({ criadas: [], canceladas: [], canceladasEm: {}, re
 function montarLista() {
   const { criadas, canceladas, canceladasEm, remarcadas } = lerAlteracoes();
   return [...reservasExemplo, ...criadas]
+    .map(atualizarQuadra)
     .map((r) => (remarcadas[r.id] ? { ...r, ...remarcadas[r.id] } : r))
     .map((r) => (canceladas.includes(r.id) ? { ...r, status: "cancelada", canceladaEm: canceladasEm[r.id] } : r));
 }

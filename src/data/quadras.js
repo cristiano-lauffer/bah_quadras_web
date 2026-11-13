@@ -8,7 +8,9 @@ const img = (id) =>
   `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1000&q=80`;
 
 // Dados comuns aos espaços da RGM Academy (Gravataí/RS).
-// As fotos são ilustrativas. TODO: trocar por fotos reais da RGM.
+// As fotos ainda são ilustrativas: as fotos reais da RGM têm direitos autorais, então
+// precisam ser enviadas ou autorizadas pela própria RGM. Quando chegarem, coloque os
+// arquivos em public/fotos/rgm/ e troque as imagens abaixo por "/fotos/rgm/nome-do-arquivo.jpg".
 const rgmAcademy = {
   bairro: "Distrito Industrial",
   cidade: "Gravataí/RS",
@@ -128,35 +130,6 @@ export const quadras = [
   // Mais exemplos (empresas e endereços fictícios, só para demonstração).
   // ---------------------------------------------------------------
   {
-    id: "turbo-kart-indoor",
-    nome: "Turbo Kart Indoor",
-    modalidade: "Kart",
-    bairro: "Navegantes",
-    cidade: "Porto Alegre/RS",
-    endereco: "Av. Sertório, 1500 - Navegantes, Porto Alegre/RS",
-    cobranca: { unidade: "bateria", minutos: 10 },
-    preco: 70, // por bateria
-    destaque: true,
-    descricao:
-      "Kartódromo coberto com pista de 600 metros, cronometragem eletrônica e telão com o ranking ao vivo. Chuva não cancela a corrida!",
-    imagens: [img("photo-1508550794981-ed0e94d56589"), img("photo-1505570554449-69ce7d4fa36b")],
-    estrutura: ["Pista coberta", "Cronometragem eletrônica", "Capacete e balaclava inclusos", "Lanchonete", "Estacionamento"],
-  },
-  {
-    id: "pampa-kart-racing",
-    nome: "Pampa Kart Racing",
-    modalidade: "Kart",
-    bairro: "Mathias Velho",
-    cidade: "Canoas/RS",
-    endereco: "Rua Boqueirão, 2800 - Mathias Velho, Canoas/RS",
-    cobranca: { unidade: "bateria", minutos: 20 },
-    preco: 120, // por bateria
-    descricao:
-      "Pista ao ar livre de 1.100 metros com curvas de alta velocidade. Karts de 13 cv, ideal para quem quer sentir a adrenalina de uma corrida de verdade.",
-    imagens: [img("photo-1505570554449-69ce7d4fa36b"), img("photo-1508550794981-ed0e94d56589")],
-    estrutura: ["Pista ao ar livre", "Karts 13 cv", "Pódio para fotos", "Área de eventos", "Estacionamento"],
-  },
-  {
     id: "tenis-clube-figueira",
     nome: "Tênis Clube Figueira",
     modalidade: "Tênis",
@@ -225,6 +198,41 @@ export const quadras = [
     estrutura: ["Quadra coberta", "Som ambiente", "Bebedouro", "Bicicletário"],
   },
 
+  {
+    id: "ace-tenis-center",
+    nome: "Ace Tênis Center",
+    modalidade: "Tênis",
+    bairro: "Hamburgo Velho",
+    cidade: "Novo Hamburgo/RS",
+    endereco: "Rua General Osório, 720 - Hamburgo Velho, Novo Hamburgo/RS",
+    preco: 80,
+    descricao:
+      "Duas quadras cobertas de piso rápido (sintético), ótimas para jogar mesmo com chuva. Tem aluguel de raquetes, máquina de bolinhas e aulas para iniciantes.",
+    imagens: [
+      img("photo-1595435934249-5df7ed86e1c0"),
+      img("photo-1622163642998-1ea32b0bbc67"),
+      img("photo-1599586120429-48281b6f0ece"),
+    ],
+    estrutura: ["Quadras cobertas", "Piso rápido", "Aluguel de raquetes", "Vestiário", "Estacionamento"],
+  },
+  {
+    id: "ginasio-rede-alta",
+    nome: "Ginásio Rede Alta",
+    modalidade: "Vôlei de quadra",
+    bairro: "Petrópolis",
+    cidade: "Porto Alegre/RS",
+    endereco: "Av. Protásio Alves, 3100 - Petrópolis, Porto Alegre/RS",
+    preco: 110,
+    descricao:
+      "Ginásio coberto com quadra oficial de vôlei, piso de madeira, rede com altura regulável (masculina e feminina) e placar eletrônico. O preço é pelo ginásio inteiro.",
+    imagens: [
+      img("photo-1547347298-4074fc3086f0"),
+      img("photo-1588492069485-d05b56b2831d"),
+      img("photo-1574629810360-7efbbe195018"),
+    ],
+    estrutura: ["Piso de madeira", "Rede regulável", "Placar eletrônico", "Arquibancada", "Vestiários"],
+  },
+
   // ---------------------------------------------------------------
   // Empresas parceiras reais. Elas entram SEM nota e SEM avaliações
   // (nenhuma avaliação delas em data/avaliacoes.js) para não inventar opiniões sobre empresas de verdade.
@@ -232,19 +240,54 @@ export const quadras = [
   // ---------------------------------------------------------------
   {
     id: "velopark-kart",
-    nome: "Velopark Kart",
+    // Desde 2026 o Velopark se chama "Autódromo FuelTech Velopark" (a FuelTech comprou o nome).
+    // Fonte: autodromofueltech.com.br (o antigo velopark.com.br redireciona para lá).
+    nome: "Autódromo FuelTech Velopark - Kart",
     modalidade: "Kart",
-    bairro: "BR-386, km 428",
+    bairro: "BR-386, Km 430",
     cidade: "Nova Santa Rita/RS",
-    endereco: "BR-386, km 428 - Nova Santa Rita/RS",
-    mapa: "Velopark, Nova Santa Rita - RS", // busca usada no mapa (mais precisa que o km da rodovia)
+    endereco: "Rodovia BR-386, Km 430 - Nova Santa Rita/RS",
+    mapa: "Autódromo FuelTech Velopark, Nova Santa Rita - RS", // busca usada no mapa (mais precisa que o km da rodovia)
     // Kart é cobrado por bateria, não por hora.
     cobranca: { unidade: "bateria", minutos: 15 },
-    preco: 90, // por bateria. TODO: valor ilustrativo, confirmar a tabela de preços com o Velopark
+    preco: 90, // por bateria. TODO: valor e duração da bateria ilustrativos, confirmar com o autódromo
     descricao:
-      "Pista de kart de locação do complexo Velopark, a menos de 30 km de Porto Alegre. Um programa diferente para correr com os amigos, comemorar aniversários ou fazer eventos da empresa.",
+      "Kart no Autódromo FuelTech Velopark (antigo Velopark), complexo de automobilismo a menos de 30 km de Porto Alegre que tem três pistas de kart. Um programa diferente para correr com os amigos, comemorar aniversários ou fazer eventos da empresa.",
     imagens: [img("photo-1505570554449-69ce7d4fa36b"), img("photo-1508550794981-ed0e94d56589")],
     estrutura: ["Pista de kart de locação", "Karts para aluguel"], // TODO: confirmar a estrutura completa
+  },
+  {
+    // Fonte: topspeedkart.com.br (novembro de 2026).
+    id: "top-speed-kart",
+    nome: "Top Speed Kart",
+    modalidade: "Kart",
+    bairro: "Menino Deus",
+    cidade: "Porto Alegre/RS",
+    endereco: "Av. Praia de Belas, 1212 - Menino Deus, Porto Alegre/RS (andar G9 do prédio garagem do Shopping Praia de Belas)",
+    mapa: "Top Speed Kart, Shopping Praia de Belas, Porto Alegre - RS",
+    cobranca: { unidade: "bateria", minutos: 10 }, // TODO: confirmar a duração da bateria
+    preco: 70, // por bateria. TODO: valor ilustrativo, confirmar com a Top Speed
+    descricao:
+      "Kart indoor no prédio garagem do Shopping Praia de Belas, em Porto Alegre. Pista coberta: dá para correr com chuva ou sol, de dia ou de noite.",
+    imagens: [img("photo-1508550794981-ed0e94d56589"), img("photo-1505570554449-69ce7d4fa36b")], // ilustrativas
+    estrutura: ["Kart indoor", "Pista coberta", "No Shopping Praia de Belas"], // TODO: confirmar a estrutura completa
+  },
+  {
+    // O nome do kartódromo vem de uma notícia do Motonline (sem data). TODO: confirmar o nome
+    // atual, o endereço exato e se há locação para o público com o autódromo.
+    id: "kartodromo-taruma",
+    nome: "Kartódromo Internacional de Tarumã",
+    modalidade: "Kart",
+    bairro: "Autódromo de Tarumã",
+    cidade: "Viamão/RS",
+    endereco: "Autódromo Internacional de Tarumã - Viamão/RS",
+    mapa: "Autódromo Internacional de Tarumã, Viamão - RS",
+    cobranca: { unidade: "bateria", minutos: 20 }, // TODO: confirmar a duração da bateria
+    preco: 120, // por bateria. TODO: valor ilustrativo, confirmar com o kartódromo
+    descricao:
+      "Kartódromo junto ao Autódromo Internacional de Tarumã, em Viamão, o autódromo mais tradicional do Rio Grande do Sul (inaugurado em 1970). Recebe provas de kart do automobilismo gaúcho.",
+    imagens: [img("photo-1505570554449-69ce7d4fa36b"), img("photo-1508550794981-ed0e94d56589")], // ilustrativas
+    estrutura: ["Pista de kart ao ar livre", "Junto ao Autódromo de Tarumã"], // TODO: confirmar a estrutura completa
   },
   // RGM Academy: um complexo com vários espaços para alugar.
   // Cada espaço é uma opção de reserva separada (o sistema usa uma modalidade por quadra).
