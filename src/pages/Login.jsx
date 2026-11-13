@@ -15,6 +15,7 @@ export default function Login() {
   const location = useLocation();
   const navigate = useNavigate();
   const sessao = useSessao();
+  const vemDeReserva = ["reservar", "remarcar"].includes(location.state?.motivo);
   // Vindo da troca de senha: mostra o aviso e já preenche o e-mail.
   const [form, setForm] = useState({ email: location.state?.email ?? "", senha: "", lembrar: false });
   const [erros, setErros] = useState({});
@@ -47,9 +48,12 @@ export default function Login() {
     setEnviando(true);
     try {
       const nova = await entrarNaConta(form.email, form.senha, form.lembrar);
-      // Volta para onde a pessoa estava (ex.: o agendamento). A empresa vai sempre para o painel.
+      // Volta para onde a pessoa estava, se for uma página do tipo de conta dela
+      // (jogador não volta para /empresa e a empresa não volta para /usuario nem para reservas).
       const de = destinoSeguro(location.state?.de);
-      const destino = nova.tipo === "usuario" && de && !de.startsWith("/empresa") ? de : inicioDaConta(nova);
+      const daEmpresa = de?.startsWith("/empresa") || de === "/perfil";
+      const podeVoltar = de && (nova.tipo === "empresa" ? daEmpresa : !daEmpresa);
+      const destino = podeVoltar ? de : inicioDaConta(nova);
       navigate(destino, { replace: true });
     } catch (erro) {
       setEnviando(false);
@@ -68,8 +72,8 @@ export default function Login() {
         <>
           <span>Ainda não tem conta?</span>
           <Link
-            to={location.state?.motivo ? "/cadastro/usuario" : "/cadastro"}
-            state={location.state?.motivo ? location.state : undefined}
+            to={vemDeReserva ? "/cadastro/usuario" : "/cadastro"}
+            state={vemDeReserva ? location.state : undefined}
             className="auth-link-forte"
           >
             Criar conta
@@ -88,20 +92,33 @@ export default function Login() {
             <Link to={inicioDaConta(sessao)} className="auth-botao">
               {sessao.tipo === "empresa" ? "Ir para o painel" : "Ir para minha área"} <ArrowRight size={16} aria-hidden="true" />
             </Link>
-            <button type="button" className="auth-botao auth-botao-contorno" onClick={sair}>
+            <button type="button" className="auth-botao auth-botao-contorno" onClick={() => sair()}>
               <LogOut size={16} aria-hidden="true" /> Sair
             </button>
           </div>
         </div>
       )}
 
-      {location.state?.motivo && (
+      {(location.state?.motivo === "reservar" || location.state?.motivo === "remarcar") && (
         <p className="auth-aviso auth-motivo" role="status">
           <CalendarCheck size={18} aria-hidden="true" />
           <span>
             Entre na sua conta para {location.state.motivo === "remarcar" ? "remarcar" : "confirmar"} sua reserva
             {location.state.quadra ? <> na <strong>{location.state.quadra}</strong></> : null}. O horário que você escolheu
             fica guardado.
+          </span>
+        </p>
+      )}
+      {(location.state?.motivo === "area" || location.state?.motivo === "outra-conta") && (
+        <p className="auth-aviso auth-motivo" role="status">
+          <Lock size={18} aria-hidden="true" />
+          <span>
+            {location.state.area === "empresa"
+              ? "O painel da empresa é só para empresas parceiras."
+              : "Esta página é da área do jogador."}{" "}
+            {location.state.motivo === "outra-conta"
+              ? `Você está conectado com uma conta de ${location.state.area === "empresa" ? "jogador" : "empresa"}: entre com a conta certa para continuar.`
+              : "Entre na sua conta para continuar."}
           </span>
         </p>
       )}

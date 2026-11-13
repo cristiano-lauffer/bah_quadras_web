@@ -1,9 +1,36 @@
 import { faixasPreco, ordenacoes } from "../../utils/filtrosQuadras.js";
 
-/** Filtros de cidade, preço e ordenação da lista de quadras. */
-export default function HomeFiltros({ cidades, cidade, onCidade, faixaPreco, onFaixaPreco, ordem, onOrdem, filtrosAtivos, onLimpar }) {
+/**
+ * Filtros de esporte, cidade, preço e ordenação da lista de quadras.
+ * - modalidades: [{ nome, quantidade }]
+ */
+export default function HomeFiltros({
+  modalidades,
+  modalidade,
+  onModalidade,
+  cidades,
+  cidade,
+  onCidade,
+  faixaPreco,
+  onFaixaPreco,
+  ordem,
+  onOrdem,
+  filtrosAtivos,
+  onLimpar,
+}) {
   return (
     <div className="home-filtros">
+      <label className="home-ordenar">
+        Esporte
+        <select value={modalidade} onChange={(e) => onModalidade(e.target.value)}>
+          <option value="todas">Todos</option>
+          {modalidades.map(({ nome, quantidade }) => (
+            <option key={nome} value={nome}>
+              {nome} ({quantidade})
+            </option>
+          ))}
+        </select>
+      </label>
       <label className="home-ordenar">
         Cidade
         <select value={cidade} onChange={(e) => onCidade(e.target.value)}>

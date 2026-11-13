@@ -41,15 +41,11 @@ export default function Home() {
   const catalogo = disponiveisParaReserva(catalogoCarregado ?? quadrasPublicas());
 
   const [busca, setBusca] = useState("");
-  const [modalidade, setModalidade] = useState("todas");
+  const [modalidadeEscolhida, setModalidade] = useState("todas");
   const [ordem, setOrdem] = useState("relevancia");
-  const [cidade, setCidade] = useState("todas");
+  const [cidadeEscolhida, setCidade] = useState("todas");
   const [faixaPreco, setFaixaPreco] = useState("qualquer");
-  // No celular a lista começa com 8 quadras (o resto aparece no "Ver mais").
-  // Mudar a busca ou um filtro volta a mostrar só as primeiras.
-  const chaveFiltros = [busca, modalidade, cidade, faixaPreco, ordem].join("|");
   const [expandidaPara, setExpandidaPara] = useState(null);
-  const expandida = expandidaPara === chaveFiltros;
 
   // Favoritos salvos (os mesmos da aba "Favoritas" do perfil do jogador).
   const { dados: favoritosSalvos } = useDados(listarFavoritos);
@@ -62,8 +58,23 @@ export default function Home() {
   }, [hash]);
 
   /* ---------- Dados derivados do catálogo ---------- */
-  const modalidades = modalidadesDe(catalogo);
+  // Modalidades em ordem alfabética (iguais no menu da busca, no "Esporte" e nos blocos).
+  const modalidades = modalidadesDe(catalogo).sort((a, b) => a.localeCompare(b, "pt-BR"));
   const cidades = cidadesDe(catalogo);
+  // Se a modalidade ou a cidade escolhida deixar de existir (ex.: a empresa desativou a
+  // única quadra de vôlei), volta para "todas" em vez de mostrar a lista vazia.
+  const modalidade = modalidadeEscolhida === "todas" || modalidades.includes(modalidadeEscolhida) ? modalidadeEscolhida : "todas";
+  const cidade = cidadeEscolhida === "todas" || cidades.includes(cidadeEscolhida) ? cidadeEscolhida : "todas";
+  // Para o menu "Esporte": cada modalidade com quantas opções tem.
+  const opcoesModalidade = modalidades.map((nome) => ({
+    nome,
+    quantidade: catalogo.filter((q) => q.modalidade === nome).length,
+  }));
+
+  // No celular a lista começa com 8 quadras (o resto aparece no "Ver mais").
+  // Mudar a busca ou um filtro volta a mostrar só as primeiras.
+  const chaveFiltros = [busca, modalidade, cidade, faixaPreco, ordem].join("|");
+  const expandida = expandidaPara === chaveFiltros;
   const avaliadas = catalogo.filter((q) => !semAvaliacoes(q));
   const totalAvaliacoes = avaliadas.reduce((soma, q) => soma + q.quantidadeAvaliacoes, 0);
   const mediaGeral = avaliadas.length ? avaliadas.reduce((soma, q) => soma + q.avaliacao, 0) / avaliadas.length : 0;
@@ -151,6 +162,9 @@ export default function Home() {
               </div>
 
               <HomeFiltros
+                modalidades={opcoesModalidade}
+                modalidade={modalidade}
+                onModalidade={setModalidade}
                 cidades={cidades}
                 cidade={cidade}
                 onCidade={setCidade}
@@ -162,14 +176,6 @@ export default function Home() {
                 onLimpar={limparFiltros}
               />
             </header>
-
-            <div className="home-chips" role="group" aria-label="Filtrar por modalidade">
-              {["todas", ...modalidades].map((m) => (
-                <button key={m} type="button" className="home-chip" aria-pressed={modalidade === m} onClick={() => setModalidade(m)}>
-                  {m === "todas" ? "Todas" : m}
-                </button>
-              ))}
-            </div>
 
             {resultado.length > 0 ? (
               <>

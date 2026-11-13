@@ -114,36 +114,6 @@ export const avaliacoes = [
   { id: 88, quadraId: "gol-de-ouro", nome: "Rosana Kuhn", nota: 4, data: isoComDias(-103), util: 1, aspectos: ["Custo-benefício"], texto: "Bom lugar. Se tivesse pacote para time fixo seria perfeito." },
   { id: 89, quadraId: "gol-de-ouro", nome: "Everton Lima", nota: 5, data: isoComDias(-125), util: 1, aspectos: ["Iluminação", "Estrutura"], texto: "Campo grande, iluminado e com rede de proteção alta. Não perde bola para a rua." },
   { id: 90, quadraId: "gol-de-ouro", nome: "Silvia Rangel", nota: 5, data: isoComDias(-148), util: 1, aspectos: ["Atendimento"], texto: "Atendimento muito educado e campo sempre pronto no horário." },
-  // ----- Turbo Kart Indoor (kart) -----
-  { id: 91, quadraId: "turbo-kart-indoor", nome: "Bruno Kessler", nota: 5, data: isoComDias(-1), util: 7, aspectos: ["Estrutura"], texto: "Corremos 3 baterias numa noite de chuva e foi sensacional. O telão com o ranking deixa todo mundo competitivo." },
-  { id: 92, quadraId: "turbo-kart-indoor", nome: "Camila Petry", nota: 5, data: isoComDias(-4), util: 4, aspectos: ["Atendimento"], texto: "Fiz meu aniversário aqui. A equipe organizou o grid, a premiação e até tirou fotos no pódio." },
-  { id: 93, quadraId: "turbo-kart-indoor", nome: "Rafael Zanella", nota: 5, data: isoComDias(-8), util: 3, aspectos: ["Estrutura", "Limpeza"], texto: "Karts bem regulados e capacete higienizado com balaclava descartável. Detalhe que conta muito." },
-  { id: 94, quadraId: "turbo-kart-indoor", nome: "Luiza Haas", nota: 4, data: isoComDias(-12), util: 2, aspectos: ["Custo-benefício"], texto: "Muito divertido! A bateria de 10 minutos passa voando, então vale pegar pelo menos duas." },
-  { id: 95, quadraId: "turbo-kart-indoor", nome: "Fernando Weber", nota: 5, data: isoComDias(-17), util: 3, aspectos: ["Localização"], texto: "Fácil de chegar pela Sertório e tem estacionamento. Programa perfeito para a turma do trabalho." },
-  { id: 96, quadraId: "turbo-kart-indoor", nome: "Aline Ritter", nota: 5, data: isoComDias(-23), util: 2, aspectos: ["Atendimento"], texto: "Primeira vez que andei de kart e o briefing de segurança foi bem explicado. Me senti segura o tempo todo." },
-  { id: 97, quadraId: "turbo-kart-indoor", nome: "Gustavo Brum", nota: 4, data: isoComDias(-30), util: 1, aspectos: ["Estrutura"], texto: "Pista técnica e divertida. Num dos karts o freio estava um pouco mole, mas trocaram na hora." },
-  { id: 98, quadraId: "turbo-kart-indoor", nome: "Patrícia Schuck", nota: 5, data: isoComDias(-38), util: 2, aspectos: ["Iluminação", "Estrutura"], texto: "Pista coberta bem iluminada e com ventilação boa. Nada de cheiro forte de combustível." },
-  { id: 99, quadraId: "turbo-kart-indoor", nome: "Diego Lisboa", nota: 5, data: isoComDias(-47), util: 3, aspectos: ["Custo-benefício"], texto: "O pacote de 3 baterias sai bem em conta. Viramos clientes fixos da sexta à noite." },
-  { id: 100, quadraId: "turbo-kart-indoor", nome: "Mariana Kunz", nota: 4, data: isoComDias(-59), util: 1, aspectos: ["Localização"], texto: "Ótima experiência. Em dia de evento fica cheio e a espera entre baterias aumenta." },
-  { id: 101, quadraId: "turbo-kart-indoor", nome: "Henrique Dalla", nota: 5, data: isoComDias(-72), util: 2, aspectos: ["Atendimento", "Estrutura"], texto: "Recebemos o resultado com as voltas de cada um por e-mail. Agora a disputa continua no grupo da família!" },
-  { id: 102, quadraId: "turbo-kart-indoor", nome: "Juliana Eckert", nota: 5, data: isoComDias(-90), util: 1, aspectos: ["Limpeza"], texto: "Banheiros limpos e lanchonete caprichada. Tudo muito organizado." },
-  { id: 103, quadraId: "turbo-kart-indoor", nome: "Samuel Vargas", nota: 4, data: isoComDias(-113), util: 1, aspectos: ["Custo-benefício"], texto: "Divertido demais, só achei o preço da bateria avulsa um pouco salgado." },
-  { id: 104, quadraId: "turbo-kart-indoor", nome: "Tainá Moreira", nota: 5, data: isoComDias(-140), util: 2, aspectos: ["Estrutura"], texto: "Melhor kart indoor de Porto Alegre. A curva do S é desafiadora!" },
-
-  // ----- Pampa Kart Racing (kart) -----
-  { id: 105, quadraId: "pampa-kart-racing", nome: "Lucas Stein", nota: 5, data: isoComDias(-2), util: 6, aspectos: ["Estrutura"], texto: "Pista grande e rápida, os karts de 13 cv andam de verdade. Para quem gosta de velocidade, é aqui." },
-  { id: 106, quadraId: "pampa-kart-racing", nome: "Renata Fogaça", nota: 4, data: isoComDias(-6), util: 2, aspectos: ["Custo-benefício"], texto: "Mais caro que o kart indoor, mas a bateria de 20 minutos compensa." },
-  { id: 107, quadraId: "pampa-kart-racing", nome: "Matheus Corrêa", nota: 5, data: isoComDias(-11), util: 3, aspectos: ["Atendimento"], texto: "Organizaram uma corrida de 12 pilotos para a firma com largada, pit stop e pódio. Show!" },
-  { id: 108, quadraId: "pampa-kart-racing", nome: "Vanessa Kirst", nota: 3, data: isoComDias(-15), util: 3, aspectos: [], texto: "A pista é ótima, mas no sol do meio-dia o calor é forte e falta sombra na área de espera." },
-  { id: 109, quadraId: "pampa-kart-racing", nome: "Eduardo Bastos", nota: 5, data: isoComDias(-21), util: 2, aspectos: ["Estrutura", "Iluminação"], texto: "Corremos no fim da tarde, com o pôr do sol na reta principal. Experiência incrível." },
-  { id: 110, quadraId: "pampa-kart-racing", nome: "Débora Pinheiro", nota: 4, data: isoComDias(-28), util: 1, aspectos: ["Localização"], texto: "Um pouco afastado do centro de Canoas, mas tem estacionamento grande." },
-  { id: 111, quadraId: "pampa-kart-racing", nome: "Thiago Henz", nota: 5, data: isoComDias(-36), util: 2, aspectos: ["Estrutura"], texto: "Cronometragem com tempo de cada volta no celular. Dá para acompanhar a evolução." },
-  { id: 112, quadraId: "pampa-kart-racing", nome: "Gabriela Rech", nota: 4, data: isoComDias(-45), util: 1, aspectos: ["Atendimento"], texto: "Equipe atenciosa, mas o briefing poderia ser mais curto para quem já conhece." },
-  { id: 113, quadraId: "pampa-kart-racing", nome: "Paulo Sartori", nota: 5, data: isoComDias(-57), util: 2, aspectos: ["Custo-benefício", "Estrutura"], texto: "Karts novos e bem cuidados. Vale cada real da bateria." },
-  { id: 114, quadraId: "pampa-kart-racing", nome: "Isadora Lenz", nota: 4, data: isoComDias(-70), util: 1, aspectos: ["Limpeza"], texto: "Estrutura boa e banheiros limpos. Faltou um lugar coberto para guardar as mochilas." },
-  { id: 115, quadraId: "pampa-kart-racing", nome: "Rodrigo Mallmann", nota: 5, data: isoComDias(-88), util: 2, aspectos: ["Estrutura"], texto: "Curva do lago é a melhor parte. Já marquei de voltar com os amigos." },
-  { id: 116, quadraId: "pampa-kart-racing", nome: "Cristina Frey", nota: 4, data: isoComDias(-110), util: 1, aspectos: ["Atendimento"], texto: "Bom atendimento. A reserva pelo site facilitou muito." },
-  { id: 117, quadraId: "pampa-kart-racing", nome: "Leonardo Bier", nota: 5, data: isoComDias(-135), util: 1, aspectos: ["Estrutura", "Custo-benefício"], texto: "A sensação de correr numa pista grande ao ar livre não tem comparação." },
 
   // ----- Tênis Clube Figueira (tênis) -----
   { id: 118, quadraId: "tenis-clube-figueira", nome: "Marcela Dutra", nota: 5, data: isoComDias(-3), util: 5, aspectos: ["Estrutura"], texto: "Saibro bem cuidado e linhas sempre limpas. Dá gosto de jogar uma partida longa aqui." },
@@ -203,6 +173,34 @@ export const avaliacoes = [
   { id: 166, quadraId: "garrafao-3x3", nome: "Vinícius Prestes", nota: 4, data: isoComDias(-95), util: 1, aspectos: ["Limpeza"], texto: "Quadra boa, o bebedouro às vezes fica sem água gelada." },
   { id: 167, quadraId: "garrafao-3x3", nome: "Larissa Antunes", nota: 5, data: isoComDias(-117), util: 1, aspectos: ["Atendimento"], texto: "Ambiente respeitoso, as meninas do time se sentem bem-vindas." },
   { id: 168, quadraId: "garrafao-3x3", nome: "Otávio Mendes", nota: 4, data: isoComDias(-142), util: 1, aspectos: ["Estrutura"], texto: "Boa quadra para 3x3. Para 5x5 fica apertado, mas não é a proposta." },
+
+  // ----- Ace Tênis Center (tênis, piso rápido) -----
+  { id: 169, quadraId: "ace-tenis-center", nome: "Gabriel Wingert", nota: 5, data: isoComDias(-2), util: 4, aspectos: ["Estrutura"], texto: "Quadra coberta de piso rápido em ótimo estado. Choveu o dia todo e jogamos tranquilos." },
+  { id: 170, quadraId: "ace-tenis-center", nome: "Juliana Spohr", nota: 5, data: isoComDias(-6), util: 3, aspectos: ["Atendimento"], texto: "Fiz aula para iniciantes e o professor foi muito paciente. Saí jogando!" },
+  { id: 171, quadraId: "ace-tenis-center", nome: "Ricardo Schaefer", nota: 4, data: isoComDias(-11), util: 2, aspectos: ["Custo-benefício"], texto: "Preço bom para quadra coberta. O vestiário é pequeno." },
+  { id: 172, quadraId: "ace-tenis-center", nome: "Bruna Hoffmann", nota: 5, data: isoComDias(-17), util: 2, aspectos: ["Iluminação"], texto: "Iluminação perfeita para jogar à noite, sem reflexo no piso." },
+  { id: 173, quadraId: "ace-tenis-center", nome: "Marcos Ritter", nota: 5, data: isoComDias(-24), util: 2, aspectos: ["Estrutura", "Limpeza"], texto: "Quadras limpas, redes novas e a máquina de bolinhas funciona muito bem." },
+  { id: 174, quadraId: "ace-tenis-center", nome: "Camila Bauer", nota: 4, data: isoComDias(-33), util: 1, aspectos: ["Localização"], texto: "Fica no centro histórico de Hamburgo Velho, lindo. Estacionar na rua é que é difícil." },
+  { id: 175, quadraId: "ace-tenis-center", nome: "Pedro Klein", nota: 5, data: isoComDias(-45), util: 2, aspectos: ["Atendimento"], texto: "Reservei para jogar com meu pai e fomos muito bem atendidos." },
+  { id: 176, quadraId: "ace-tenis-center", nome: "Larissa Zimmer", nota: 4, data: isoComDias(-58), util: 1, aspectos: ["Estrutura"], texto: "Piso rápido é ótimo, mas para quem prefere saibro não é a melhor opção." },
+  { id: 177, quadraId: "ace-tenis-center", nome: "Fernando Kunz", nota: 5, data: isoComDias(-72), util: 1, aspectos: ["Custo-benefício"], texto: "O pacote mensal vale muito a pena para quem joga toda semana." },
+  { id: 178, quadraId: "ace-tenis-center", nome: "Aline Ruschel", nota: 5, data: isoComDias(-90), util: 1, aspectos: ["Limpeza", "Atendimento"], texto: "Ambiente agradável, limpo e o pessoal da recepção é muito simpático." },
+  { id: 179, quadraId: "ace-tenis-center", nome: "Otávio Sperb", nota: 4, data: isoComDias(-112), util: 1, aspectos: ["Iluminação"], texto: "Boa quadra. Uma das lâmpadas estava fraca, mas trocaram na semana seguinte." },
+  { id: 180, quadraId: "ace-tenis-center", nome: "Helena Mossmann", nota: 5, data: isoComDias(-138), util: 1, aspectos: ["Estrutura"], texto: "Melhor quadra coberta de tênis do Vale do Sinos." },
+
+  // ----- Ginásio Rede Alta (vôlei de quadra) -----
+  { id: 181, quadraId: "ginasio-rede-alta", nome: "Beatriz Lacerda", nota: 5, data: isoComDias(-1), util: 5, aspectos: ["Estrutura"], texto: "Piso de madeira impecável e rede na altura feminina oficial. Treino do nosso time ficou outro nível." },
+  { id: 182, quadraId: "ginasio-rede-alta", nome: "Rafael Moreira", nota: 4, data: isoComDias(-5), util: 2, aspectos: ["Custo-benefício"], texto: "Preço justo dividindo entre 12 pessoas. Sozinho fica caro, mas é o ginásio inteiro." },
+  { id: 183, quadraId: "ginasio-rede-alta", nome: "Tatiana Prado", nota: 5, data: isoComDias(-9), util: 3, aspectos: ["Estrutura", "Iluminação"], texto: "Placar eletrônico e iluminação ótima. Parece jogo de campeonato." },
+  { id: 184, quadraId: "ginasio-rede-alta", nome: "Lucas Bertolini", nota: 5, data: isoComDias(-14), util: 2, aspectos: ["Atendimento"], texto: "Ajudaram a regular a rede para o jogo misto. Equipe muito prestativa." },
+  { id: 185, quadraId: "ginasio-rede-alta", nome: "Mariana Fontes", nota: 3, data: isoComDias(-20), util: 3, aspectos: [], texto: "O ginásio é bom, mas estava muito quente. Faltam ventiladores no verão." },
+  { id: 186, quadraId: "ginasio-rede-alta", nome: "Diego Amaral", nota: 5, data: isoComDias(-27), util: 2, aspectos: ["Localização"], texto: "Na Protásio, fácil de chegar de ônibus. Nosso grupo de vôlei de quarta joga aqui." },
+  { id: 187, quadraId: "ginasio-rede-alta", nome: "Carla Weiss", nota: 4, data: isoComDias(-35), util: 1, aspectos: ["Limpeza"], texto: "Vestiários limpos. A arquibancada podia ter mais lugares." },
+  { id: 188, quadraId: "ginasio-rede-alta", nome: "Henrique Salles", nota: 5, data: isoComDias(-44), util: 2, aspectos: ["Estrutura"], texto: "Pé-direito alto, a bola não bate no teto em levantamento nenhum." },
+  { id: 189, quadraId: "ginasio-rede-alta", nome: "Sabrina Guedes", nota: 4, data: isoComDias(-56), util: 1, aspectos: ["Custo-benefício"], texto: "Bom lugar. Poderia ter horário de meia quadra mais barato." },
+  { id: 190, quadraId: "ginasio-rede-alta", nome: "André Toledo", nota: 5, data: isoComDias(-70), util: 1, aspectos: ["Atendimento", "Estrutura"], texto: "Fizemos um torneio interno da empresa e o ginásio deu conta de tudo." },
+  { id: 191, quadraId: "ginasio-rede-alta", nome: "Vanessa Brito", nota: 4, data: isoComDias(-95), util: 1, aspectos: ["Localização"], texto: "Ótimo ginásio. Estacionamento pequeno para o tamanho do espaço." },
+  { id: 192, quadraId: "ginasio-rede-alta", nome: "Eduarda Nunes", nota: 5, data: isoComDias(-121), util: 1, aspectos: ["Estrutura"], texto: "Finalmente um ginásio de vôlei de verdade para alugar em Porto Alegre." },
 ];
 
 // Leitura (com as avaliações publicadas pelo jogador) e nota de cada quadra:
