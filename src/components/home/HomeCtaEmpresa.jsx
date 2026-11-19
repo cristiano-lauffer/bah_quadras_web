@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
-import { quadras as quadrasFixas } from "../../data/quadras.js";
+import { fotosDecoracao } from "../../config/fotos.js";
 import { foto } from "../../utils/formatadores.js";
 
 /** Chamada para donos de quadra no fim da Home. */
@@ -20,7 +20,7 @@ export default function HomeCtaEmpresa() {
               Falar com a equipe <ArrowRight size={18} aria-hidden="true" />
             </Link>
           </div>
-          <img {...foto(quadrasFixas[3].imagens[0], 600)} alt="" className="home-cta-imagem" loading="lazy" />
+          <img {...foto(fotosDecoracao.ctaEmpresa, 600)} alt="" className="home-cta-imagem" loading="lazy" />
         </div>
       </div>
     </section>

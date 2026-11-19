@@ -1,31 +1,28 @@
 // =========================================================
 // Serviço de QUADRAS FAVORITAS DO JOGADOR
 //
-// Hoje: lista de ids salva no navegador (começa com os favoritos do usuário de demonstração).
-// Com o backend: troque o corpo das funções por chamadas à API, por exemplo:
-//   export const alternarFavorito = (id) => api.post(`/usuario/favoritos/${id}`);
+// API: GET /favoritos, PUT e DELETE /favoritos/:quadraId (só jogador logado).
+// Sem conta de jogador, a lista é vazia e favoritar pede para entrar.
 // =========================================================
-import { usuarioDemo } from "../data/usuario.js";
-import { lerSalvo, responder, salvar } from "./armazenamento.js";
+import { api } from "./api.js";
+import { sessaoAtual } from "./sessaoService.js";
 
-const CHAVE = "bahquadras:usuario:favoritos";
-const ler = () => lerSalvo(CHAVE) ?? usuarioDemo.favoritos;
+export const podeFavoritar = () => sessaoAtual()?.tipo === "usuario";
 
-/** Ids das quadras favoritas. */
-export function listarFavoritos() {
-  return responder(ler(), 100);
+const comoTexto = (lista) => lista.map(String);
+
+/** Ids das quadras favoritas (como texto, igual ao id da página pública). */
+export async function listarFavoritos() {
+  if (!podeFavoritar()) return [];
+  return comoTexto(await api("/favoritos"));
 }
 
 /** Adiciona se não estiver na lista, remove se estiver. Devolve a lista atualizada. */
-export function alternarFavorito(id) {
-  const atual = ler();
-  const nova = atual.includes(id) ? atual.filter((x) => x !== id) : [...atual, id];
-  salvar(CHAVE, nova);
-  return responder(nova, 100);
+export async function alternarFavorito(id, jaFavorita) {
+  const favorita = jaFavorita ?? (await listarFavoritos()).includes(String(id));
+  return comoTexto(await api(`/favoritos/${id}`, { metodo: favorita ? "DELETE" : "PUT" }));
 }
 
-export function removerFavorito(id) {
-  const nova = ler().filter((x) => x !== id);
-  salvar(CHAVE, nova);
-  return responder(nova, 100);
+export async function removerFavorito(id) {
+  return comoTexto(await api(`/favoritos/${id}`, { metodo: "DELETE" }));
 }

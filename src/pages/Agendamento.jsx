@@ -19,9 +19,9 @@ import EscolherQuadra from "../components/agendamento/EscolherQuadra.jsx";
 import QuadraNaoEncontrada from "../components/agendamento/QuadraNaoEncontrada.jsx";
 import ReservaConfirmada from "../components/agendamento/ReservaConfirmada.jsx";
 import { useQuadraPublica } from "../hooks/useQuadraPublica.js";
-import { buscarVinculoPublico, gradePadrao } from "../services/quadrasService.js";
+import { buscarVinculoPublico } from "../services/quadrasService.js";
 import {
-  buscarReserva,
+  carregarReserva,
   criarReserva,
   horariosOcupados,
   inicioDaReserva,
@@ -58,8 +58,14 @@ export default function Agendamento() {
   const { id } = useParams();
   const [params] = useSearchParams();
 
-  const { quadra, carregando } = useQuadraPublica(id);
+  const { quadra, carregando: carregandoQuadra } = useQuadraPublica(id);
   const remarcarId = params.get("remarcar");
+  // Remarcação: a reserva original vem da API (o link pode ter sido aberto direto).
+  const { dados: original, carregando: carregandoOriginal } = useDados(
+    () => (remarcarId ? carregarReserva(remarcarId).catch(() => null) : Promise.resolve(null)),
+    [remarcarId]
+  );
+  const carregando = carregandoQuadra || (Boolean(remarcarId) && carregandoOriginal);
   useTitulo(
     !id
       ? "Escolha uma quadra"
@@ -89,6 +95,7 @@ export default function Agendamento() {
       duracaoInicial={Number(params.get("duracao")) || null}
       etapaInicial={params.get("etapa")}
       remarcarId={remarcarId}
+      original={original}
     />
   );
 }
@@ -97,7 +104,7 @@ export default function Agendamento() {
    RESERVA
    ================================================================ */
 
-function Reserva({ quadra, dataInicial, horaInicial, duracaoInicial, etapaInicial, remarcarId }) {
+function Reserva({ quadra, dataInicial, horaInicial, duracaoInicial, etapaInicial, remarcarId, original }) {
   const dias = Array.from({ length: DIAS_VISIVEIS }, (_, i) => isoComDias(i));
   const hoje = dias[0];
   const navigate = useNavigate();
@@ -107,7 +114,6 @@ function Reserva({ quadra, dataInicial, horaInicial, duracaoInicial, etapaInicia
   const logadoComoJogador = sessao?.tipo === "usuario";
 
   // Remarcação: /agendamento/:id?remarcar=<id da reserva>
-  const original = remarcarId ? buscarReserva(remarcarId) : null;
   const remarcando = Boolean(
     original && original.quadraId === quadra.id && original.status === "confirmada" && inicioDaReserva(original) > new Date()
   );
@@ -118,7 +124,7 @@ function Reserva({ quadra, dataInicial, horaInicial, duracaoInicial, etapaInicia
   const { dados: vinculo, carregando: carregandoVinculo } = useDados(() => buscarVinculoPublico(quadra.id), [quadra.id]);
   const preco = vinculo?.preco ?? quadra.preco;
   const situacao = vinculo?.status ?? "ativa";
-  const grade = vinculo?.horarios ?? gradePadrao();
+  const grade = vinculo?.horarios ?? {};
 
   const [data, setData] = useState(
     dias.includes(dataInicial) ? dataInicial : remarcando && dias.includes(original.data) ? original.data : hoje
@@ -131,8 +137,9 @@ function Reserva({ quadra, dataInicial, horaInicial, duracaoInicial, etapaInicia
   const [aceite, setAceite] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [reserva, setReserva] = useState(null);
+  const [erroEnvio, setErroEnvio] = useState("");
 
-  const { dados: ocupados, carregando: carregandoHorarios } = useDados(
+  const { dados: ocupados, carregando: carregandoHorarios, recarregar: recarregarHorarios } = useDados(
     () => horariosOcupados(quadra.id, data, remarcando ? original.id : null),
     [quadra.id, data, remarcando]
   );
@@ -170,8 +177,8 @@ function Reserva({ quadra, dataInicial, horaInicial, duracaoInicial, etapaInicia
   const duracaoFinal = Math.min(duracao, Math.max(duracaoPossivel, 1));
   const total = preco * duracaoFinal;
   const fimEscolhido = (n) => (kart ? somarMinutos(hora, n * minBateria) : somarHoras(hora, n));
-  // O perfil das empresas (com a política de cancelamento) ainda não está na API.
-  const politica = POLITICA_PADRAO;
+  // Política de cancelamento do perfil da empresa (ou a padrão, se ela não escreveu uma).
+  const politica = quadra.empresa?.politicaCancelamento ?? POLITICA_PADRAO;
   const livresNoDia = horarios.filter((h) => h.estado === "livre").length;
   const mesmoHorario =
     remarcando && data === original.data && hora === original.hora && duracaoFinal === duracaoOriginal;
@@ -200,36 +207,28 @@ function Reserva({ quadra, dataInicial, horaInicial, duracaoInicial, etapaInicia
   async function confirmar() {
     if (!logadoComoJogador) return irParaLogin();
     setEnviando(true);
+    setErroEnvio("");
 
-    if (remarcando) {
-      await remarcarReserva(original.id, {
-        data,
-        hora,
-        duracao: kart ? 1 : duracaoFinal,
-        ...(kart && { baterias: duracaoFinal, minutosBateria: minBateria }),
-        valor: total,
-      });
-      const quando = formatarData(data, { weekday: "short", day: "2-digit", month: "2-digit" });
-      navigate("/usuario/reservas", { state: { aviso: `Reserva na ${quadra.nome} remarcada para ${quando} às ${hora}.` } });
-      return;
+    // A API confere tudo de novo (grade, conflito, bloqueio). Kart manda as baterias; o resto, as horas.
+    const escolha = { data, hora, duracao: kart ? 1 : duracaoFinal, ...(kart && { baterias: duracaoFinal }) };
+    try {
+      if (remarcando) {
+        await remarcarReserva(original.id, escolha);
+        const quando = formatarData(data, { weekday: "short", day: "2-digit", month: "2-digit" });
+        navigate("/usuario/reservas", { state: { aviso: `Reserva na ${quadra.nome} remarcada para ${quando} às ${hora}.` } });
+        return;
+      }
+      const nova = await criarReserva({ quadraId: quadra.id, ...escolha, pagamento });
+      setReserva(nova);
+      setEtapa("concluido");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (erro) {
+      setErroEnvio(erro.message);
+      // Alguém pegou o horário antes (409): atualiza a disponibilidade para escolher outro.
+      if (erro.status === 409) recarregarHorarios();
+    } finally {
+      setEnviando(false);
     }
-
-    const nova = await criarReserva({
-      quadraId: quadra.id,
-      quadra: quadra.nome,
-      modalidade: quadra.modalidade,
-      endereco: `${quadra.bairro}, ${quadra.cidade}`,
-      data,
-      hora,
-      duracao: kart ? 1 : duracaoFinal, // horas que o horário fica ocupado
-      ...(kart && { baterias: duracaoFinal, minutosBateria: minBateria }),
-      valor: total,
-      pagamento,
-    });
-    setReserva(nova);
-    setEnviando(false);
-    setEtapa("concluido");
-    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   /* ---------- Reserva concluída ---------- */
@@ -527,6 +526,11 @@ function Reserva({ quadra, dataInicial, horaInicial, duracaoInicial, etapaInicia
               </>
             ) : (
               <>
+                {erroEnvio && (
+                  <p className="ag-erro-envio" role="alert">
+                    <CircleAlert size={16} aria-hidden="true" /> {erroEnvio}
+                  </p>
+                )}
                 <button
                   type="button"
                   className="ag-botao"
@@ -550,7 +554,7 @@ function Reserva({ quadra, dataInicial, horaInicial, duracaoInicial, etapaInicia
             )}
 
             <p className="ag-nota">
-              <Clock size={14} aria-hidden="true" /> Cancelamento grátis até 24h antes.
+              <Clock size={14} aria-hidden="true" /> {politica}
             </p>
           </aside>
         )}

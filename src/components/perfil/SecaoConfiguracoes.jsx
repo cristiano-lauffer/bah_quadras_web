@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { ShieldCheck } from "lucide-react";
-import { preferenciasDoUsuario, salvarPreferencias } from "../../services/usuarioService.js";
+import { excluirConta, preferenciasDoUsuario, salvarPreferencias, trocarSenha } from "../../services/usuarioService.js";
 
 const opcoesNotificacao = [
   { id: "lembrete", titulo: "Lembrete antes do jogo", texto: "Receba um aviso no WhatsApp 2 horas antes da reserva." },
@@ -12,26 +13,57 @@ export default function SecaoConfiguracoes({ onAviso }) {
   // Preferências salvas (continuam iguais depois de recarregar a página).
   const [notificacoes, setNotificacoes] = useState(preferenciasDoUsuario);
 
-  function alternar(id, titulo) {
+  const navigate = useNavigate();
+  const [salvandoSenha, setSalvandoSenha] = useState(false);
+  const [excluindo, setExcluindo] = useState(false);
+
+  async function alternar(id, titulo) {
+    const anteriores = notificacoes;
     const novas = { ...notificacoes, [id]: !notificacoes[id] };
     setNotificacoes(novas);
-    salvarPreferencias(novas);
-    onAviso(`${titulo}: ${novas[id] ? "ativado" : "desativado"}.`);
+    try {
+      await salvarPreferencias(novas);
+      onAviso(`${titulo}: ${novas[id] ? "ativado" : "desativado"}.`);
+    } catch (erro) {
+      setNotificacoes(anteriores);
+      onAviso(erro.message);
+    }
   }
   const [alterandoSenha, setAlterandoSenha] = useState(false);
   const [senha, setSenha] = useState({ atual: "", nova: "", confirmar: "" });
   const [erroSenha, setErroSenha] = useState("");
   const [confirmandoExclusao, setConfirmandoExclusao] = useState(false);
 
-  function salvarSenha(e) {
+  async function salvarSenha(e) {
     e.preventDefault();
     if (!senha.atual) return setErroSenha("Informe sua senha atual.");
     if (senha.nova.length < 8) return setErroSenha("A nova senha precisa ter pelo menos 8 caracteres.");
     if (senha.nova !== senha.confirmar) return setErroSenha("As senhas não coincidem.");
     setErroSenha("");
+    setSalvandoSenha(true);
+    try {
+      await trocarSenha(senha.atual, senha.nova);
+    } catch (erro) {
+      setErroSenha(erro.message);
+      return;
+    } finally {
+      setSalvandoSenha(false);
+    }
     setSenha({ atual: "", nova: "", confirmar: "" });
     setAlterandoSenha(false);
-    onAviso("Senha alterada (demonstração).");
+    onAviso("Senha alterada!");
+  }
+
+  async function confirmarExclusao() {
+    setExcluindo(true);
+    try {
+      await excluirConta();
+      navigate("/", { replace: true });
+    } catch (erro) {
+      setExcluindo(false);
+      setConfirmandoExclusao(false);
+      onAviso(erro.message);
+    }
   }
 
   return (
@@ -112,8 +144,8 @@ export default function SecaoConfiguracoes({ onAviso }) {
               >
                 Cancelar
               </button>
-              <button type="submit" className="pn-botao">
-                Salvar nova senha
+              <button type="submit" className="pn-botao" disabled={salvandoSenha}>
+                {salvandoSenha ? "Salvando..." : "Salvar nova senha"}
               </button>
             </div>
           </form>
@@ -136,15 +168,8 @@ export default function SecaoConfiguracoes({ onAviso }) {
               <button type="button" className="pn-botao pn-botao-contorno" onClick={() => setConfirmandoExclusao(false)}>
                 Não
               </button>
-              <button
-                type="button"
-                className="pn-botao pn-botao-perigo"
-                onClick={() => {
-                  setConfirmandoExclusao(false);
-                  onAviso("Demonstração: nenhuma conta foi excluída.");
-                }}
-              >
-                Sim, excluir
+              <button type="button" className="pn-botao pn-botao-perigo" disabled={excluindo} onClick={confirmarExclusao}>
+                {excluindo ? "Excluindo..." : "Sim, excluir"}
               </button>
             </div>
           )}

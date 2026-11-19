@@ -74,6 +74,7 @@ function montarSessao({ token, usuario }) {
     email: usuario.email,
     telefone: usuario.telefone ?? null,
     empresa: usuario.empresa ?? null, // { id, nome } para contas de empresa
+    foto: usuario.foto_url ?? null,
     avatar: iniciais(tipo === "empresa" && usuario.empresa ? usuario.empresa.nome : usuario.nome),
     token,
   };
@@ -91,6 +92,21 @@ export function sessaoAtual() {
 export function observarSessao(avisar) {
   ouvintes.add(avisar);
   return () => ouvintes.delete(avisar);
+}
+
+/**
+ * Avisa quando a CONTA muda (entrou, saiu ou trocou de conta), mas não quando só o nome
+ * ou o e-mail da mesma conta mudam. Os serviços usam para limpar o que guardam em memória.
+ */
+export function aoTrocarConta(limpar) {
+  let contaAnterior = sessaoAtual()?.id ?? null;
+  return observarSessao(() => {
+    const conta = sessaoAtual()?.id ?? null;
+    if (conta !== contaAnterior) {
+      contaAnterior = conta;
+      limpar();
+    }
+  });
 }
 
 // Entrou ou saiu em outra aba (sessão com "Manter conectado", no localStorage):
@@ -130,20 +146,13 @@ export async function cadastrar({ nome, email, telefone, senha }) {
   return sessao;
 }
 
-/** Atualiza nome/e-mail mostrados na sessão (ex.: depois de editar "Meus dados"). */
-export function atualizarSessao({ nome, email }) {
-  const sessao = sessaoAtual();
-  if (!sessao) return;
-  const novoNome = nome.trim();
-  gravar(
-    {
-      ...sessao,
-      nome: novoNome,
-      email: email.trim().toLowerCase(),
-      avatar: sessao.tipo === "empresa" ? sessao.avatar : iniciais(novoNome),
-    },
-    estaLembrada()
-  );
+/**
+ * Troca a sessão pela resposta nova da API ({ token, usuario }), mantendo o "Manter conectado".
+ * Usado depois de editar "Meus dados" ou o perfil da empresa (o token leva nome e e-mail).
+ */
+export function renovarSessao(resposta) {
+  if (!sessaoAtual()) return;
+  gravar(montarSessao(resposta), estaLembrada());
 }
 
 // Onde e quando a pessoa clicou em "Sair" (para a área protegida mostrar o aviso certo).

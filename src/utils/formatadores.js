@@ -53,7 +53,7 @@ export function formatarData(iso, opcoes = { day: "2-digit", month: "long", year
   return paraData(iso).toLocaleDateString("pt-BR", opcoes);
 }
 
-// Gera uma data ISO a partir de hoje (+n dias ou -n dias). Útil para dados de demonstração
+// Gera uma data ISO a partir de hoje (+n dias ou -n dias). Útil para montar listas de dias
 // que não "envelhecem".
 export function isoComDias(dias) {
   const d = new Date();

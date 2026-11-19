@@ -13,7 +13,7 @@ import EmpresaLayout from "../layouts/EmpresaLayout.jsx";
 import Esqueleto from "../components/Esqueleto.jsx";
 import Toast from "../components/Toast.jsx";
 import { useDados } from "../hooks/useDados.js";
-import { buscarQuadraPublica } from "../services/catalogoService.js";
+import { listarQuadras } from "../services/quadrasService.js";
 import { rotulosNota } from "../data/avaliacoes.js";
 import { empresaAtual } from "../services/empresaService.js";
 import { apagarResposta, listarAvaliacoesDaEmpresa, responderAvaliacao } from "../services/respostasService.js";
@@ -39,6 +39,8 @@ function Estrelas({ nota }) {
 
 export default function AvaliacoesEmpresa() {
   const { dados, carregando, recarregar } = useDados(listarAvaliacoesDaEmpresa);
+  const { dados: quadras } = useDados(listarQuadras);
+  const nomeQuadra = (id) => quadras?.find((q) => q.id === id)?.nome ?? "";
   const [filtro, setFiltro] = useState("sem-resposta");
   const [editando, setEditando] = useState(null); // id da avaliação com o formulário aberto
   const [toast, setToast] = useState("");
@@ -134,7 +136,7 @@ export default function AvaliacoesEmpresa() {
                   <div className="ae-autor">
                     <strong>{a.nome}</strong>
                     <span>
-                      <Estrelas nota={a.nota} /> {rotulosNota[a.nota]} · {buscarQuadraPublica(a.quadraId)?.nome}
+                      <Estrelas nota={a.nota} /> {rotulosNota[a.nota]} · {nomeQuadra(a.quadraId)}
                     </span>
                   </div>
                   <time dateTime={a.data} title={formatarData(a.data)}>{tempoRelativo(a.data)}</time>

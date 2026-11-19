@@ -10,6 +10,7 @@
 // =========================================================
 import { api, ErroApi } from "./api.js";
 import { empresaAtual } from "./empresaService.js";
+import { enviarFoto } from "./uploadService.js";
 
 export const modalidadesDisponiveis = [
   "Futebol society",
@@ -20,7 +21,15 @@ export const modalidadesDisponiveis = [
   "Basquete",
   "Tênis",
   "Padel",
+  "Badminton",
+  "Esportes de areia",
+  "Futebol 7",
+  "Futebol 11",
+  "Kart",
 ];
+
+/** Modalidades cobradas por bateria (o horário de 1 hora é dividido em baterias). */
+export const modalidadesPorBateria = ["Kart"];
 
 export const tiposPiso = ["Grama sintética", "Madeira", "Cimento", "Areia", "Emborrachado", "Saibro"];
 
@@ -60,7 +69,7 @@ export const diasDaSemana = [
 /** Grade semanal a partir do horário de funcionamento da empresa (o salvo no Editar perfil). */
 export function gradePadrao() {
   const grade = {};
-  for (const h of empresaAtual().horarios) {
+  for (const h of empresaAtual().horarios ?? []) {
     if (!h.abre) {
       grade[h.dia] = []; // dia fechado
       continue;
@@ -132,7 +141,10 @@ function daApi(q, slots) {
     capacidade: q.capacidade ?? null,
     comodidades: q.comodidades ?? [],
     imagem: q.imagem_url ?? "",
-    ocupacao: 0, // a API ainda não calcula a ocupação
+    imagens: q.imagens ?? [],
+    cobranca: q.cobranca,
+    minutosBateria: q.minutos_bateria,
+    ocupacao: q.ocupacao ?? 0, // % dos horários reservados nos últimos 30 dias
     horarios: slotsParaGrade(slots),
   };
 }
@@ -141,7 +153,12 @@ function daApi(q, slots) {
 async function paraApi(dados) {
   const corpo = {};
   if (dados.nome !== undefined) corpo.nome = dados.nome;
-  if (dados.modalidade !== undefined) corpo.tipo_quadra_id = await idDoTipo(dados.modalidade);
+  if (dados.modalidade !== undefined) {
+    corpo.tipo_quadra_id = await idDoTipo(dados.modalidade);
+    const porBateria = modalidadesPorBateria.includes(dados.modalidade);
+    corpo.cobranca = porBateria ? "bateria" : "hora";
+    corpo.minutos_bateria = porBateria ? (dados.minutosBateria ?? 15) : null;
+  }
   if (dados.preco !== undefined) corpo.valor_hora = dados.preco;
   if (dados.descricao !== undefined) corpo.descricao = dados.descricao || null;
   if (dados.status !== undefined) corpo.status = dados.status;
@@ -150,10 +167,8 @@ async function paraApi(dados) {
   if (dados.capacidade !== undefined) corpo.capacidade = dados.capacidade ?? null;
   if (dados.comodidades !== undefined) corpo.comodidades = dados.comodidades;
   if (dados.imagem !== undefined) {
-    if (dados.imagem?.startsWith("data:")) {
-      throw new Error("O envio de arquivo de foto ainda não é aceito pelo servidor. Escolha uma das fotos sugeridas.");
-    }
-    corpo.imagem_url = dados.imagem || null;
+    // Foto escolhida do computador (data URL): envia primeiro e grava o endereço devolvido
+    corpo.imagem_url = (await enviarFoto(dados.imagem)) || null;
   }
   return corpo;
 }
@@ -194,8 +209,8 @@ export async function buscarQuadra(id) {
 }
 
 /**
- * Preço, situação e grade de uma quadra da página pública (/quadra/:id), se ela for de
- * uma empresa cadastrada na API. As quadras de demonstração (ids como "arena-sport") não têm.
+ * Preço, situação e grade de uma quadra da página pública (/quadra/:id).
+ * Devolve null se o id não for de uma quadra da API.
  */
 export async function buscarVinculoPublico(publicaId) {
   if (!/^\d+$/.test(String(publicaId))) return null;

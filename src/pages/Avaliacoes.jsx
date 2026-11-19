@@ -14,14 +14,20 @@ import Header from "../components/Header.jsx";
 import Footer from "../components/Footer.jsx";
 import Toast from "../components/Toast.jsx";
 import { useDados } from "../hooks/useDados.js";
-import { listarRespostas } from "../services/respostasService.js";
-import { empresaAtual } from "../services/empresaService.js";
+import { useQuadraPublica } from "../hooks/useQuadraPublica.js";
+import Esqueleto from "../components/Esqueleto.jsx";
 import Estrelas from "../components/avaliacoes/Estrelas.jsx";
 import FormAvaliacao from "../components/avaliacoes/FormAvaliacao.jsx";
 import ResumoAvaliacoes from "../components/avaliacoes/ResumoAvaliacoes.jsx";
-import { buscarQuadraPublica, quadrasPublicas } from "../services/catalogoService.js";
+import { listarQuadrasPublicas, quadrasPublicas } from "../services/catalogoService.js";
 import { aspectosAvaliacao, rotulosNota } from "../data/avaliacoes.js";
-import { apagarAvaliacao, avaliacoesDaQuadra, publicarAvaliacao } from "../services/avaliacoesService.js";
+import {
+  alternarUtil as alternarUtilNaApi,
+  apagarAvaliacao,
+  listarAvaliacoesDaQuadra,
+  marcouUtil,
+  publicarAvaliacao,
+} from "../services/avaliacoesService.js";
 import { sessaoAtual } from "../services/sessaoService.js";
 import {
   corDoNome,
@@ -45,25 +51,42 @@ const ordenacoes = {
 // A "key" faz a página reiniciar os filtros quando o usuário troca de quadra.
 export default function AvaliacoesPagina() {
   const { id } = useParams();
-  return <Avaliacoes key={id ?? "padrao"} id={id} />;
+  // O seletor "Ver outra quadra" usa o catálogo; sem id na URL, abre a primeira quadra.
+  const { dados: catalogo } = useDados(listarQuadrasPublicas);
+  const idEscolhido = id ?? catalogo?.[0]?.id;
+  const { quadra, carregando } = useQuadraPublica(idEscolhido);
+
+  if (carregando || (!id && !catalogo)) {
+    return (
+      <div className="av">
+        <Header />
+        <main className="av-container">
+          <Esqueleto tipo="lista" quantidade={3} rotulo="Carregando avaliações..." />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+  return <Avaliacoes key={idEscolhido ?? "padrao"} quadra={quadra} />;
 }
 
-function Avaliacoes({ id }) {
+function Avaliacoes({ quadra }) {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const quadra = id ? buscarQuadraPublica(id) : quadrasPublicas()[0];
   useTitulo(quadra ? `Avaliações · ${quadra.nome}` : "Avaliações");
 
-  // Lista lida do serviço (de novo a cada avaliação publicada ou apagada).
-  const [avaliacoesLidas, setAvaliacoesLidas] = useState(() => (quadra ? avaliacoesDaQuadra(quadra.id) : []));
-  const recarregarLista = () => setAvaliacoesLidas(avaliacoesDaQuadra(quadra.id));
-  const { dados: respostas } = useDados(listarRespostas);
-  const [marcadasUteis, setMarcadasUteis] = useState(() => new Set());
+  // Lista da API (lida de novo a cada avaliação publicada ou apagada).
+  const { dados: avaliacoesLidas, recarregar: recarregarLista } = useDados(
+    () => (quadra ? listarAvaliacoesDaQuadra(quadra.id) : Promise.resolve([])),
+    [quadra?.id]
+  );
+  // Votos de "útil" dados nesta visita: { [id]: { util, marcada } }
+  const [votos, setVotos] = useState({});
   const [filtroNota, setFiltroNota] = useState(0);
   const [filtroAspecto, setFiltroAspecto] = useState("");
   const [ordem, setOrdem] = useState("recentes");
   const [visiveis, setVisiveis] = useState(POR_PAGINA);
-  const [formAberto, setFormAberto] = useState(searchParams.get("escrever") === "1");
+  const [formAberto, setFormAberto] = useState(searchParams.get("escrever") === "1" && sessaoAtual()?.tipo === "usuario");
   const [toast, setToast] = useState("");
   const dialogRef = useRef(null);
 
@@ -93,7 +116,7 @@ function Avaliacoes({ id }) {
     );
   }
 
-  const lista = avaliacoesLidas;
+  const lista = avaliacoesLidas ?? [];
   const total = lista.length;
   const media = total ? lista.reduce((s, a) => s + a.nota, 0) / total : 0;
   const porNota = [5, 4, 3, 2, 1].map((n) => ({ nota: n, qtd: lista.filter((a) => a.nota === n).length }));
@@ -125,17 +148,32 @@ function Avaliacoes({ id }) {
     setVisiveis(POR_PAGINA);
   }
 
-  function alternarUtil(idAvaliacao) {
-    setMarcadasUteis((atual) => {
-      const novo = new Set(atual);
-      if (novo.has(idAvaliacao)) novo.delete(idAvaliacao);
-      else novo.add(idAvaliacao);
-      return novo;
-    });
+  const ehJogador = () => sessaoAtual()?.tipo === "usuario";
+  const pedirLogin = () => navigate("/login", { state: { de: `/avaliacoes/${quadra.id}`, motivo: "avaliar" } });
+
+  function abrirFormulario() {
+    if (!ehJogador()) return pedirLogin();
+    setFormAberto(true);
+  }
+
+  async function alternarUtil(idAvaliacao) {
+    if (!ehJogador()) return pedirLogin();
+    try {
+      const { util, marcada } = await alternarUtilNaApi(idAvaliacao);
+      setVotos((v) => ({ ...v, [idAvaliacao]: { util, marcada } }));
+    } catch (erro) {
+      setToast(erro.message);
+    }
   }
 
   async function publicar(dados) {
-    await publicarAvaliacao({ quadraId: quadra.id, ...dados });
+    try {
+      await publicarAvaliacao({ quadraId: quadra.id, ...dados });
+    } catch (erro) {
+      setFormAberto(false);
+      setToast(erro.message);
+      return;
+    }
     recarregarLista();
     limparFiltros();
     setOrdem("recentes");
@@ -144,7 +182,12 @@ function Avaliacoes({ id }) {
   }
 
   async function apagar(id) {
-    await apagarAvaliacao(id);
+    try {
+      await apagarAvaliacao(id);
+    } catch (erro) {
+      setToast(erro.message);
+      return;
+    }
     recarregarLista();
     setToast("Sua avaliação foi apagada.");
   }
@@ -179,7 +222,7 @@ function Avaliacoes({ id }) {
                 ))}
               </select>
             </label>
-            <button type="button" className="av-botao" onClick={() => setFormAberto(true)}>
+            <button type="button" className="av-botao" onClick={abrirFormulario}>
               <PencilLine size={18} aria-hidden="true" /> Escrever avaliação
             </button>
           </div>
@@ -196,7 +239,7 @@ function Avaliacoes({ id }) {
             filtroAspecto={filtroAspecto}
             onFiltroNota={mudarFiltroNota}
             onFiltroAspecto={mudarFiltroAspecto}
-            onAvaliar={() => setFormAberto(true)}
+            onAvaliar={abrirFormulario}
           />
 
           {/* ===== Lista ===== */}
@@ -241,7 +284,8 @@ function Avaliacoes({ id }) {
             {filtradas.length > 0 ? (
               <ul className="av-lista">
                 {filtradas.slice(0, visiveis).map((a) => {
-                  const marcada = marcadasUteis.has(a.id);
+                  const marcada = votos[a.id]?.marcada ?? marcouUtil(a.id);
+                  const util = votos[a.id]?.util ?? a.util;
                   return (
                     <li key={a.id} className={`av-card ${a.propria ? "propria" : ""}`}>
                       <div className="av-card-topo">
@@ -270,13 +314,13 @@ function Avaliacoes({ id }) {
 
                       <p className="av-card-texto">{a.texto}</p>
 
-                      {respostas?.[a.id] && (
+                      {a.resposta && (
                         <div className="av-resposta">
                           <div className="av-resposta-topo">
-                            <strong>Resposta de {empresaAtual().nome}</strong>
-                            <time dateTime={respostas[a.id].data}>{tempoRelativo(respostas[a.id].data)}</time>
+                            <strong>Resposta de {quadra.empresa?.nome ?? "da empresa"}</strong>
+                            <time dateTime={a.resposta.data}>{tempoRelativo(a.resposta.data)}</time>
                           </div>
-                          <p>{respostas[a.id].texto}</p>
+                          <p>{a.resposta.texto}</p>
                         </div>
                       )}
 
@@ -298,7 +342,7 @@ function Avaliacoes({ id }) {
                             aria-pressed={marcada}
                             onClick={() => alternarUtil(a.id)}
                           >
-                            <ThumbsUp size={15} aria-hidden="true" /> Útil ({a.util + (marcada ? 1 : 0)})
+                            <ThumbsUp size={15} aria-hidden="true" /> Útil ({util})
                           </button>
                         )}
                       </div>

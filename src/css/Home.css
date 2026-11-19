@@ -1309,3 +1309,10 @@
     justify-self: start;
   }
 }
+
+/* Catálogo carregando da API */
+.home-carregando {
+  padding: 48px 0;
+  text-align: center;
+  color: var(--muted);
+}

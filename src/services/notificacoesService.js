@@ -1,51 +1,112 @@
 // =========================================================
 // Serviço de NOTIFICAÇÕES DA EMPRESA
 //
-// Hoje: avisos de demonstração com horários relativos a agora; o que foi lido
-// fica salvo no navegador.
-// Com o backend: troque por chamadas à API (ou por notificações em tempo real).
+// Os avisos são montados a partir dos dados reais da API: reservas novas,
+// cancelamentos e pagamentos pendentes (GET /empresa/reservas) e avaliações
+// novas (GET /empresa/avaliacoes). O que foi lido fica salvo na conta.
 // =========================================================
-import { avaliacoesDaQuadra } from "./avaliacoesService.js";
-import { lerSalvo, responder, salvar } from "./armazenamento.js";
+import { listarReservasEmpresa, reservasEmpresaAtuais } from "./reservasEmpresaService.js";
+import { listarAvaliacoesDaEmpresa, resumoAvaliacoesDaEmpresa } from "./respostasService.js";
+import { quadrasDaEmpresaAtual } from "./quadrasService.js";
+import { carregarLidas, lidasAtuais, marcarLidas } from "./notificacoesLidas.js";
+import { formatarData } from "../utils/formatadores.js";
 
-const CHAVE = "bahquadras:empresa:notificacoes-lidas";
+const DIA = 24 * 3_600_000;
+const JANELA = 14 * DIA; // avisos das últimas 2 semanas
 
-const minutosAtras = (min) => new Date(Date.now() - min * 60_000).toISOString();
+const nomeQuadra = (id) => quadrasDaEmpresaAtual().find((q) => q.id === id)?.nome ?? "uma quadra";
+const quando = (r) => `${formatarData(r.data, { weekday: "short", day: "2-digit", month: "2-digit" })} às ${r.hora}`;
 
 function gerar() {
-  const avaliacao = avaliacoesDaQuadra("arena-sport").sort((a, b) => b.data.localeCompare(a.data))[0];
-  return [
-    { id: "n1", tipo: "reserva", titulo: "Nova reserva", texto: "Mariana Costa reservou o Campo Society 1 para hoje, das 18:00 às 19:00.", quando: minutosAtras(12), link: "/empresa/reservas" },
-    { id: "n2", tipo: "pagamento", titulo: "Pagamento pendente", texto: "A reserva de João da Silva hoje às 19:00 ainda não foi paga.", quando: minutosAtras(45), link: "/empresa/reservas" },
-    { id: "n3", tipo: "cancelamento", titulo: "Reserva cancelada", texto: "Diego Santos cancelou a Quadra Coberta de amanhã às 20:00. O horário voltou a ficar livre.", quando: minutosAtras(130), link: "/empresa/reservas" },
-    { id: "n4", tipo: "avaliacao", titulo: "Nova avaliação", texto: `${avaliacao.nome} deu ${avaliacao.nota} estrelas: “${avaliacao.texto.slice(0, 70)}…”`, quando: minutosAtras(60 * 5), link: "/empresa/avaliacoes" },
-    { id: "n5", tipo: "reserva", titulo: "Nova reserva", texto: "Pelada de Quinta reservou o Campo Society 2 por 2 horas.", quando: minutosAtras(60 * 9), link: "/empresa/reservas" },
-    { id: "n6", tipo: "sistema", titulo: "Arena de Areia em manutenção", texto: "Lembre-se de reativar a quadra quando a manutenção terminar.", quando: minutosAtras(60 * 26), link: "/empresa/quadras" },
-    { id: "n7", tipo: "financeiro", titulo: "Resumo do mês anterior", texto: "Seu faturamento cresceu em relação ao mês anterior. Veja os detalhes no Financeiro.", quando: minutosAtras(60 * 24 * 3), link: "/empresa/financeiro" },
-    { id: "n8", tipo: "avaliacao", titulo: "Responda às avaliações", texto: "Responder avaliações aumenta a confiança de novos jogadores.", quando: minutosAtras(60 * 24 * 6), link: "/empresa/avaliacoes" },
-  ];
+  const agora = Date.now();
+  const recente = (iso) => iso && agora - new Date(iso) <= JANELA;
+  const lista = [];
+
+  for (const r of reservasEmpresaAtuais()) {
+    if (r.origem === "app" && recente(r.criadaEm)) {
+      lista.push({
+        id: `reserva-${r.id}`,
+        tipo: "reserva",
+        titulo: "Nova reserva",
+        texto: `${r.cliente} reservou ${nomeQuadra(r.quadraId)} para ${quando(r)}.`,
+        quando: new Date(r.criadaEm).toISOString(),
+        link: "/empresa/reservas",
+      });
+    }
+    if (r.status === "cancelada" && recente(r.canceladaEm)) {
+      lista.push({
+        id: `cancelada-${r.id}`,
+        tipo: "cancelamento",
+        titulo: "Reserva cancelada",
+        texto: `A reserva de ${r.cliente} em ${nomeQuadra(r.quadraId)} (${quando(r)}) foi cancelada. O horário voltou a ficar livre.`,
+        quando: new Date(r.canceladaEm).toISOString(),
+        link: "/empresa/reservas",
+      });
+    }
+    // Jogo de hoje ou que já passou e ainda não foi pago
+    const inicio = new Date(`${r.data}T${r.hora}:00`);
+    if (r.status !== "cancelada" && !r.pago && inicio <= new Date(agora + 3 * 3_600_000) && agora - inicio <= 3 * DIA) {
+      lista.push({
+        id: `pagamento-${r.id}`,
+        tipo: "pagamento",
+        titulo: "Pagamento pendente",
+        texto: `A reserva de ${r.cliente} (${quando(r)}) ainda não foi paga.`,
+        quando: inicio.toISOString(),
+        link: "/empresa/reservas",
+      });
+    }
+  }
+
+  for (const a of resumoAvaliacoesDaEmpresa().recentes) {
+    if (!recente(a.data)) continue;
+    lista.push({
+      id: `avaliacao-${a.id}`,
+      tipo: "avaliacao",
+      titulo: "Nova avaliação",
+      texto: `${a.nome} deu ${a.nota} ${a.nota === 1 ? "estrela" : "estrelas"}: “${a.texto.slice(0, 70)}${a.texto.length > 70 ? "…" : ""}”`,
+      quando: a.data,
+      link: "/empresa/avaliacoes",
+    });
+  }
+
+  for (const q of quadrasDaEmpresaAtual().filter((x) => x.status === "manutencao")) {
+    lista.push({
+      id: `manutencao-${q.id}`,
+      tipo: "sistema",
+      titulo: `${q.nome} em manutenção`,
+      texto: "Lembre-se de reativar a quadra quando a manutenção terminar.",
+      quando: new Date(agora - DIA).toISOString(),
+      link: "/empresa/quadras",
+    });
+  }
+
+  return lista.sort((a, b) => b.quando.localeCompare(a.quando));
 }
 
-const notificacoes = gerar();
-const lidas = () => lerSalvo(CHAVE) ?? ["n6", "n7", "n8"];
+/** Busca os dados na API (reservas, avaliações e o que já foi lido). */
+export async function carregarNotificacoes() {
+  await Promise.all([listarReservasEmpresa(), listarAvaliacoesDaEmpresa(), carregarLidas()]);
+  return gerar();
+}
 
-export function listarNotificacoes() {
-  const jaLidas = lidas();
-  return responder(notificacoes.map((n) => ({ ...n, lida: jaLidas.includes(n.id) })));
+export async function listarNotificacoes() {
+  const lista = await carregarNotificacoes();
+  const lidas = lidasAtuais();
+  return lista.map((n) => ({ ...n, lida: lidas.has(n.id) }));
 }
 
 /** Quantidade de não lidas (leitura imediata, usada no menu). */
 export function contarNaoLidas() {
-  const jaLidas = lidas();
-  return notificacoes.filter((n) => !jaLidas.includes(n.id)).length;
+  const lidas = lidasAtuais();
+  return gerar().filter((n) => !lidas.has(n.id)).length;
 }
 
-export function marcarComoLida(id) {
-  salvar(CHAVE, [...new Set([...lidas(), id])]);
-  return responder({ id, lida: true }, 100);
+export async function marcarComoLida(id) {
+  await marcarLidas([id]);
+  return { id, lida: true };
 }
 
-export function marcarTodasComoLidas() {
-  salvar(CHAVE, notificacoes.map((n) => n.id));
-  return responder(true, 200);
+export async function marcarTodasComoLidas() {
+  await marcarLidas(gerar().map((n) => n.id));
+  return true;
 }

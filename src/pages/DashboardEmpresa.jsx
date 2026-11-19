@@ -18,11 +18,11 @@ import {
 import EmpresaLayout from "../layouts/EmpresaLayout.jsx";
 import GraficoBarras from "../components/GraficoBarras.jsx";
 import { empresaAtual } from "../services/empresaService.js";
-import { agendaHoje, historicoMensal, quadrasEmpresa } from "../data/empresa.js";
-import { buscarQuadraPorId } from "../data/quadras.js";
 import { useDados } from "../hooks/useDados.js";
 import { listarQuadras } from "../services/quadrasService.js";
-import { resumoAvaliacoesDaEmpresa } from "../services/respostasService.js";
+import { listarAvaliacoesDaEmpresa, resumoAvaliacoesDaEmpresa } from "../services/respostasService.js";
+import { historicoMensal, listarReservasEmpresa } from "../services/reservasEmpresaService.js";
+import { isoComDias } from "../utils/formatadores.js";
 import { corDoNome, formatarNota, formatarPreco, iniciais, tempoRelativo, foto } from "../utils/formatadores.js";
 import "../css/DashboardEmpresa.css";
 
@@ -31,12 +31,8 @@ const metricas = {
   reservas: { texto: "Reservas", formatar: (v) => `${v} reservas`, eixo: (v) => String(v) },
 };
 
-const quadraPublica = buscarQuadraPorId("arena-sport");
-
-
-const atual = historicoMensal.at(-1);
-const anterior = historicoMensal.at(-2);
-const variacao = (a, b) => ((a - b) / b) * 100;
+// Variação percentual; sem base de comparação (mês anterior zerado), mostra 0%.
+const variacao = (a, b) => (b ? ((a - b) / b) * 100 : 0);
 
 const paraMinutos = (hora) => Number(hora.slice(0, 2)) * 60 + Number(hora.slice(3, 5));
 const horaFim = (r) => `${String(Number(r.hora.slice(0, 2)) + r.duracao).padStart(2, "0")}:00`;
@@ -71,12 +67,18 @@ function Variacao({ valor, sufixo = "%" }) {
 }
 
 export default function DashboardEmpresa() {
-  // Quadras vêm do serviço (refletem cadastros/edições); os dados iniciais evitam a tela "piscar".
+  // Quadras, reservas e avaliações da empresa, todas da API.
   const { dados } = useDados(listarQuadras);
-  const quadras = dados ?? quadrasEmpresa;
+  const quadras = dados ?? [];
   const quadrasAtivas = quadras.filter((q) => q.status === "ativa");
+  const { dados: reservas } = useDados(listarReservasEmpresa);
+  const historico = historicoMensal(reservas ?? []);
+  const atual = historico.at(-1);
+  const anterior = historico.at(-2);
   // Avaliações de todas as quadras da empresa (nota e as 3 mais recentes).
+  useDados(listarAvaliacoesDaEmpresa);
   const resumo = resumoAvaliacoesDaEmpresa();
+  const quadraPublica = quadrasAtivas[0] ?? quadras[0];
   const avaliacoesRecentes = resumo.recentes.slice(0, 3);
   const ocupacaoMedia = quadrasAtivas.length
     ? Math.round(quadrasAtivas.reduce((s, q) => s + q.ocupacao, 0) / quadrasAtivas.length)
@@ -88,6 +90,8 @@ export default function DashboardEmpresa() {
 
   const agora = new Date();
   const agoraMin = agora.getHours() * 60 + agora.getMinutes();
+  const hoje = isoComDias(0);
+  const agendaHoje = (reservas ?? []).filter((r) => r.data === hoje && r.status !== "cancelada");
   const agenda = agendaHoje
     .map((r) => ({ ...r, situacao: situacaoReserva(r, agoraMin) }))
     .sort((a, b) => a.hora.localeCompare(b.hora));
@@ -101,12 +105,14 @@ export default function DashboardEmpresa() {
   return (
     <EmpresaLayout
       titulo="Dashboard"
-      subtitulo={`${saudacao()}, ${empresaAtual().responsavel.split(" ")[0]} · ${dataHoje}`}
+      subtitulo={`${saudacao()}, ${(empresaAtual().responsavel ?? "").split(" ")[0]} · ${dataHoje}`}
       acoes={
         <>
-          <Link to={`/quadra/${quadraPublica.id}`} className="pn-botao pn-botao-contorno">
-            <ExternalLink size={17} aria-hidden="true" /> Ver página pública
-          </Link>
+          {quadraPublica && (
+            <Link to={`/quadra/${quadraPublica.id}`} className="pn-botao pn-botao-contorno">
+              <ExternalLink size={17} aria-hidden="true" /> Ver página pública
+            </Link>
+          )}
           <Link to="/empresa/quadras/nova" className="pn-botao">
             <Plus size={18} aria-hidden="true" /> Nova quadra
           </Link>
@@ -188,7 +194,7 @@ export default function DashboardEmpresa() {
             <div className="pn-card-topo">
               <div>
                 <h2 id="db-grafico-titulo">{metricas[metrica].texto} por mês</h2>
-                <p>Últimos 6 meses completos</p>
+                <p>Últimos 6 meses (o atual até hoje)</p>
               </div>
               <div className="db-controles">
                 <div className="db-segmentado" role="group" aria-label="Escolher métrica">
@@ -220,7 +226,7 @@ export default function DashboardEmpresa() {
               <TabelaMensal />
             ) : (
               <GraficoBarras
-                dados={historicoMensal.map((d) => ({
+                dados={historico.map((d) => ({
                   rotulo: d.mes,
                   rotuloLongo: d.mesLongo,
                   valor: d[metrica],
@@ -376,7 +382,7 @@ function TabelaMensal() {
           </tr>
         </thead>
         <tbody>
-          {historicoMensal.map((d) => (
+          {historico.map((d) => (
             <tr key={d.mes}>
               <th scope="row">{d.mesLongo}</th>
               <td>{formatarPreco(d.faturamento)}</td>

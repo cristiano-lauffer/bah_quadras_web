@@ -18,8 +18,7 @@ import UsuarioLayout from "../layouts/UsuarioLayout.jsx";
 import Toast from "../components/Toast.jsx";
 import { baixarIcs, eventoDaReserva } from "../utils/agenda.js";
 import { useDados } from "../hooks/useDados.js";
-import { jaAvaliou } from "../services/avaliacoesService.js";
-import { buscarQuadraPublica } from "../services/catalogoService.js";
+import { carregarMinhasAvaliacoes, jaAvaliou } from "../services/avaliacoesService.js";
 import { cancelarReserva, fimDaReserva, inicioDaReserva, listarReservas, separarReservas } from "../services/reservasService.js";
 import { descreverDuracao, formatarData, formatarPreco, paraData, tempoRelativo, foto } from "../utils/formatadores.js";
 import "../css/MinhasReservas.css";
@@ -36,6 +35,8 @@ const HORAS_MINIMAS_REMARCAR = 2; // dá para remarcar até 2h antes do jogo
 
 export default function MinhasReservas() {
   const { dados, carregando, recarregar } = useDados(listarReservas);
+  // Para mostrar "Avaliar quadra" só onde o jogador ainda não avaliou.
+  useDados(carregarMinhasAvaliacoes);
   const [aba, setAba] = useState("proximas");
   const [confirmando, setConfirmando] = useState(null);
   const [cancelando, setCancelando] = useState(null);
@@ -59,10 +60,15 @@ export default function MinhasReservas() {
   async function cancelar(reserva) {
     setConfirmando(null);
     setCancelando(reserva.id);
-    await cancelarReserva(reserva.id);
-    setCancelando(null);
-    recarregar();
-    setToast(`Reserva na ${reserva.quadra} cancelada.`);
+    try {
+      await cancelarReserva(reserva.id);
+      setToast(`Reserva na ${reserva.quadra} cancelada.`);
+    } catch (erro) {
+      setToast(erro.message);
+    } finally {
+      setCancelando(null);
+      recarregar();
+    }
   }
 
   return (
@@ -114,7 +120,6 @@ export default function MinhasReservas() {
           ) : (
             <ul className="mr-lista">
               {lista.map((r) => {
-                const quadra = buscarQuadraPublica(r.quadraId);
                 const status = statusReserva[r.status];
                 const horasAte = (inicioDaReserva(r) - new Date()) / 3_600_000;
                 const data = paraData(r.data);
@@ -122,7 +127,7 @@ export default function MinhasReservas() {
                 return (
                   <li key={r.id} className={`mr-card ${r.status}`}>
                     <div className="mr-foto">
-                      {quadra && <img {...foto(quadra.imagens[0], 300)} alt="" loading="lazy" />}
+                      {r.imagem && <img {...foto(r.imagem, 300)} alt="" loading="lazy" />}
                       <div className="mr-data" aria-hidden="true">
                         <strong>{data.getDate()}</strong>
                         <span>{data.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}</span>

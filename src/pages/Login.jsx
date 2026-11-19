@@ -104,6 +104,15 @@ export default function Login() {
           </span>
         </p>
       )}
+      {["favoritar", "avaliar"].includes(location.state?.motivo) && (
+        <p className="auth-aviso auth-motivo" role="status">
+          <Lock size={18} aria-hidden="true" />
+          <span>
+            Entre com sua conta de jogador para{" "}
+            {location.state.motivo === "avaliar" ? "avaliar quadras" : "salvar quadras nas favoritas"}.
+          </span>
+        </p>
+      )}
       {(location.state?.motivo === "area" || location.state?.motivo === "outra-conta") && (
         <p className="auth-aviso auth-motivo" role="status">
           <Lock size={18} aria-hidden="true" />

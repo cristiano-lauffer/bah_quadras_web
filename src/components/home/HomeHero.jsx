@@ -1,5 +1,5 @@
 import { ArrowRight, CalendarCheck, Search, Star, Trophy } from "lucide-react";
-import { quadras as quadrasFixas } from "../../data/quadras.js";
+import { fotosDecoracao } from "../../config/fotos.js";
 import { corDoNome, formatarNota, foto, iniciais } from "../../utils/formatadores.js";
 
 /** Topo da Home: título, busca (texto + esporte) e prova social. */
@@ -73,8 +73,8 @@ export default function HomeHero({ busca, onBusca, modalidade, onModalidade, mod
         </div>
 
         <div className="home-hero-visual" aria-hidden="true">
-          <img className="home-hero-foto-principal" {...foto(quadrasFixas[0].imagens[0], 600)} alt="" />
-          <img className="home-hero-foto-secundaria" {...foto(quadrasFixas[4].imagens[0], 320)} alt="" />
+          <img className="home-hero-foto-principal" {...foto(fotosDecoracao.heroPrincipal, 600)} alt="" />
+          <img className="home-hero-foto-secundaria" {...foto(fotosDecoracao.heroSecundaria, 320)} alt="" />
 
           <div className="home-flutuante home-flutuante-reserva">
             <span className="home-flutuante-icone">

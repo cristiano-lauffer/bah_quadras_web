@@ -1,51 +1,100 @@
 // =========================================================
-// Serviço de AVALIAÇÕES DAS QUADRAS
+// Serviço de AVALIAÇÕES DAS QUADRAS (lado do jogador e páginas públicas)
 //
-// Hoje: as avaliações de exemplo (data/avaliacoes.js) + as que o jogador
-// publica, guardadas no navegador. A nota de cada quadra é calculada daqui,
-// então uma avaliação nova já muda a nota na Home, nos Detalhes e no painel
-// da empresa.
-// Com o backend: troque o corpo das funções por chamadas à API, por exemplo:
-//   export const publicarAvaliacao = (dados) => api.post(`/quadras/${dados.quadraId}/avaliacoes`, dados);
+// API:
+//   GET    /publico/quadras/:id/avaliacoes   lista pública, com a resposta da empresa
+//   GET    /avaliacoes/minhas                as do jogador logado + as que ele marcou como úteis
+//   POST   /avaliacoes                       publica
+//   DELETE /avaliacoes/:id                   apaga a própria
+//   PUT/DELETE /avaliacoes/:id/util          marca/desmarca como útil
+// A nota média de cada quadra vem pronta no catálogo (catalogoService).
 // =========================================================
-import { avaliacoes as exemplos } from "../data/avaliacoes.js";
-import { lerSalvo, responder, salvar } from "./armazenamento.js";
-import { isoComDias } from "../utils/formatadores.js";
+import { api } from "./api.js";
+import { aoTrocarConta, sessaoAtual } from "./sessaoService.js";
 
-const CHAVE = "bahquadras:usuario:avaliacoes";
+const ehJogador = () => sessaoAtual()?.tipo === "usuario";
+const dataIso = (valor) => (valor ? new Date(valor).toISOString() : null);
 
-const publicadas = () => lerSalvo(CHAVE) ?? [];
-
-/** Todas as avaliações (leitura imediata): as publicadas pelo jogador vêm primeiro. */
-export const todasAvaliacoes = () => [...publicadas(), ...exemplos];
-
-export const avaliacoesDaQuadra = (quadraId) => todasAvaliacoes().filter((a) => a.quadraId === quadraId);
-
-/** O jogador já avaliou esta quadra? */
-export const jaAvaliou = (quadraId) => publicadas().some((a) => a.quadraId === quadraId);
-
-/**
- * Nota média e quantidade de avaliações de uma quadra.
- * Sem avaliações: { avaliacao: null, quantidadeAvaliacoes: 0 } (a quadra aparece como "Nova").
- */
-export function notaDaQuadra(quadraId) {
-  const lista = avaliacoesDaQuadra(quadraId);
-  if (!lista.length) return { avaliacao: null, quantidadeAvaliacoes: 0 };
+/** Avaliação da API -> formato das telas. */
+export function daApi(a) {
   return {
-    avaliacao: lista.reduce((soma, a) => soma + a.nota, 0) / lista.length,
-    quantidadeAvaliacoes: lista.length,
+    id: a.id,
+    quadraId: String(a.quadra_id),
+    nome: a.autor_nome,
+    nota: a.nota,
+    aspectos: a.aspectos ?? [],
+    texto: a.texto,
+    util: a.util ?? 0,
+    data: dataIso(a.created_at),
+    propria: Boolean(a.usuario_id) && a.usuario_id === sessaoAtual()?.id,
+    resposta: a.resposta ? { texto: a.resposta, data: dataIso(a.resposta_em) } : null,
   };
 }
 
+// Avaliações do jogador logado (para "já avaliou?", leitura imediata).
+let minhas = null; // null = ainda não carregou
+let uteis = new Set();
+aoTrocarConta(() => {
+  minhas = null;
+  uteis = new Set();
+});
+
+/** Carrega as avaliações do jogador logado (e as que ele marcou como úteis). */
+export async function carregarMinhasAvaliacoes() {
+  if (!ehJogador()) {
+    minhas = [];
+    uteis = new Set();
+    return minhas;
+  }
+  const resposta = await api("/avaliacoes/minhas");
+  minhas = resposta.avaliacoes.map(daApi);
+  uteis = new Set(resposta.uteis);
+  return minhas;
+}
+
+/** As avaliações 5 estrelas mais úteis (depoimentos da Home). */
+export async function listarDepoimentos() {
+  return (await api("/publico/depoimentos", { publico: true })).map(daApi);
+}
+
+/** Avaliações de uma quadra. */
+export async function listarAvaliacoesDaQuadra(quadraId) {
+  const [lista] = await Promise.all([
+    api(`/publico/quadras/${quadraId}/avaliacoes`, { publico: true }),
+    minhas === null ? carregarMinhasAvaliacoes().catch(() => []) : null,
+  ]);
+  return lista.map(daApi);
+}
+
+/** O jogador já avaliou esta quadra? (leitura imediata, depois de carregarMinhasAvaliacoes) */
+export const jaAvaliou = (quadraId) => (minhas ?? []).some((a) => a.quadraId === String(quadraId));
+
+/** O jogador marcou esta avaliação como útil? (leitura imediata) */
+export const marcouUtil = (id) => uteis.has(id);
+
 /** Publica a avaliação do jogador. dados: { quadraId, nota, nome, aspectos, texto } */
-export function publicarAvaliacao(dados) {
-  const nova = { ...dados, id: Date.now(), data: isoComDias(0), util: 0, propria: true };
-  salvar(CHAVE, [nova, ...publicadas()]);
-  return responder(nova, 500);
+export async function publicarAvaliacao({ quadraId, nota, nome, aspectos, texto }) {
+  const { avaliacao } = await api("/avaliacoes", {
+    metodo: "POST",
+    corpo: { quadra_id: Number(quadraId), nota, autor_nome: nome, aspectos, texto },
+  });
+  const nova = daApi(avaliacao);
+  minhas = [nova, ...(minhas ?? [])];
+  return nova;
 }
 
 /** Apaga uma avaliação publicada pelo jogador. */
-export function apagarAvaliacao(id) {
-  salvar(CHAVE, publicadas().filter((a) => a.id !== id));
-  return responder(true, 300);
+export async function apagarAvaliacao(id) {
+  await api(`/avaliacoes/${id}`, { metodo: "DELETE" });
+  minhas = (minhas ?? []).filter((a) => a.id !== id);
+  return true;
+}
+
+/** Marca ou desmarca como útil. Devolve { util, marcada }. */
+export async function alternarUtil(id) {
+  const marcar = !uteis.has(id);
+  const { avaliacao } = await api(`/avaliacoes/${id}/util`, { metodo: marcar ? "PUT" : "DELETE" });
+  if (marcar) uteis.add(id);
+  else uteis.delete(id);
+  return { util: avaliacao.util, marcada: marcar };
 }

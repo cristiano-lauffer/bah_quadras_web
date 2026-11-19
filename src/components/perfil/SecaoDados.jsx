@@ -11,7 +11,7 @@ const camposDados = [
   { name: "cidade", rotulo: "Cidade", autoComplete: "address-level2" },
 ];
 
-export default function SecaoDados({ usuario, avatar, onFoto, onSalvar }) {
+export default function SecaoDados({ usuario, avatar, onFoto, onSalvar, enviandoFoto = false }) {
   const [editando, setEditando] = useState(false);
   const [form, setForm] = useState(usuario);
   const [erros, setErros] = useState({});
@@ -29,7 +29,7 @@ export default function SecaoDados({ usuario, avatar, onFoto, onSalvar }) {
     }));
   }
 
-  function salvar(e) {
+  async function salvar(e) {
     e.preventDefault();
     const novos = {};
     if (form.nome.trim().split(/\s+/).length < 2) novos.nome = "Informe nome e sobrenome.";
@@ -38,8 +38,8 @@ export default function SecaoDados({ usuario, avatar, onFoto, onSalvar }) {
     if (!form.cidade.trim()) novos.cidade = "Informe sua cidade.";
     setErros(novos);
     if (Object.keys(novos).length) return;
-    onSalvar({ ...form, nome: form.nome.trim() });
-    setEditando(false);
+    // Só fecha o formulário se a API aceitou (ex.: e-mail já usado por outra conta não fecha).
+    if (await onSalvar({ ...form, nome: form.nome.trim() })) setEditando(false);
   }
 
   function cancelar() {
@@ -58,8 +58,13 @@ export default function SecaoDados({ usuario, avatar, onFoto, onSalvar }) {
             <span className="pn-sr">Trocar foto de perfil</span>
             <input
               type="file"
-              accept="image/*"
-              onChange={(e) => e.target.files?.[0] && onFoto(e.target.files[0])}
+              accept="image/jpeg,image/png,image/webp"
+              disabled={enviandoFoto}
+              onChange={(e) => {
+                const arquivo = e.target.files?.[0];
+                e.target.value = "";
+                if (arquivo) onFoto(arquivo);
+              }}
             />
           </label>
         </div>
@@ -67,10 +72,12 @@ export default function SecaoDados({ usuario, avatar, onFoto, onSalvar }) {
           <h2>{usuario.nome}</h2>
           <p>
             <span><MapPin size={15} aria-hidden="true" /> {usuario.cidade}</span>
-            <span>
-              <CalendarDays size={15} aria-hidden="true" /> Membro desde{" "}
-              {formatarData(usuario.membroDesde, { month: "long", year: "numeric" })}
-            </span>
+            {usuario.membroDesde && (
+              <span>
+                <CalendarDays size={15} aria-hidden="true" /> Membro desde{" "}
+                {formatarData(usuario.membroDesde, { month: "long", year: "numeric" })}
+              </span>
+            )}
           </p>
         </div>
       </section>

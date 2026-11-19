@@ -48,7 +48,13 @@ export default function RecuperarSenha() {
     if (!emailValido(email)) return setErro("Digite um e-mail válido.");
     setErro("");
     setEnviando(true);
-    const resposta = await solicitarRecuperacao(email.trim());
+    let resposta;
+    try {
+      resposta = await solicitarRecuperacao(email.trim());
+    } catch (falha) {
+      setEnviando(false);
+      return setErro(falha.message);
+    }
     setEnviando(false);
     setReenviado(Boolean(enviado));
     setEnviado(resposta);
@@ -63,20 +69,21 @@ export default function RecuperarSenha() {
           <h2>Confira seu e-mail</h2>
           <p>
             Se existir uma conta com <strong>{enviado.email}</strong>, enviamos um link para criar uma nova
-            senha. Ele vale por 30 minutos. Não achou? Olhe também a caixa de spam.
+            senha. Ele vale por {enviado.validade ?? 30} minutos. Não achou? Olhe também a caixa de spam.
           </p>
 
-          <p className="auth-aviso" role="status">
-            <Info size={18} aria-hidden="true" />
-            Demonstração: ainda não enviamos e-mails de verdade. Use o botão abaixo para abrir o link.
-          </p>
-
-          <Link
-            to={`/redefinir-senha?token=${enviado.token}&email=${encodeURIComponent(enviado.email)}`}
-            className="auth-botao rs-botao"
-          >
-            Abrir link do e-mail <ArrowRight size={18} aria-hidden="true" />
-          </Link>
+          {/* Ambiente de desenvolvimento: a API ainda não envia e-mails e devolve o link aqui. */}
+          {enviado.link && (
+            <>
+              <p className="auth-aviso" role="status">
+                <Info size={18} aria-hidden="true" />
+                Desenvolvimento: o envio de e-mail ainda não está ligado. O link também aparece no terminal da API.
+              </p>
+              <Link to={enviado.link} className="auth-botao rs-botao">
+                Abrir link do e-mail <ArrowRight size={18} aria-hidden="true" />
+              </Link>
+            </>
+          )}
 
           <div className="rs-reenviar">
             {reenviado && segundos > 0 && <span role="status">E-mail reenviado!</span>}

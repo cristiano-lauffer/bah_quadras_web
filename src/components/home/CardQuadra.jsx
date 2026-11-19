@@ -1,12 +1,11 @@
 import { Link } from "react-router-dom";
 import { ArrowRight, Clock, Heart, MapPin, Star } from "lucide-react";
-import { horariosLivresHoje } from "../../data/quadras.js";
 import { formatarNota, formatarPreco, foto, semAvaliacoes, unidadePreco } from "../../utils/formatadores.js";
 
 /** Card de uma quadra na lista da Home. O card inteiro é clicável (link no nome). */
 export default function CardQuadra({ quadra: q, favorito, onFavoritar }) {
-  // Quadras das empresas (API) trazem os horários livres de verdade; as de demonstração, uma amostra.
-  const livres = (q.livresHoje ?? horariosLivresHoje(q)).slice(0, 3);
+  // Horários livres de hoje, vindos da API.
+  const livres = (q.livresHoje ?? []).slice(0, 3);
   const local = [...new Set([q.bairro, q.cidade].filter(Boolean))].join(", ");
 
   return (

@@ -3,17 +3,15 @@
 //
 // Hoje: os avisos são montados a partir das reservas do jogador
 // (confirmada, lembrete do jogo, cancelada, "como foi o jogo?").
-// O que foi lido fica salvo no navegador.
-// Com o backend: troque por chamadas à API (ou por notificações em tempo real).
+// As reservas vêm da API (GET /reservas) e o que foi lido fica salvo na conta.
 // Tem as mesmas funções do notificacoesService (empresa), então as duas
 // telas usam o mesmo componente <ListaNotificacoes />.
 // =========================================================
-import { lerSalvo, responder, salvar } from "./armazenamento.js";
-import { fimDaReserva, inicioDaReserva, reservasAtuais } from "./reservasService.js";
+import { fimDaReserva, inicioDaReserva, listarReservas, reservasAtuais } from "./reservasService.js";
+import { carregarLidas, lidasAtuais, marcarLidas } from "./notificacoesLidas.js";
 import { descreverDuracao, diasAte, formatarData } from "../utils/formatadores.js";
-import { jaAvaliou } from "./avaliacoesService.js";
+import { carregarMinhasAvaliacoes, jaAvaliou } from "./avaliacoesService.js";
 
-const CHAVE = "bahquadras:usuario:notificacoes-lidas";
 const HORA = 3_600_000;
 const DIA = 24 * HORA;
 
@@ -109,26 +107,32 @@ function gerar() {
 }
 
 // Avisos com mais de 7 dias já contam como lidos.
-const lidas = () => lerSalvo(CHAVE) ?? [];
-const estaLida = (n, jaLidas) => jaLidas.includes(n.id) || Date.now() - new Date(n.quando) > 7 * DIA;
+const estaLida = (n, jaLidas) => jaLidas.has(n.id) || Date.now() - new Date(n.quando) > 7 * DIA;
 
-export function listarNotificacoes() {
-  const jaLidas = lidas();
-  return responder(gerar().map((n) => ({ ...n, lida: estaLida(n, jaLidas) })));
+/** Busca na API as reservas, as avaliações do jogador e o que já foi lido. */
+export async function carregarNotificacoes() {
+  await Promise.all([listarReservas(), carregarMinhasAvaliacoes(), carregarLidas()]);
+  return gerar();
+}
+
+export async function listarNotificacoes() {
+  const lista = await carregarNotificacoes();
+  const jaLidas = lidasAtuais();
+  return lista.map((n) => ({ ...n, lida: estaLida(n, jaLidas) }));
 }
 
 /** Quantidade de não lidas (leitura imediata, usada no menu). */
 export function contarNaoLidas() {
-  const jaLidas = lidas();
+  const jaLidas = lidasAtuais();
   return gerar().filter((n) => !estaLida(n, jaLidas)).length;
 }
 
-export function marcarComoLida(id) {
-  salvar(CHAVE, [...new Set([...lidas(), id])]);
-  return responder({ id, lida: true }, 100);
+export async function marcarComoLida(id) {
+  await marcarLidas([id]);
+  return { id, lida: true };
 }
 
-export function marcarTodasComoLidas() {
-  salvar(CHAVE, [...new Set([...lidas(), ...gerar().map((n) => n.id)])]);
-  return responder(true, 200);
+export async function marcarTodasComoLidas() {
+  await marcarLidas(gerar().map((n) => n.id));
+  return true;
 }

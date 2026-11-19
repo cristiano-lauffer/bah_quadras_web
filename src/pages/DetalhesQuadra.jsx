@@ -19,8 +19,8 @@ import Header from "../components/Header.jsx";
 import Footer from "../components/Footer.jsx";
 import { useDados } from "../hooks/useDados.js";
 import { useQuadraPublica } from "../hooks/useQuadraPublica.js";
-import { avaliacoesDaQuadra } from "../services/avaliacoesService.js";
-import { buscarVinculoPublico, gradePadrao } from "../services/quadrasService.js";
+import { listarAvaliacoesDaQuadra } from "../services/avaliacoesService.js";
+import { buscarVinculoPublico } from "../services/quadrasService.js";
 import { horariosOcupados } from "../services/reservasService.js";
 import {
   cobraPorBateria,
@@ -41,7 +41,7 @@ import Esqueleto from "../components/Esqueleto.jsx";
 
 export default function DetalhesQuadra() {
   const { id } = useParams();
-  // Catálogo: quadras de demonstração + as das empresas cadastradas na API.
+  // Quadra do catálogo da API (ou buscada direto, se o link foi aberto sem passar pela Home).
   const { quadra, carregando } = useQuadraPublica(id);
   useTitulo(quadra ? quadra.nome : carregando ? "Carregando quadra" : "Quadra não encontrada");
 
@@ -76,7 +76,7 @@ function Conteudo({ quadra }) {
 
   const preco = vinculo?.preco ?? quadra.preco;
   const situacao = vinculo?.status ?? "ativa";
-  const grade = vinculo?.horarios ?? gradePadrao();
+  const grade = vinculo?.horarios ?? {};
   const horaAgora = new Date().getHours();
   const livresHoje = (grade[new Date().getDay()] ?? []).filter(
     (h) => Number(h.slice(0, 2)) > horaAgora && !ocupados?.includes(h)
@@ -84,9 +84,8 @@ function Conteudo({ quadra }) {
 
   const buscaMapa = encodeURIComponent(quadra.mapa ?? quadra.endereco);
 
-  const avaliacoes = avaliacoesDaQuadra(quadra.id)
-    .sort((a, b) => b.data.localeCompare(a.data))
-    .slice(0, 3);
+  const { dados: listaAvaliacoes } = useDados(() => listarAvaliacoesDaQuadra(quadra.id), [quadra.id]);
+  const avaliacoes = [...(listaAvaliacoes ?? [])].sort((a, b) => b.data.localeCompare(a.data)).slice(0, 3);
 
   return (
     <>
@@ -267,7 +266,7 @@ function Conteudo({ quadra }) {
             </>
           )}
 
-          <small className="dq-suave">Cancelamento grátis até 24h antes.</small>
+          <small className="dq-suave">{quadra.empresa?.politicaCancelamento ?? "Cancelamento grátis até 24h antes."}</small>
 
           <a
             className="dq-compartilhar"

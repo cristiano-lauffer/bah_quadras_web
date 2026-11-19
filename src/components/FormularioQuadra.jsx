@@ -8,12 +8,13 @@ import {
   statusQuadra,
   tiposPiso,
 } from "../services/quadrasService.js";
-import { quadras as quadrasPublicas } from "../data/quadras.js";
+import { fotosSugeridas } from "../config/fotos.js";
+import { lerArquivo } from "../services/uploadService.js";
 import { formatarPreco, foto as fotoTamanho } from "../utils/formatadores.js";
 import "../css/FormularioQuadra.css";
 
-// Fotos prontas para a demonstração (sem precisar de upload).
-const fotosSugeridas = [...new Set(quadrasPublicas.flatMap((q) => q.imagens))].slice(0, 8);
+const TIPOS_FOTO = ["image/jpeg", "image/png", "image/webp"];
+const MAX_FOTO = 5 * 1024 * 1024;
 
 const vazio = {
   nome: "",
@@ -286,10 +287,33 @@ export default function FormularioQuadra({ inicial }) {
           <div className="pn-card-topo">
             <div>
               <h2>Foto de capa</h2>
-              <p>Escolha uma das sugestões. O envio de foto própria chega quando o servidor aceitar arquivos.</p>
+              <p>Envie uma foto da sua quadra (JPG, PNG ou WebP, até 5 MB) ou escolha uma das sugestões.</p>
             </div>
+            <label className="pn-botao pn-botao-contorno fq-enviar-foto">
+              Enviar foto
+              <input
+                type="file"
+                accept={TIPOS_FOTO.join(",")}
+                hidden
+                onChange={async (e) => {
+                  const arquivo = e.target.files?.[0];
+                  e.target.value = "";
+                  if (!arquivo) return;
+                  if (!TIPOS_FOTO.includes(arquivo.type)) return setErros((a) => ({ ...a, imagem: "Use uma foto JPG, PNG ou WebP." }));
+                  if (arquivo.size > MAX_FOTO) return setErros((a) => ({ ...a, imagem: "A foto precisa ter até 5 MB." }));
+                  const dataUrl = await lerArquivo(arquivo);
+                  setErros((a) => ({ ...a, imagem: "" }));
+                  setForm((f) => ({ ...f, imagem: dataUrl }));
+                }}
+              />
+            </label>
           </div>
           <div className="fq-fotos" role="radiogroup" aria-label="Foto de capa">
+            {form.imagem && !fotosSugeridas.includes(form.imagem) && (
+              <button type="button" role="radio" aria-checked="true" aria-label="Foto enviada" className="fq-foto">
+                <img {...fotoTamanho(form.imagem, 160)} alt="" />
+              </button>
+            )}
             {fotosSugeridas.map((foto, i) => (
               <button
                 key={foto}

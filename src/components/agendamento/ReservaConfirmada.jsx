@@ -23,7 +23,7 @@ export default function ReservaConfirmada({ quadra, reserva }) {
       </dl>
 
       <p className="ag-nota">
-        <Info size={15} aria-hidden="true" /> Demonstração: a reserva fica salva apenas neste navegador.
+        <Info size={15} aria-hidden="true" /> O pagamento é feito no local. Você pode remarcar ou cancelar em Minhas reservas.
       </p>
 
       {/* ===== Agenda e compartilhar ===== */}

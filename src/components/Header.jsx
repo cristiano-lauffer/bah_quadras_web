@@ -15,7 +15,8 @@ import BotaoTema from "./BotaoTema.jsx";
 import { useSessao } from "../hooks/useSessao.js";
 import { sair } from "../services/sessaoService.js";
 import { irParaInicio } from "../utils/rolagem.js";
-import { contarNaoLidas } from "../services/notificacoesUsuarioService.js";
+import { carregarNotificacoes, contarNaoLidas } from "../services/notificacoesUsuarioService.js";
+import { useDados } from "../hooks/useDados.js";
 import "../css/Header.css";
 
 const links = [
@@ -43,6 +44,8 @@ function atalhosDa(sessao) {
 
 export default function Header() {
   const sessao = useSessao();
+  // Contador de notificações do jogador: carrega da API e redesenha o menu quando chega.
+  useDados(() => (sessao?.tipo === "usuario" ? carregarNotificacoes() : Promise.resolve(null)), [sessao?.id]);
   const navigate = useNavigate();
   const { pathname, search, hash } = useLocation();
   const [menuAberto, setMenuAberto] = useState(false);
