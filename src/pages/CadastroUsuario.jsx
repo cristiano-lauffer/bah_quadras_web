@@ -6,6 +6,7 @@ import {
   CircleCheck,
   Eye,
   EyeOff,
+  Info,
   LoaderCircle,
   Lock,
   Mail,
@@ -15,7 +16,7 @@ import {
 import AuthLayout, { Campo, ForcaSenha } from "../layouts/AuthLayout.jsx";
 import { emailValido, mascaraTelefone, telefoneValido } from "../utils/mascaras.js";
 import { useTitulo } from "../hooks/useTitulo.js";
-import { entrarAposCadastro } from "../services/sessaoService.js";
+import { cadastrar as criarConta } from "../services/sessaoService.js";
 
 export default function CadastroUsuario() {
   useTitulo("Criar conta de jogador");
@@ -34,6 +35,7 @@ export default function CadastroUsuario() {
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [concluido, setConcluido] = useState(false);
+  const [aviso, setAviso] = useState("");
 
   function atualizar(e) {
     const { name, value, type, checked } = e.target;
@@ -54,17 +56,22 @@ export default function CadastroUsuario() {
     return Object.keys(e).length === 0;
   }
 
-  function cadastrar(e) {
+  async function cadastrar(e) {
     e.preventDefault();
+    setAviso("");
     if (!validar()) return;
 
-    // TODO: enviar os dados para o backend.
     setEnviando(true);
-    setTimeout(() => {
-      setEnviando(false);
-      entrarAposCadastro(form); // já entra na conta recém-criada
+    try {
+      await criarConta(form); // cria a conta na API e já entra nela
       setConcluido(true);
-    }, 900);
+    } catch (erro) {
+      // E-mail repetido aparece no próprio campo; o resto, num aviso acima do botão.
+      if (erro.status === 409) setErros((atual) => ({ ...atual, email: erro.message }));
+      else setAviso(erro.message);
+    } finally {
+      setEnviando(false);
+    }
   }
 
   const topo = (
@@ -83,8 +90,7 @@ export default function CadastroUsuario() {
           <CircleCheck size={56} aria-hidden="true" />
           <h2>Conta criada, {form.nome.split(" ")[0]}!</h2>
           <p>
-            Você já está conectado com <strong>{form.email}</strong>. Esta é uma demonstração: os dados
-            ainda não vão para o servidor, isso acontece quando o backend estiver conectado.
+            Sua conta foi criada e você já está conectado com <strong>{form.email}</strong>.
           </p>
           <div className="rs-reenviar cad-acoes">
             {deReserva ? (
@@ -220,6 +226,13 @@ export default function CadastroUsuario() {
             </p>
           )}
         </div>
+
+        {aviso && (
+          <p className="auth-aviso" role="alert">
+            <Info size={18} aria-hidden="true" />
+            {aviso}
+          </p>
+        )}
 
         <button type="submit" className="auth-botao" disabled={enviando}>
           {enviando ? (

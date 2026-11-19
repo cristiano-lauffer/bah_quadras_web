@@ -9,6 +9,7 @@
 import { usuarioDemo } from "../data/usuario.js";
 import { lerSalvo, responder, salvar } from "./armazenamento.js";
 import { atualizarSessao, sessaoAtual } from "./sessaoService.js";
+import { mascaraTelefone } from "../utils/mascaras.js";
 
 const PREFERENCIAS_PADRAO = { lembrete: true, confirmacao: true, novidades: false };
 
@@ -21,7 +22,10 @@ const chave = (tipo) => `bahquadras:usuario:${tipo}:${contaAtual()?.email ?? usu
 /** Dados do jogador logado (leitura imediata): salvos > sessão > demonstração. */
 export function dadosDoUsuario() {
   const conta = contaAtual();
-  const base = conta ? { ...usuarioDemo, nome: conta.nome, email: conta.email } : usuarioDemo;
+  // Nome, e-mail e celular vêm da conta (API); o resto do perfil ainda fica no navegador.
+  const base = conta
+    ? { ...usuarioDemo, nome: conta.nome, email: conta.email, telefone: conta.telefone ? mascaraTelefone(conta.telefone) : "" }
+    : usuarioDemo;
   return { ...base, ...lerSalvo(chave("dados")) };
 }
 

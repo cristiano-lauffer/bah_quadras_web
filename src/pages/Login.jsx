@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ArrowRight, CalendarCheck, CircleCheck, Eye, EyeOff, Info, LoaderCircle, Lock, LogOut, Mail, UserRound } from "lucide-react";
+import { ArrowRight, CalendarCheck, CircleCheck, Eye, EyeOff, Info, LoaderCircle, Lock, LogOut, Mail } from "lucide-react";
 import AuthLayout, { Campo } from "../layouts/AuthLayout.jsx";
 import { emailValido } from "../utils/mascaras.js";
 import { useTitulo } from "../hooks/useTitulo.js";
 import { useSessao } from "../hooks/useSessao.js";
-import { contasDemo, entrar as entrarNaConta, inicioDaConta, sair } from "../services/sessaoService.js";
+import { entrar as entrarNaConta, inicioDaConta, sair } from "../services/sessaoService.js";
 
 // Só aceita voltar para páginas do próprio site (evita redirecionar para fora).
 const destinoSeguro = (de) => (typeof de === "string" && de.startsWith("/") && !de.startsWith("//") && de !== "/login" ? de : null);
@@ -59,11 +59,6 @@ export default function Login() {
       setEnviando(false);
       setAviso(erro.message);
     }
-  }
-
-  function preencher(email) {
-    setForm((f) => ({ ...f, email, senha: f.senha || "demo1234" }));
-    setErros({});
   }
 
   return (
@@ -228,21 +223,6 @@ export default function Login() {
         </svg>
         Continuar com Google
       </button>
-
-      <div className="auth-demo">
-        <p>
-          <UserRound size={16} aria-hidden="true" /> <strong>Demonstração:</strong> qualquer e-mail e senha entram como
-          jogador. Ou use uma das contas:
-        </p>
-        <div>
-          {Object.values(contasDemo).map((c) => (
-            <button key={c.email} type="button" onClick={() => preencher(c.email)}>
-              <span>{c.rotulo}</span>
-              {c.email}
-            </button>
-          ))}
-        </div>
-      </div>
 
       <p className="auth-nota">
         Tem uma quadra e quer anunciar?{" "}

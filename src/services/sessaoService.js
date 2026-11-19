@@ -1,39 +1,44 @@
 // =========================================================
 // Serviço de SESSÃO (quem está logado)
 //
-// Hoje: login de demonstração. Qualquer e-mail válido entra como jogador;
-// o e-mail da empresa de demonstração entra no painel da empresa.
+// Login e cadastro vão para a API (POST /auth/login e /auth/register).
+// A sessão guarda o token devolvido, que o api.js manda em toda chamada.
 // "Manter conectado" guarda a sessão no localStorage; sem ele, só até fechar
 // a aba (sessionStorage).
-// Com o backend (branch feature/US1-auth): troque o corpo de entrar() pela
-// chamada à API e guarde o token devolvido. O resto do site (Header, painéis,
-// Login) só usa as funções daqui e o hook useSessao, então não muda.
+// O resto do site (Header, painéis, Login) só usa as funções daqui e o hook
+// useSessao.
 // =========================================================
-import { usuarioDemo } from "../data/usuario.js";
-import { empresaAtual } from "./empresaService.js";
-import { responder } from "./armazenamento.js";
+import { api, configurarSessaoDaApi } from "./api.js";
 import { iniciais } from "../utils/formatadores.js";
 
 const CHAVE = "bahquadras:sessao";
 const ouvintes = new Set();
 let atual; // cache em memória (undefined = ainda não lido)
 
-/** Contas de demonstração mostradas na tela de login. */
-export const contasDemo = {
-  jogador: { email: usuarioDemo.email, rotulo: "Jogador" },
-  empresa: { email: empresaAtual().email, rotulo: "Empresa" },
-};
+// Sessão de antes da integração com a API (sem token): não vale mais.
+const sessaoValida = (sessao) => Boolean(sessao?.token && sessao?.tipo);
 
 function ler() {
   for (const armazem of ["sessionStorage", "localStorage"]) {
     try {
       const texto = window[armazem].getItem(CHAVE);
-      if (texto) return JSON.parse(texto);
+      if (texto) {
+        const sessao = JSON.parse(texto);
+        return sessaoValida(sessao) ? sessao : null;
+      }
     } catch {
       /* sem acesso ao armazenamento: segue sem sessão salva */
     }
   }
   return null;
+}
+
+function estaLembrada() {
+  try {
+    return Boolean(window.localStorage.getItem(CHAVE));
+  } catch {
+    return false;
+  }
 }
 
 function gravar(sessao, lembrar) {
@@ -55,8 +60,23 @@ function gravar(sessao, lembrar) {
   ouvintes.forEach((avisar) => avisar());
 }
 
-function montarSessao(tipo, { nome, email }) {
-  return { tipo, nome, email, avatar: tipo === "empresa" ? empresaAtual().logo : iniciais(nome) };
+/**
+ * Converte a resposta da API ({ token, usuario }) na sessão usada pelo site.
+ * tipo: "usuario" (jogador) ou "empresa", como nas rotas /usuario e /empresa.
+ */
+function montarSessao({ token, usuario }) {
+  const tipo = usuario.papel === "empresa" ? "empresa" : "usuario";
+  return {
+    tipo,
+    papel: usuario.papel,
+    id: usuario.id,
+    nome: usuario.nome,
+    email: usuario.email,
+    telefone: usuario.telefone ?? null,
+    empresa: usuario.empresa ?? null, // { id, nome } para contas de empresa
+    avatar: iniciais(tipo === "empresa" && usuario.empresa ? usuario.empresa.nome : usuario.nome),
+    token,
+  };
 }
 
 /* ---------------- Funções públicas ---------------- */
@@ -83,40 +103,47 @@ if (typeof window !== "undefined") {
   });
 }
 
-/**
- * Entra na conta. Devolve a sessão criada.
- * Com o backend: const { data } = await api.post("/auth/login", { email, senha });
- */
-export async function entrar(email, _senha, lembrar = false) {
-  const limpo = email.trim().toLowerCase();
-  const empresa = empresaAtual();
-  const sessao =
-    limpo === empresa.email.toLowerCase()
-      ? montarSessao("empresa", { nome: empresa.nome, email: empresa.email })
-      : montarSessao("usuario", { nome: usuarioDemo.nome, email: limpo });
-  await responder(null, 900);
+/** Entra na conta pela API. Devolve a sessão criada. */
+export async function entrar(email, senha, lembrar = false) {
+  const resposta = await api("/auth/login", { metodo: "POST", corpo: { email: email.trim(), senha }, publico: true });
+  if (resposta.usuario.papel === "admin") {
+    // O site não tem área de administrador: o admin cadastra empresas pela API (Postman).
+    throw new Error("A conta de administrador não tem painel no site. Use a API para cadastrar empresas.");
+  }
+  const sessao = montarSessao(resposta);
   gravar(sessao, lembrar);
   return sessao;
 }
 
-/** Entra logo depois do cadastro, com o nome que a pessoa digitou. */
-export function entrarAposCadastro({ nome, email }) {
-  const sessao = montarSessao("usuario", { nome: nome.trim(), email: email.trim().toLowerCase() });
+/**
+ * Cria a conta de jogador na API e já entra nela (a API devolve o token no cadastro).
+ * dados: { nome, email, telefone, senha }
+ */
+export async function cadastrar({ nome, email, telefone, senha }) {
+  const resposta = await api("/auth/register", {
+    metodo: "POST",
+    corpo: { nome: nome.trim(), email: email.trim(), telefone, senha },
+    publico: true,
+  });
+  const sessao = montarSessao(resposta);
   gravar(sessao, false);
   return sessao;
 }
 
-/** Atualiza nome/e-mail da sessão (ex.: depois de editar "Meus dados"). */
+/** Atualiza nome/e-mail mostrados na sessão (ex.: depois de editar "Meus dados"). */
 export function atualizarSessao({ nome, email }) {
   const sessao = sessaoAtual();
   if (!sessao) return;
-  let lembrar = false;
-  try {
-    lembrar = Boolean(window.localStorage.getItem(CHAVE));
-  } catch {
-    /* ignora */
-  }
-  gravar({ ...montarSessao(sessao.tipo, { nome: nome.trim(), email: email.trim().toLowerCase() }) }, lembrar);
+  const novoNome = nome.trim();
+  gravar(
+    {
+      ...sessao,
+      nome: novoNome,
+      email: email.trim().toLowerCase(),
+      avatar: sessao.tipo === "empresa" ? sessao.avatar : iniciais(novoNome),
+    },
+    estaLembrada()
+  );
 }
 
 // Onde e quando a pessoa clicou em "Sair" (para a área protegida mostrar o aviso certo).
@@ -133,3 +160,9 @@ export const acabouDeSair = (pagina) => saida.pagina === pagina && Date.now() - 
 
 /** Página inicial de cada tipo de conta depois do login. */
 export const inicioDaConta = (sessao) => (sessao?.tipo === "empresa" ? "/empresa/dashboard" : "/usuario/perfil");
+
+// O api.js manda o token desta sessão e, se ele expirar, encerra a sessão.
+configurarSessaoDaApi({
+  token: () => sessaoAtual()?.token ?? null,
+  expirou: () => sair(),
+});
