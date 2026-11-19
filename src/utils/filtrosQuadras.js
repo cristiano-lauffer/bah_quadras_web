@@ -15,4 +15,4 @@ export const faixasPreco = {
 };
 
 export const cidadesDe = (lista) =>
-  [...new Set(lista.map((q) => q.cidade))].sort((a, b) => a.localeCompare(b, "pt-BR"));
+  [...new Set(lista.map((q) => q.cidade).filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR"));

@@ -18,7 +18,7 @@ import {
 import Header from "../components/Header.jsx";
 import Footer from "../components/Footer.jsx";
 import { useDados } from "../hooks/useDados.js";
-import { buscarQuadraPublica } from "../services/catalogoService.js";
+import { useQuadraPublica } from "../hooks/useQuadraPublica.js";
 import { avaliacoesDaQuadra } from "../services/avaliacoesService.js";
 import { buscarVinculoPublico, gradePadrao } from "../services/quadrasService.js";
 import { horariosOcupados } from "../services/reservasService.js";
@@ -41,15 +41,17 @@ import Esqueleto from "../components/Esqueleto.jsx";
 
 export default function DetalhesQuadra() {
   const { id } = useParams();
-  // Catálogo: quadras de demonstração + as cadastradas pela empresa.
-  const quadra = buscarQuadraPublica(id);
-  useTitulo(quadra ? quadra.nome : "Quadra não encontrada");
+  // Catálogo: quadras de demonstração + as das empresas cadastradas na API.
+  const { quadra, carregando } = useQuadraPublica(id);
+  useTitulo(quadra ? quadra.nome : carregando ? "Carregando quadra" : "Quadra não encontrada");
 
   return (
     <div className="public-page dq">
       <Header />
       <main className="dq-container">
-        {quadra ? (
+        {carregando ? (
+          <Esqueleto tipo="lista" quantidade={3} rotulo="Carregando quadra..." />
+        ) : quadra ? (
           <Conteudo key={quadra.id} quadra={quadra} />
         ) : (
           <div className="dq-nao-encontrada">

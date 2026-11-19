@@ -7,6 +7,7 @@
 // =========================================================
 import { reservas as reservasExemplo } from "../data/reservas.js";
 import { lerSalvo, responder, salvar } from "./armazenamento.js";
+import { api } from "./api.js";
 import { somarMinutos } from "../utils/formatadores.js";
 import { buscarQuadraPorId } from "../data/quadras.js";
 
@@ -76,11 +77,28 @@ export function cancelarReserva(id) {
 }
 
 /**
- * Horários já ocupados de uma quadra em uma data.
- * Junta as reservas do jogador com algumas reservas "de outras pessoas"
- * geradas de forma fixa para a demonstração ficar realista.
+ * Horários da grade que a API diz estarem ocupados numa data (reservas ativas e bloqueios
+ * gravados no banco). Só para quadras das empresas cadastradas na API (id numérico).
  */
-export function horariosOcupados(quadraId, data, ignorarId = null) {
+async function ocupadosNaApi(quadraId, data) {
+  try {
+    const q = await api(`/publico/quadras/${quadraId}?data=${data}`, { publico: true });
+    const dia = new Date(`${data}T12:00:00`).getDay();
+    const livres = new Set(q.horarios_livres.map((h) => h.hora_inicio));
+    return q.grade.filter((s) => s.dia_semana === dia && !livres.has(s.hora_inicio)).map((s) => s.hora_inicio);
+  } catch (erro) {
+    console.warn("Não foi possível consultar os horários ocupados na API:", erro.message);
+    return [];
+  }
+}
+
+/**
+ * Horários já ocupados de uma quadra em uma data.
+ * Junta as reservas do jogador (ainda salvas no navegador) com as de outras pessoas:
+ * - quadras da API: as reservas e bloqueios que estão no banco;
+ * - quadras de demonstração: algumas reservas geradas de forma fixa, para parecer real.
+ */
+export async function horariosOcupados(quadraId, data, ignorarId = null) {
   // ignorarId: ao remarcar, o horário atual da própria reserva conta como livre.
   const doJogador = montarLista()
     .filter((r) => r.quadraId === quadraId && r.data === data && r.status === "confirmada" && String(r.id) !== String(ignorarId))
@@ -88,11 +106,16 @@ export function horariosOcupados(quadraId, data, ignorarId = null) {
       Array.from({ length: r.duracao }, (_, i) => `${String(Number(r.hora.slice(0, 2)) + i).padStart(2, "0")}:00`)
     );
 
-  let semente = 0;
-  for (const c of `${quadraId}${data}`) semente = (semente * 31 + c.charCodeAt(0)) % 9973;
-  const deOutros = ["08:00", "10:00", "12:00", "17:00", "18:00", "19:00", "20:00", "21:00"].filter(
-    (_, i) => (semente >> i) % 3 === 0
-  );
+  let deOutros;
+  if (/^\d+$/.test(String(quadraId))) {
+    deOutros = await ocupadosNaApi(quadraId, data);
+  } else {
+    let semente = 0;
+    for (const c of `${quadraId}${data}`) semente = (semente * 31 + c.charCodeAt(0)) % 9973;
+    deOutros = ["08:00", "10:00", "12:00", "17:00", "18:00", "19:00", "20:00", "21:00"].filter(
+      (_, i) => (semente >> i) % 3 === 0
+    );
+  }
 
   return responder([...new Set([...doJogador, ...deOutros])], 150);
 }

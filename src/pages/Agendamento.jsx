@@ -18,7 +18,7 @@ import PaginaAgendamento from "../components/agendamento/PaginaAgendamento.jsx";
 import EscolherQuadra from "../components/agendamento/EscolherQuadra.jsx";
 import QuadraNaoEncontrada from "../components/agendamento/QuadraNaoEncontrada.jsx";
 import ReservaConfirmada from "../components/agendamento/ReservaConfirmada.jsx";
-import { buscarQuadraPublica } from "../services/catalogoService.js";
+import { useQuadraPublica } from "../hooks/useQuadraPublica.js";
 import { buscarVinculoPublico, gradePadrao } from "../services/quadrasService.js";
 import {
   buscarReserva,
@@ -28,7 +28,6 @@ import {
   remarcarReserva,
 } from "../services/reservasService.js";
 import { useSessao } from "../hooks/useSessao.js";
-import { empresaAtual } from "../services/empresaService.js";
 import {
   cobraPorBateria,
   descreverDuracao,
@@ -59,13 +58,26 @@ export default function Agendamento() {
   const { id } = useParams();
   const [params] = useSearchParams();
 
-  const quadra = id ? buscarQuadraPublica(id) : null;
+  const { quadra, carregando } = useQuadraPublica(id);
   const remarcarId = params.get("remarcar");
   useTitulo(
-    !id ? "Escolha uma quadra" : !quadra ? "Quadra não encontrada" : `${remarcarId ? "Remarcar" : "Reservar"} ${quadra.nome}`
+    !id
+      ? "Escolha uma quadra"
+      : carregando
+        ? "Carregando quadra"
+        : !quadra
+          ? "Quadra não encontrada"
+          : `${remarcarId ? "Remarcar" : "Reservar"} ${quadra.nome}`
   );
 
   if (!id) return <EscolherQuadra />;
+  if (carregando) {
+    return (
+      <PaginaAgendamento>
+        <Esqueleto tipo="lista" quantidade={3} rotulo="Carregando quadra..." />
+      </PaginaAgendamento>
+    );
+  }
   if (!quadra) return <QuadraNaoEncontrada />;
 
   return (
@@ -158,7 +170,8 @@ function Reserva({ quadra, dataInicial, horaInicial, duracaoInicial, etapaInicia
   const duracaoFinal = Math.min(duracao, Math.max(duracaoPossivel, 1));
   const total = preco * duracaoFinal;
   const fimEscolhido = (n) => (kart ? somarMinutos(hora, n * minBateria) : somarHoras(hora, n));
-  const politica = vinculo ? empresaAtual().politicaCancelamento : POLITICA_PADRAO;
+  // O perfil das empresas (com a política de cancelamento) ainda não está na API.
+  const politica = POLITICA_PADRAO;
   const livresNoDia = horarios.filter((h) => h.estado === "livre").length;
   const mesmoHorario =
     remarcando && data === original.data && hora === original.hora && duracaoFinal === duracaoOriginal;
