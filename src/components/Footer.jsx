@@ -1,12 +1,16 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { irParaInicio, rolarParaOTopo } from "../utils/rolagem.js";
 import "../css/Footer.css";
 
 export default function Footer() {
+  const { pathname, hash } = useLocation();
+  const paraInicio = (e) => irParaInicio(e, pathname, hash);
+
   return (
     <footer className="rodape">
       <div className="rodape-conteudo">
         <div className="rodape-marca">
-          <Link to="/" className="logo rodape-logo">
+          <Link to="/" className="logo rodape-logo" onClick={paraInicio}>
             <span className="logo-simbolo" aria-hidden="true">
               ⚽
             </span>
@@ -25,7 +29,9 @@ export default function Footer() {
         <div className="rodape-links">
           <h3>Navegação</h3>
 
-          <Link to="/">Início</Link>
+          <Link to="/" onClick={paraInicio}>
+            Início
+          </Link>
           <Link to="/#quadras">Quadras</Link>
           <Link to="/#sobre">Sobre</Link>
         </div>
@@ -62,9 +68,10 @@ export default function Footer() {
           <Link to="/privacidade">Privacidade</Link>
         </nav>
 
-        <Link to="/" className="rodape-voltar">
-          Voltar ao início ↑
-        </Link>
+        {/* Sobe a página atual (antes era um link para a Home e, na própria Home, não fazia nada). */}
+        <button type="button" className="rodape-voltar" onClick={rolarParaOTopo}>
+          Voltar ao topo <span aria-hidden="true">↑</span>
+        </button>
       </div>
     </footer>
   );

@@ -122,6 +122,11 @@
 
 .rodape-voltar {
   flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
   color: #61dfa0;
   font-size: 11px;
   font-weight: 700;
