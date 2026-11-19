@@ -14,6 +14,7 @@ import {
 import BotaoTema from "./BotaoTema.jsx";
 import { useSessao } from "../hooks/useSessao.js";
 import { sair } from "../services/sessaoService.js";
+import { irParaInicio } from "../utils/rolagem.js";
 import { contarNaoLidas } from "../services/notificacoesUsuarioService.js";
 import "../css/Header.css";
 
@@ -43,7 +44,7 @@ function atalhosDa(sessao) {
 export default function Header() {
   const sessao = useSessao();
   const navigate = useNavigate();
-  const { pathname, search } = useLocation();
+  const { pathname, search, hash } = useLocation();
   const [menuAberto, setMenuAberto] = useState(false);
   const [contaAberta, setContaAberta] = useState(false);
   const contaRef = useRef(null);
@@ -84,7 +85,14 @@ export default function Header() {
   return (
     <header className={`cabecalho ${menuAberto ? "menu-aberto" : ""}`}>
       <div className="cabecalho-conteudo">
-        <Link to="/" className="logo" onClick={fecharTudo}>
+        <Link
+          to="/"
+          className="logo"
+          onClick={(e) => {
+            fecharTudo();
+            irParaInicio(e, pathname, hash);
+          }}
+        >
           <span className="logo-simbolo" aria-hidden="true">
             ⚽
           </span>
@@ -97,7 +105,15 @@ export default function Header() {
 
         <nav id="menu-principal" className="menu-principal" aria-label="Menu principal">
           {links.map((l) => (
-            <Link key={l.to} to={l.to} className="menu-link" onClick={fecharTudo}>
+            <Link
+              key={l.to}
+              to={l.to}
+              className="menu-link"
+              onClick={(e) => {
+                fecharTudo();
+                if (l.to === "/") irParaInicio(e, pathname, hash);
+              }}
+            >
               {l.texto}
             </Link>
           ))}
