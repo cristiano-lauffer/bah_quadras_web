@@ -35,7 +35,7 @@ const visualStatus = {
 export default function QuadrasEmpresa() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { dados: quadras, carregando, recarregar } = useDados(listarQuadras);
+  const { dados: quadras, carregando, erro, recarregar } = useDados(listarQuadras);
   const [filtro, setFiltro] = useState("todas");
   const [confirmando, setConfirmando] = useState(null);
   const [processando, setProcessando] = useState(null);
@@ -49,7 +49,13 @@ export default function QuadrasEmpresa() {
   async function mudarStatus(quadra, novoStatus) {
     setConfirmando(null);
     setProcessando(quadra.id);
-    await alterarStatus(quadra.id, novoStatus);
+    try {
+      await alterarStatus(quadra.id, novoStatus);
+    } catch (erro) {
+      setProcessando(null);
+      setToast(`Não foi possível alterar ${quadra.nome}: ${erro.message}`);
+      return;
+    }
     setProcessando(null);
     recarregar();
     setToast(
@@ -126,6 +132,15 @@ export default function QuadrasEmpresa() {
 
         {carregando && !quadras ? (
           <Esqueleto tipo="cards" quantidade={4} rotulo="Carregando quadras..." />
+        ) : erro && !quadras ? (
+          <div className="pn-vazio" role="alert">
+            <LayoutGrid size={40} aria-hidden="true" />
+            <h3>Não foi possível carregar suas quadras</h3>
+            <p>{erro.message}</p>
+            <button type="button" className="pn-botao" onClick={recarregar}>
+              Tentar de novo
+            </button>
+          </div>
         ) : visiveis.length === 0 ? (
           <div className="pn-vazio">
             <LayoutGrid size={40} aria-hidden="true" />
