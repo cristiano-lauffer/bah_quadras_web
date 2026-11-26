@@ -986,3 +986,16 @@
     transform: rotate(90deg);
   }
 }
+
+/* Erro devolvido pela API ao confirmar (ex.: horário pego por outra pessoa) */
+.ag-erro-envio {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: color-mix(in srgb, #dc2626 10%, transparent);
+  color: #b91c1c;
+  font-size: 0.9rem;
+}

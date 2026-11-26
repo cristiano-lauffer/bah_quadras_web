@@ -15,7 +15,8 @@ import BotaoTema from "./BotaoTema.jsx";
 import { useSessao } from "../hooks/useSessao.js";
 import { sair } from "../services/sessaoService.js";
 import { irParaInicio } from "../utils/rolagem.js";
-import { contarNaoLidas } from "../services/notificacoesUsuarioService.js";
+import { carregarNotificacoes, contarNaoLidas } from "../services/notificacoesUsuarioService.js";
+import { useDados } from "../hooks/useDados.js";
 import "../css/Header.css";
 
 const links = [
@@ -26,6 +27,12 @@ const links = [
 
 /** Atalhos do menu da conta, conforme o tipo de conta. */
 function atalhosDa(sessao) {
+  if (sessao.tipo === "admin") {
+    return [
+      { to: "/admin", texto: "Painel do admin", icone: LayoutDashboard },
+      { to: "/admin/empresas", texto: "Empresas", icone: Building2 },
+    ];
+  }
   if (sessao.tipo === "empresa") {
     return [
       { to: "/empresa/dashboard", texto: "Painel da empresa", icone: LayoutDashboard },
@@ -43,6 +50,8 @@ function atalhosDa(sessao) {
 
 export default function Header() {
   const sessao = useSessao();
+  // Contador de notificações do jogador: carrega da API e redesenha o menu quando chega.
+  useDados(() => (sessao?.tipo === "usuario" ? carregarNotificacoes() : Promise.resolve(null)), [sessao?.id]);
   const navigate = useNavigate();
   const { pathname, search, hash } = useLocation();
   const [menuAberto, setMenuAberto] = useState(false);

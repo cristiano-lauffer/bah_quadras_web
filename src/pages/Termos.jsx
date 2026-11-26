@@ -23,9 +23,10 @@ const secoes = [
     id: "reservas",
     titulo: "Reservas",
     itens: [
-      "A reserva fica confirmada quando aparece em Minhas reservas com o status \"Confirmada\".",
+      "Ao reservar, o horário fica guardado com o status \"Aguardando pagamento\". Ele passa para \"Confirmada\" quando a empresa registrar o pagamento.",
       "O valor mostrado no resumo é o que você paga. No kart, o preço é por bateria; nas quadras, por hora.",
-      "Hoje o pagamento é feito no local, na forma escolhida na hora de reservar.",
+      "O pagamento é combinado diretamente com a empresa pelo WhatsApp, na forma escolhida na hora de reservar.",
+      "Cancelamento e remarcação pelo site até 24 horas antes do jogo. Depois disso, fale com a empresa pelo WhatsApp. Reembolsos são feitos pela empresa, conforme a política de cancelamento dela.",
       "Chegue com alguns minutos de antecedência: o horário termina no tempo reservado, mesmo que o jogo comece atrasado.",
     ],
   },

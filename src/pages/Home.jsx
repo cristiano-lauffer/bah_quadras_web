@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { SearchX } from "lucide-react";
 import Header from "../components/Header.jsx";
 import Footer from "../components/Footer.jsx";
@@ -11,10 +11,11 @@ import CardQuadra from "../components/home/CardQuadra.jsx";
 import HomeComoFunciona from "../components/home/HomeComoFunciona.jsx";
 import HomeDepoimentos from "../components/home/HomeDepoimentos.jsx";
 import HomeCtaEmpresa from "../components/home/HomeCtaEmpresa.jsx";
-import { avaliacoes } from "../data/avaliacoes.js";
 import { useTitulo } from "../hooks/useTitulo.js";
 import { useDados } from "../hooks/useDados.js";
+import { useSessao } from "../hooks/useSessao.js";
 import { alternarFavorito, listarFavoritos } from "../services/favoritosService.js";
+import { listarDepoimentos } from "../services/avaliacoesService.js";
 import {
   disponiveisParaReserva,
   listarQuadrasPublicas,
@@ -35,10 +36,14 @@ export default function Home() {
   useTitulo("Encontre sua quadra");
   const { hash } = useLocation();
 
-  // Catálogo: quadras de demonstração + as cadastradas pela empresa no painel.
-  // A leitura imediata evita a lista "piscar" enquanto a versão assíncrona chega.
-  const { dados: catalogoCarregado } = useDados(listarQuadrasPublicas);
+  const navigate = useNavigate();
+  const sessao = useSessao();
+
+  // Catálogo da API. A leitura imediata evita a lista "piscar" ao voltar para a Home.
+  const { dados: catalogoCarregado, carregando: carregandoCatalogo, erro: erroCatalogo, recarregar: recarregarCatalogo } =
+    useDados(listarQuadrasPublicas);
   const catalogo = disponiveisParaReserva(catalogoCarregado ?? quadrasPublicas());
+  const { dados: depoimentosApi } = useDados(listarDepoimentos);
 
   const [busca, setBusca] = useState("");
   const [modalidadeEscolhida, setModalidade] = useState("todas");
@@ -47,8 +52,8 @@ export default function Home() {
   const [faixaPreco, setFaixaPreco] = useState("qualquer");
   const [expandidaPara, setExpandidaPara] = useState(null);
 
-  // Favoritos salvos (os mesmos da aba "Favoritas" do perfil do jogador).
-  const { dados: favoritosSalvos } = useDados(listarFavoritos);
+  // Favoritos salvos na conta (os mesmos da aba "Favoritas" do perfil do jogador).
+  const { dados: favoritosSalvos } = useDados(listarFavoritos, [sessao?.id]);
   const [favoritosLocais, setFavoritosLocais] = useState(null);
   const favoritos = new Set(favoritosLocais ?? favoritosSalvos ?? []);
 
@@ -84,11 +89,7 @@ export default function Home() {
       return [m, { imagem: lista.find((q) => q.imagens[0])?.imagens[0], total: lista.length }];
     })
   );
-  const depoimentos = avaliacoes
-    .filter((a) => a.nota === 5)
-    .sort((a, b) => b.util - a.util)
-    .slice(0, 3)
-    .map((a) => ({ ...a, quadra: catalogo.find((q) => q.id === a.quadraId) }));
+  const depoimentos = (depoimentosApi ?? []).map((a) => ({ ...a, quadra: catalogo.find((q) => q.id === a.quadraId) }));
 
   const termo = normalizar(busca);
   const resultado = catalogo
@@ -106,10 +107,18 @@ export default function Home() {
   }
 
   function trocarFavorito(id) {
-    // Atualiza a tela na hora e salva em seguida.
+    // Favoritas ficam na conta do jogador: sem login, leva para entrar e volta para a Home.
+    if (sessao?.tipo !== "usuario") {
+      navigate("/login", { state: { de: "/#quadras", motivo: "favoritar" } });
+      return;
+    }
+    // Atualiza a tela na hora e salva em seguida (se falhar, volta como estava).
     const atual = favoritosLocais ?? favoritosSalvos ?? [];
-    setFavoritosLocais(atual.includes(id) ? atual.filter((x) => x !== id) : [...atual, id]);
-    alternarFavorito(id);
+    const jaFavorita = atual.includes(id);
+    setFavoritosLocais(jaFavorita ? atual.filter((x) => x !== id) : [...atual, id]);
+    alternarFavorito(id, jaFavorita)
+      .then(setFavoritosLocais)
+      .catch(() => setFavoritosLocais(atual));
   }
 
   function limparFiltros() {
@@ -177,7 +186,18 @@ export default function Home() {
               />
             </header>
 
-            {resultado.length > 0 ? (
+            {carregandoCatalogo && !catalogo.length ? (
+              <p className="home-carregando" role="status">Carregando quadras...</p>
+            ) : erroCatalogo && !catalogo.length ? (
+              <div className="home-vazio">
+                <SearchX size={40} aria-hidden="true" />
+                <h3>Não foi possível carregar as quadras</h3>
+                <p>{erroCatalogo.message}</p>
+                <button type="button" className="home-botao" onClick={recarregarCatalogo}>
+                  Tentar de novo
+                </button>
+              </div>
+            ) : resultado.length > 0 ? (
               <>
               <ul className={`home-grid ${expandida ? "expandida" : ""}`}>
                 {resultado.map((q) => (

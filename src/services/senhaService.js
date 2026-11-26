@@ -1,25 +1,29 @@
 // =========================================================
 // Serviço de RECUPERAÇÃO DE SENHA
 //
-// Hoje: simula o envio do e-mail e a troca da senha (nada sai do navegador).
-// Com o backend: troque o corpo das funções por chamadas à API, por exemplo:
-//   export const solicitarRecuperacao = (email) => api.post("/auth/esqueci-senha", { email });
-//   export const redefinirSenha = (token, senha) => api.post("/auth/redefinir-senha", { token, senha });
+// API: POST /auth/esqueci-senha { email } e POST /auth/redefinir-senha { token, senha }.
+// Ainda não há envio de e-mail: a API escreve o link no console dela e, em
+// desenvolvimento, devolve o link (link_dev) para a tela mostrar o botão.
 // =========================================================
-import { falhar, responder } from "./armazenamento.js";
-
-// Na demonstração o "link do e-mail" usa este token.
-export const TOKEN_DEMONSTRACAO = "demo";
+import { api } from "./api.js";
 
 /**
- * Pede o e-mail de recuperação. Por segurança, a resposta é a mesma
- * exista ou não uma conta com esse e-mail (não revela quem é cadastrado).
+ * Pede o link de recuperação. A resposta é a mesma exista ou não uma conta
+ * com esse e-mail (não revela quem é cadastrado).
+ * Devolve { email, link } — link só vem em desenvolvimento e quando a conta existe.
  */
-export function solicitarRecuperacao(email) {
-  return responder({ email, token: TOKEN_DEMONSTRACAO }, 900);
+export async function solicitarRecuperacao(email) {
+  const resposta = await api("/auth/esqueci-senha", { metodo: "POST", corpo: { email }, publico: true });
+  let link = null;
+  if (resposta.link_dev) {
+    // O link aponta para o front configurado na API; aqui só interessa o caminho.
+    const url = new URL(resposta.link_dev);
+    link = `${url.pathname}${url.search}`;
+  }
+  return { email, link, validade: resposta.validade_minutos };
 }
 
-export function redefinirSenha(token, senha) {
-  if (token !== TOKEN_DEMONSTRACAO) return falhar("Este link expirou ou já foi usado. Peça um novo.");
-  return responder({ ok: true, tamanho: senha.length }, 900);
+export async function redefinirSenha(token, senha) {
+  await api("/auth/redefinir-senha", { metodo: "POST", corpo: { token, senha }, publico: true });
+  return { ok: true };
 }

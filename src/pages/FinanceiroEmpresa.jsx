@@ -10,11 +10,12 @@ import {
 import EmpresaLayout from "../layouts/EmpresaLayout.jsx";
 import GraficoBarras from "../components/GraficoBarras.jsx";
 import { useDados } from "../hooks/useDados.js";
-import { historicoMensal } from "../data/empresa.js";
 import { listarQuadras } from "../services/quadrasService.js";
 import {
   fimReserva,
   formasPagamento,
+  valorRetido,
+  historicoMensal,
   inicioReserva,
   listarReservasEmpresa,
 } from "../services/reservasEmpresaService.js";
@@ -52,7 +53,9 @@ export default function FinanceiroEmpresa() {
   const doMes = (reservas ?? []).filter((r) => r.data >= inicioMes && r.data.slice(0, 7) === hoje.slice(0, 7));
   const validas = doMes.filter((r) => r.status !== "cancelada");
   const canceladas = doMes.filter((r) => r.status === "cancelada");
-  const recebidas = validas.filter((r) => r.pago);
+  // Canceladas e pagas em que a empresa devolveu só parte: o que ela reteve conta como recebido.
+  const retidas = canceladas.filter((r) => valorRetido(r) > 0).map((r) => ({ ...r, valor: valorRetido(r) }));
+  const recebidas = [...validas.filter((r) => r.pago), ...retidas];
   const aReceber = validas.filter((r) => !r.pago);
 
   const soma = (lista) => lista.reduce((s, r) => s + r.valor, 0);
@@ -149,11 +152,11 @@ export default function FinanceiroEmpresa() {
               <div className="pn-card-topo">
                 <div>
                   <h2 id="fi-historico">Faturamento por mês</h2>
-                  <p>Últimos 6 meses completos</p>
+                  <p>Últimos 6 meses (o atual até hoje)</p>
                 </div>
               </div>
               <GraficoBarras
-                dados={historicoMensal.map((d) => ({
+                dados={historicoMensal(reservas ?? []).map((d) => ({
                   rotulo: d.mes,
                   rotuloLongo: d.mesLongo,
                   valor: d.faturamento,
@@ -261,7 +264,7 @@ export default function FinanceiroEmpresa() {
           </div>
 
           <p className="fi-nota">
-            Valores de demonstração. Os números do histórico são os mesmos do Dashboard; os do mês atual vêm das reservas.
+            Valores calculados a partir das reservas das suas quadras (canceladas ficam de fora). O histórico é o mesmo do Dashboard.
           </p>
         </div>
       )}

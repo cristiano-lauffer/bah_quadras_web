@@ -159,12 +159,13 @@ function CardProximaPartida({ reserva: r }) {
 
 const statusReserva = {
   confirmada: { texto: "Confirmada", classe: "ok", icone: CircleCheck },
+  aguardando: { texto: "Aguardando pagamento", classe: "alerta", icone: CircleCheck },
   concluida: { texto: "Concluída", classe: "info", icone: Trophy },
   cancelada: { texto: "Cancelada", classe: "erro", icone: CircleX },
 };
 
 function LinhaReserva({ reserva: r, comAvaliar = false }) {
-  const status = statusReserva[r.status];
+  const status = statusReserva[r.status === "confirmada" && !r.pago ? "aguardando" : r.status];
   return (
     <li className="pu-reserva">
       <div className="pu-reserva-data" aria-hidden="true">

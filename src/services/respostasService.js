@@ -1,85 +1,50 @@
 // =========================================================
-// Serviço de RESPOSTAS DA EMPRESA ÀS AVALIAÇÕES
+// Serviço de AVALIAÇÕES NO PAINEL DA EMPRESA (e respostas da empresa)
 //
-// Hoje: respostas salvas no navegador (com duas de exemplo).
-// Com o backend: troque o corpo das funções por chamadas à API, por exemplo:
-//   export const responderAvaliacao = (id, texto) => api.put(`/empresa/avaliacoes/${id}/resposta`, { texto });
+// API (só empresa logada):
+//   GET    /empresa/avaliacoes                avaliações das quadras dela
+//   PUT    /empresa/avaliacoes/:id/resposta   { texto }
+//   DELETE /empresa/avaliacoes/:id/resposta
 // =========================================================
-import { todasAvaliacoes } from "./avaliacoesService.js";
-import { isoComDias } from "../utils/formatadores.js";
-import { lerSalvo, responder, salvar } from "./armazenamento.js";
-import { idsPublicosDaEmpresa } from "./quadrasService.js";
+import { api } from "./api.js";
+import { daApi } from "./avaliacoesService.js";
+import { aoTrocarConta } from "./sessaoService.js";
 
-const CHAVE = "bahquadras:empresa:respostas";
+// Últimas avaliações lidas (para as leituras imediatas do menu e do dashboard).
+let ultimas = [];
+aoTrocarConta(() => {
+  ultimas = [];
+});
 
-// Respostas de exemplo (por id da avaliação).
-const exemplos = {
-  1: {
-    texto: "Obrigado, Mariana! Ficamos muito felizes que a galera curtiu. Esperamos vocês no próximo jogo!",
-    data: isoComDias(-2),
-  },
-  3: {
-    texto: "Valeu pelo retorno, Rafael! Estamos ampliando o estacionamento e a obra termina no mês que vem.",
-    data: isoComDias(-14),
-  },
-  5: {
-    texto: "Bruno, pedimos desculpas pelo atraso. Agora deixamos 10 minutos de intervalo entre os jogos para isso não se repetir.",
-    data: isoComDias(-38),
-  },
-  6: { texto: "Valeu, Fernanda! A iluminação nova foi pensada justamente para o jogo da noite.", data: isoComDias(-54) },
-  16: { texto: "Boa ideia, Vinícius! Já estamos orçando um bebedouro na lateral do campo.", data: isoComDias(-19) },
-  19: { texto: "Obrigado por avisar, Tatiane! Rede trocada e conferida toda semana agora.", data: isoComDias(-62) },
-  20: { texto: "Que alegria fazer parte desse aniversário, Rodrigo! Parabéns ao craque.", data: isoComDias(-79) },
-  21: { texto: "Obrigado, Natália! Cuidar bem do espaço é o nosso compromisso.", data: isoComDias(-103) },
-};
-
-const ler = () => lerSalvo(CHAVE) ?? exemplos;
-
-/** Respostas de todas as avaliações: { [idAvaliacao]: { texto, data } } */
-export function listarRespostas() {
-  return responder(ler(), 150);
+/** Avaliações das quadras desta empresa, já com a resposta (se houver), mais recentes primeiro. */
+export async function listarAvaliacoesDaEmpresa() {
+  const lista = await api("/empresa/avaliacoes");
+  ultimas = lista.map(daApi).sort((a, b) => b.data.localeCompare(a.data));
+  return ultimas;
 }
 
-/** Avaliações das quadras desta empresa, já com a resposta (se houver). */
-export function listarAvaliacoesDaEmpresa() {
-  const ids = idsPublicosDaEmpresa();
-  const respostas = ler();
-  const lista = todasAvaliacoes()
-    .filter((a) => ids.includes(a.quadraId))
-    .map((a) => ({ ...a, resposta: respostas[a.id] ?? null }))
-    .sort((a, b) => b.data.localeCompare(a.data));
-  return responder(lista);
+/** Quantas avaliações ainda não têm resposta (leitura imediata, usada no menu). */
+export const contarSemResposta = () => ultimas.filter((a) => !a.resposta).length;
+
+export async function responderAvaliacao(id, texto) {
+  const { avaliacao } = await api(`/empresa/avaliacoes/${id}/resposta`, { metodo: "PUT", corpo: { texto: texto.trim() } });
+  const atualizada = daApi(avaliacao);
+  ultimas = ultimas.map((a) => (a.id === id ? atualizada : a));
+  return atualizada.resposta;
 }
 
-/** Quantas avaliações da empresa ainda não têm resposta (leitura imediata, usada no menu). */
-export function contarSemResposta() {
-  const ids = idsPublicosDaEmpresa();
-  const respostas = ler();
-  return todasAvaliacoes().filter((a) => ids.includes(a.quadraId) && !respostas[a.id]).length;
-}
-
-export function responderAvaliacao(id, texto) {
-  const resposta = { texto: texto.trim(), data: isoComDias(0) };
-  salvar(CHAVE, { ...ler(), [id]: resposta });
-  return responder(resposta, 400);
-}
-
-export function apagarResposta(id) {
-  const { [id]: _removida, ...resto } = ler();
-  salvar(CHAVE, resto);
-  return responder(true, 300);
+export async function apagarResposta(id) {
+  await api(`/empresa/avaliacoes/${id}/resposta`, { metodo: "DELETE" });
+  ultimas = ultimas.map((a) => (a.id === id ? { ...a, resposta: null } : a));
+  return true;
 }
 
 /**
- * Nota média e total de avaliações de todas as quadras da empresa,
- * calculados a partir das avaliações (leitura imediata).
- * Com o backend: troque por api.get("/empresa/avaliacoes/resumo").
+ * Nota média e total de avaliações das quadras da empresa (leitura imediata,
+ * depois de listarAvaliacoesDaEmpresa).
  */
 export function resumoAvaliacoesDaEmpresa() {
-  const ids = idsPublicosDaEmpresa();
-  const lista = todasAvaliacoes().filter((a) => ids.includes(a.quadraId));
-  const total = lista.length;
-  const media = total ? lista.reduce((soma, a) => soma + a.nota, 0) / total : null;
-  const recentes = [...lista].sort((a, b) => b.data.localeCompare(a.data));
-  return { media, total, recentes };
+  const total = ultimas.length;
+  const media = total ? ultimas.reduce((soma, a) => soma + a.nota, 0) / total : null;
+  return { media, total, recentes: ultimas };
 }

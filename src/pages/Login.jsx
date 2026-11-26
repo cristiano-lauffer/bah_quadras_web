@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ArrowRight, CalendarCheck, CircleCheck, Eye, EyeOff, Info, LoaderCircle, Lock, LogOut, Mail, UserRound } from "lucide-react";
+import { ArrowRight, CalendarCheck, CircleCheck, Eye, EyeOff, Info, LoaderCircle, Lock, LogOut, Mail } from "lucide-react";
 import AuthLayout, { Campo } from "../layouts/AuthLayout.jsx";
 import { emailValido } from "../utils/mascaras.js";
 import { useTitulo } from "../hooks/useTitulo.js";
 import { useSessao } from "../hooks/useSessao.js";
-import { contasDemo, entrar as entrarNaConta, inicioDaConta, sair } from "../services/sessaoService.js";
+import { entrar as entrarNaConta, inicioDaConta, sair } from "../services/sessaoService.js";
 
 // Só aceita voltar para páginas do próprio site (evita redirecionar para fora).
 const destinoSeguro = (de) => (typeof de === "string" && de.startsWith("/") && !de.startsWith("//") && de !== "/login" ? de : null);
@@ -61,11 +61,6 @@ export default function Login() {
     }
   }
 
-  function preencher(email) {
-    setForm((f) => ({ ...f, email, senha: f.senha || "demo1234" }));
-    setErros({});
-  }
-
   return (
     <AuthLayout
       topo={
@@ -109,15 +104,26 @@ export default function Login() {
           </span>
         </p>
       )}
+      {["favoritar", "avaliar"].includes(location.state?.motivo) && (
+        <p className="auth-aviso auth-motivo" role="status">
+          <Lock size={18} aria-hidden="true" />
+          <span>
+            Entre com sua conta de jogador para{" "}
+            {location.state.motivo === "avaliar" ? "avaliar quadras" : "salvar quadras nas favoritas"}.
+          </span>
+        </p>
+      )}
       {(location.state?.motivo === "area" || location.state?.motivo === "outra-conta") && (
         <p className="auth-aviso auth-motivo" role="status">
           <Lock size={18} aria-hidden="true" />
           <span>
             {location.state.area === "empresa"
               ? "O painel da empresa é só para empresas parceiras."
-              : "Esta página é da área do jogador."}{" "}
+              : location.state.area === "admin"
+                ? "Esta página é só para a administração do Bah Quadras."
+                : "Esta página é da área do jogador."}{" "}
             {location.state.motivo === "outra-conta"
-              ? `Você está conectado com uma conta de ${location.state.area === "empresa" ? "jogador" : "empresa"}: entre com a conta certa para continuar.`
+              ? "Você está conectado com outra conta: entre com a conta certa para continuar."
               : "Entre na sua conta para continuar."}
           </span>
         </p>
@@ -210,39 +216,6 @@ export default function Login() {
           )}
         </button>
       </form>
-
-      <div className="auth-separador">
-        <span>ou</span>
-      </div>
-
-      <button
-        type="button"
-        className="auth-botao auth-botao-contorno"
-        onClick={() => setAviso("O login com Google será implementado em breve.")}
-      >
-        <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
-          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 3.16 13.22l7.98 6.19C13.03 13.72 18.1 9.5 24 9.5Z" />
-          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.76 7.18l7.73 6C44.42 37.92 46.98 31.78 46.98 24.55Z" />
-          <path fill="#FBBC05" d="M10.14 28.59A14.4 14.4 0 0 1 9.36 24c0-1.59.27-3.13.76-4.59l-7.98-6.19A23.9 23.9 0 0 0 0 24c0 3.87.93 7.52 2.56 10.78l7.58-6.19Z" />
-          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.91-5.8l-7.73-6c-2.15 1.45-4.92 2.3-8.18 2.3-5.9 0-10.97-4.22-12.86-9.91l-7.98 6.19C6.51 43.62 14.62 48 24 48Z" />
-        </svg>
-        Continuar com Google
-      </button>
-
-      <div className="auth-demo">
-        <p>
-          <UserRound size={16} aria-hidden="true" /> <strong>Demonstração:</strong> qualquer e-mail e senha entram como
-          jogador. Ou use uma das contas:
-        </p>
-        <div>
-          {Object.values(contasDemo).map((c) => (
-            <button key={c.email} type="button" onClick={() => preencher(c.email)}>
-              <span>{c.rotulo}</span>
-              {c.email}
-            </button>
-          ))}
-        </div>
-      </div>
 
       <p className="auth-nota">
         Tem uma quadra e quer anunciar?{" "}

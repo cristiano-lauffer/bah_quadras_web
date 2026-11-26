@@ -1,6 +1,9 @@
 import { useState } from "react";
 import {
+  Ban,
   CalendarDays,
+  Plus,
+  Undo2,
   CircleAlert,
   CircleCheck,
   CircleDot,
@@ -15,14 +18,18 @@ import {
 } from "lucide-react";
 import EmpresaLayout from "../layouts/EmpresaLayout.jsx";
 import Toast from "../components/Toast.jsx";
+import NovoHorario from "../components/NovoHorario.jsx";
 import { useDados } from "../hooks/useDados.js";
 import { listarQuadras } from "../services/quadrasService.js";
 import {
   cancelarReservaEmpresa,
   fimReserva,
   inicioReserva,
+  listarBloqueios,
   listarReservasEmpresa,
   marcarComoPaga,
+  marcarComoReembolsada,
+  removerBloqueio,
   situacaoReserva,
 } from "../services/reservasEmpresaService.js";
 import { formatarData, formatarPreco, isoComDias, normalizar } from "../utils/formatadores.js";
@@ -42,12 +49,14 @@ const filtrosSituacao = {
   todas: "Todas as situações",
   confirmada: "Confirmadas",
   pendente: "Pagamento pendente",
+  reembolso: "Reembolso pendente",
   concluida: "Concluídas",
   cancelada: "Canceladas",
 };
 
 const visual = {
   confirmada: { texto: "Confirmada", classe: "ok", icone: CircleCheck },
+  aguardando: { texto: "Aguardando pagamento", classe: "alerta", icone: CircleAlert },
   andamento: { texto: "Em andamento", classe: "info", icone: CircleDot },
   concluida: { texto: "Concluída", classe: "neutro", icone: Trophy },
   cancelada: { texto: "Cancelada", classe: "erro", icone: CircleX },
@@ -65,6 +74,10 @@ export default function ReservasEmpresa() {
   const [confirmando, setConfirmando] = useState(null);
   const [processando, setProcessando] = useState(null);
   const [toast, setToast] = useState("");
+  const [novoAberto, setNovoAberto] = useState(false);
+  // Confirmação do reembolso: { id, valor } da reserva em que a empresa clicou
+  const [reembolsando, setReembolsando] = useState(null);
+  const { dados: bloqueios, recarregar: recarregarBloqueios } = useDados(listarBloqueios);
 
   const nomeQuadra = (id) => quadras?.find((q) => q.id === id)?.nome ?? "Quadra";
   const { de, ate } = periodos.find((p) => p.id === periodo);
@@ -80,6 +93,7 @@ export default function ReservasEmpresa() {
     .filter((r) => {
       if (situacao === "todas") return true;
       if (situacao === "pendente") return !r.pago && r.situacao !== "cancelada";
+      if (situacao === "reembolso") return r.reembolso === "pendente";
       if (situacao === "confirmada") return r.situacao === "confirmada" || r.situacao === "andamento";
       return r.situacao === situacao;
     })
@@ -107,26 +121,84 @@ export default function ReservasEmpresa() {
     };
   }
 
-  async function pagar(r) {
+  // Roda uma ação na reserva mostrando o "salvando" e o resultado (ou o erro da API).
+  async function executar(r, acao, mensagem) {
     setProcessando(r.id);
-    await marcarComoPaga(r.id);
-    setProcessando(null);
-    recarregar();
-    setToast(`Pagamento de ${r.cliente} registrado.`);
+    try {
+      const atualizada = await acao();
+      setToast(typeof mensagem === "function" ? mensagem(atualizada) : mensagem);
+    } catch (erro) {
+      setToast(erro.message);
+    } finally {
+      setProcessando(null);
+      recarregar();
+    }
   }
 
-  async function cancelar(r) {
+  const pagar = (r) => executar(r, () => marcarComoPaga(r.id), `Pagamento de ${r.cliente} registrado. A reserva ficou confirmada para o jogador.`);
+  function reembolsar(r) {
+    const valor = Number(String(reembolsando.valor).replace(",", "."));
+    if (!Number.isFinite(valor) || valor < 0 || valor > r.valor) {
+      setToast(`Informe um valor de R$ 0 até ${formatarPreco(r.valor, 2)}.`);
+      return;
+    }
+    setReembolsando(null);
+    executar(r, () => marcarComoReembolsada(r.id, valor), `Reembolso de ${formatarPreco(valor, 2)} para ${r.cliente} registrado.`);
+  }
+
+  function cancelar(r) {
     setConfirmando(null);
-    setProcessando(r.id);
-    await cancelarReservaEmpresa(r);
-    setProcessando(null);
-    recarregar();
-    setToast(`Reserva de ${r.cliente} cancelada. O horário voltou a ficar livre.`);
+    executar(r, () => cancelarReservaEmpresa(r), (c) =>
+      c.reembolso === "pendente"
+        ? `Reserva de ${r.cliente} cancelada. Ela estava paga: devolva o valor e marque o reembolso.`
+        : `Reserva de ${r.cliente} cancelada. O horário voltou a ficar livre.`
+    );
+  }
+
+  async function desbloquear(b) {
+    try {
+      await removerBloqueio(b.id);
+      setToast("Bloqueio removido. O horário voltou para o site.");
+    } catch (erro) {
+      setToast(erro.message);
+    }
+    recarregarBloqueios();
   }
 
   return (
-    <EmpresaLayout titulo="Reservas" subtitulo="Acompanhe quem reservou suas quadras">
+    <EmpresaLayout
+      titulo="Reservas"
+      subtitulo="Acompanhe quem reservou suas quadras"
+      acoes={
+        <button type="button" className="pn-botao" onClick={() => setNovoAberto(true)}>
+          <Plus size={18} aria-hidden="true" /> Novo horário
+        </button>
+      }
+    >
       <div className="pn-pilha">
+        {/* ===== Horários bloqueados ===== */}
+        {bloqueios?.length > 0 && (
+          <section className="pn-card re-bloqueios" aria-labelledby="re-bloqueios-titulo">
+            <h2 id="re-bloqueios-titulo">
+              <Ban size={17} aria-hidden="true" /> Horários bloqueados
+            </h2>
+            <ul>
+              {bloqueios.map((b) => (
+                <li key={b.id}>
+                  <span>
+                    <strong>{formatarData(b.data, { weekday: "short", day: "2-digit", month: "2-digit" })}</strong> · {b.hora_inicio} às{" "}
+                    {b.hora_fim} · {nomeQuadra(String(b.quadra_id))}
+                  </span>
+                  <span className="re-bloqueio-motivo">{b.motivo}</span>
+                  <button type="button" className="re-acao" onClick={() => desbloquear(b)}>
+                    Desbloquear
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
         {/* ===== Filtros ===== */}
         <section className="pn-card re-filtros" aria-label="Filtros">
           <div className="pn-chips" role="group" aria-label="Período">
@@ -205,7 +277,7 @@ export default function ReservasEmpresa() {
 
                 <ul className="re-lista">
                   {g.itens.map((r) => {
-                    const v = visual[r.situacao];
+                    const v = visual[r.situacao === "confirmada" && !r.pago ? "aguardando" : r.situacao];
                     const podeCancelar = r.situacao === "confirmada";
                     const podePagar = !r.pago && r.situacao !== "cancelada";
                     return (
@@ -228,8 +300,16 @@ export default function ReservasEmpresa() {
 
                         <div className="re-valor">
                           <strong>{formatarPreco(r.valor)}</strong>
-                          <span className={r.pago ? "pago" : r.situacao === "cancelada" ? "" : "pendente"}>
-                            {r.situacao === "cancelada" ? r.pagamento : r.pago ? `Pago · ${r.pagamento}` : "Pagamento pendente"}
+                          <span className={r.reembolso === "pendente" ? "pendente" : r.pago && r.situacao !== "cancelada" ? "pago" : r.situacao === "cancelada" ? "" : "pendente"}>
+                            {r.reembolso === "pendente"
+                              ? "Reembolso pendente"
+                              : r.reembolso === "feito"
+                                ? `Reembolsado ${formatarPreco(r.valorReembolsado ?? r.valor)}`
+                                : r.situacao === "cancelada"
+                                  ? r.pagamento
+                                  : r.pago
+                                    ? `Pago · ${r.pagamento}`
+                                    : "Pagamento pendente"}
                           </span>
                         </div>
 
@@ -239,7 +319,33 @@ export default function ReservasEmpresa() {
                         </span>
 
                         <div className="re-acoes">
-                          {confirmando === r.id ? (
+                          {reembolsando?.id === r.id ? (
+                            <form
+                              className="re-confirmar re-reembolso"
+                              role="alert"
+                              onSubmit={(e) => {
+                                e.preventDefault();
+                                reembolsar(r);
+                              }}
+                            >
+                              <label>
+                                <span>Já devolveu ao cliente? Valor devolvido (R$)</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max={r.valor}
+                                  step="0.01"
+                                  value={reembolsando.valor}
+                                  onChange={(e) => setReembolsando({ id: r.id, valor: e.target.value })}
+                                  autoFocus
+                                />
+                              </label>
+                              <button type="button" className="pn-botao pn-botao-contorno" onClick={() => setReembolsando(null)}>
+                                Ainda não
+                              </button>
+                              <button type="submit" className="pn-botao">Sim, devolvi</button>
+                            </form>
+                          ) : confirmando === r.id ? (
                             <div className="re-confirmar" role="alert">
                               <span>Cancelar reserva?</span>
                               <button type="button" className="pn-botao pn-botao-contorno" onClick={() => setConfirmando(null)}>
@@ -256,6 +362,11 @@ export default function ReservasEmpresa() {
                               {podePagar && (
                                 <button type="button" className="re-acao" onClick={() => pagar(r)}>
                                   <Wallet size={15} aria-hidden="true" /> Marcar pago
+                                </button>
+                              )}
+                              {r.reembolso === "pendente" && (
+                                <button type="button" className="re-acao" onClick={() => setReembolsando({ id: r.id, valor: String(r.valor) })}>
+                                  <Undo2 size={15} aria-hidden="true" /> Marcar reembolsado
                                 </button>
                               )}
                               {podeCancelar && (
@@ -282,6 +393,17 @@ export default function ReservasEmpresa() {
         )}
       </div>
 
+      <NovoHorario
+        aberto={novoAberto}
+        quadras={quadras}
+        onFechar={() => setNovoAberto(false)}
+        onConcluir={(mensagem) => {
+          setNovoAberto(false);
+          setToast(mensagem);
+          recarregar();
+          recarregarBloqueios();
+        }}
+      />
       <Toast mensagem={toast} onFechar={() => setToast("")} />
     </EmpresaLayout>
   );

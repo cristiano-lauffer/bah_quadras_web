@@ -9,12 +9,21 @@ import {
   Wallet,
 } from "lucide-react";
 import PainelLayout from "./PainelLayout.jsx";
-import { empresaAtual } from "../services/empresaService.js";
-import { contarNaoLidas } from "../services/notificacoesService.js";
+import { empresaAtual, obterEmpresa } from "../services/empresaService.js";
+import { carregarNotificacoes, contarNaoLidas } from "../services/notificacoesService.js";
 import { contarSemResposta } from "../services/respostasService.js";
+import { listarQuadras } from "../services/quadrasService.js";
+import { useDados } from "../hooks/useDados.js";
+import { useSessao } from "../hooks/useSessao.js";
 
 /** Painel da área da empresa, com o menu já configurado. */
 export default function EmpresaLayout(props) {
+  const sessao = useSessao();
+  // Perfil, quadras e avisos da empresa: carregam da API e redesenham o menu quando chegam.
+  useDados(
+    () => (sessao?.tipo === "empresa" ? Promise.all([obterEmpresa(), listarQuadras(), carregarNotificacoes()]) : Promise.resolve(null)),
+    [sessao?.id]
+  );
   const empresa = empresaAtual();
 
   const menu = [

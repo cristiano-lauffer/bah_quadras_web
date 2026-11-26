@@ -51,7 +51,7 @@ const secoes = [
     id: "cookies",
     titulo: "Cookies e armazenamento no navegador",
     paragrafos: [
-      "Usamos o armazenamento do seu navegador só para o site funcionar: manter você conectado, lembrar o tema escolhido e as quadras favoritas. Não usamos cookies de propaganda.",
+      "Usamos o armazenamento do seu navegador só para o site funcionar: manter você conectado e lembrar o tema escolhido. Não usamos cookies de propaganda.",
     ],
   },
   {

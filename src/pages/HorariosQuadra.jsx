@@ -135,7 +135,13 @@ function EditorHorarios({ quadra, todas }) {
 
   async function salvar() {
     setSalvando(true);
-    await salvarHorarios(quadra.id, grade);
+    try {
+      await salvarHorarios(quadra.id, grade);
+    } catch (erro) {
+      setSalvando(false);
+      setToast(`Não foi possível salvar os horários: ${erro.message}`);
+      return;
+    }
     setSalva(grade);
     setSalvando(false);
     setToast(`Horários salvos: ${total} horários por semana.`);

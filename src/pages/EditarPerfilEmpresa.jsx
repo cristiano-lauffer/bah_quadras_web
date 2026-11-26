@@ -1,8 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Check, LoaderCircle } from "lucide-react";
+import { Check, ImagePlus, LoaderCircle, X } from "lucide-react";
 import EmpresaLayout from "../layouts/EmpresaLayout.jsx";
-import { empresaAtual, salvarEmpresa } from "../services/empresaService.js";
+import Esqueleto from "../components/Esqueleto.jsx";
+import { useDados } from "../hooks/useDados.js";
+import { obterEmpresa, salvarEmpresa } from "../services/empresaService.js";
+import { lerArquivo } from "../services/uploadService.js";
+import { foto as fotoTamanho } from "../utils/formatadores.js";
 import {
   cnpjCompleto,
   emailValido,
@@ -33,6 +37,10 @@ const emMinutos = (h) => (h === "00:00" ? 24 * 60 : Number(h.slice(0, 2)) * 60);
 
 const mascaras = { telefone: mascaraTelefone, whatsapp: mascaraTelefone, cnpj: mascaraCnpj, cep: mascaraCep };
 
+const TIPOS_FOTO = ["image/jpeg", "image/png", "image/webp"];
+const MAX_FOTO = 5 * 1024 * 1024;
+const MAX_FOTOS = 12;
+
 // Converte o objeto da empresa para um formulário "plano" (mais fácil de editar).
 function paraFormulario(e) {
   return {
@@ -51,14 +59,54 @@ function paraFormulario(e) {
     pagamentos: e.pagamentos ?? [],
     politicaCancelamento: e.politicaCancelamento ?? "",
     horarios: e.horarios.map((h) => ({ ...h, fechado: !h.abre })),
+    capa: e.capa ?? "",
+    fotos: e.fotos ?? [],
   };
 }
 
+/** Lê a foto escolhida (data URL) depois de conferir tipo e tamanho. Devolve { dataUrl } ou { erro }. */
+async function lerFoto(arquivo) {
+  if (!TIPOS_FOTO.includes(arquivo.type)) return { erro: "Use fotos JPG, PNG ou WebP." };
+  if (arquivo.size > MAX_FOTO) return { erro: "Cada foto precisa ter até 5 MB." };
+  return { dataUrl: await lerArquivo(arquivo) };
+}
+
+// O formulário só abre com o perfil já carregado da API.
 export default function EditarPerfilEmpresa() {
+  const { dados: empresa, erro } = useDados(obterEmpresa);
+  if (!empresa) {
+    return (
+      <EmpresaLayout titulo="Editar perfil" subtitulo="Atualize as informações que os jogadores veem">
+        {erro ? <p className="pn-erro" role="alert">{erro.message}</p> : <Esqueleto tipo="lista" quantidade={3} rotulo="Carregando perfil..." />}
+      </EmpresaLayout>
+    );
+  }
+  return <Formulario empresa={empresa} />;
+}
+
+function Formulario({ empresa }) {
   const navigate = useNavigate();
-  const [form, setForm] = useState(() => paraFormulario(empresaAtual()));
+  const [form, setForm] = useState(() => paraFormulario(empresa));
   const [erros, setErros] = useState({});
   const [salvando, setSalvando] = useState(false);
+
+  async function escolherCapa(arquivo) {
+    const { dataUrl, erro } = await lerFoto(arquivo);
+    if (erro) return setErros((a) => ({ ...a, fotos: erro }));
+    setErros((a) => ({ ...a, fotos: "" }));
+    setForm((f) => ({ ...f, capa: dataUrl }));
+  }
+
+  async function adicionarFotos(arquivos) {
+    const lidas = [];
+    for (const arquivo of arquivos) {
+      const { dataUrl, erro } = await lerFoto(arquivo);
+      if (erro) return setErros((a) => ({ ...a, fotos: erro }));
+      lidas.push(dataUrl);
+    }
+    setErros((a) => ({ ...a, fotos: "" }));
+    setForm((f) => ({ ...f, fotos: [...f.fotos, ...lidas].slice(0, MAX_FOTOS) }));
+  }
 
   function atualizar(e) {
     const { name, value } = e.target;
@@ -105,12 +153,18 @@ export default function EditarPerfilEmpresa() {
     }
     setSalvando(true);
     const { rua, numero, bairro, cidade, estado, cep, horarios, ...resto } = form;
-    await salvarEmpresa({
-      ...resto,
-      nome: form.nome.trim(),
-      endereco: { rua, numero, bairro, cidade, estado, cep },
-      horarios: horarios.map(({ fechado, ...h }) => (fechado ? { ...h, abre: "", fecha: "" } : h)),
-    });
+    try {
+      await salvarEmpresa({
+        ...resto,
+        nome: form.nome.trim(),
+        endereco: { rua, numero, bairro, cidade, estado, cep },
+        horarios: horarios.map(({ fechado, ...h }) => (fechado ? { ...h, abre: "", fecha: "" } : h)),
+      });
+    } catch (erro) {
+      setSalvando(false);
+      setErros({ envio: erro.message });
+      return;
+    }
     navigate("/empresa/perfil", { state: { aviso: "Perfil da empresa atualizado!" } });
   }
 
@@ -256,6 +310,69 @@ export default function EditarPerfilEmpresa() {
           </div>
         </section>
 
+        <section className="pn-card">
+          <div className="pn-card-topo">
+            <div>
+              <h2>Fotos</h2>
+              <p>A capa aparece no topo do perfil. Envie até {MAX_FOTOS} fotos do espaço (JPG, PNG ou WebP, até 5 MB cada).</p>
+            </div>
+          </div>
+          <div className="ep-fotos">
+            <div className="ep-capa">
+              {form.capa ? <img {...fotoTamanho(form.capa, 600)} alt="Foto de capa" /> : <span>Sem foto de capa</span>}
+              <label className="pn-botao pn-botao-contorno ep-enviar">
+                <ImagePlus size={16} aria-hidden="true" /> {form.capa ? "Trocar capa" : "Enviar capa"}
+                <input
+                  type="file"
+                  accept={TIPOS_FOTO.join(",")}
+                  hidden
+                  onChange={(e) => {
+                    const arquivo = e.target.files?.[0];
+                    e.target.value = "";
+                    if (arquivo) escolherCapa(arquivo);
+                  }}
+                />
+              </label>
+            </div>
+            <ul className="ep-galeria" aria-label="Fotos do espaço">
+              {form.fotos.map((f, i) => (
+                <li key={`${i}-${f.slice(-24)}`}>
+                  <img {...fotoTamanho(f, 240)} alt={`Foto ${i + 1}`} />
+                  <button
+                    type="button"
+                    className="ep-remover"
+                    aria-label={`Remover foto ${i + 1}`}
+                    onClick={() => setForm((x) => ({ ...x, fotos: x.fotos.filter((_, j) => j !== i) }))}
+                  >
+                    <X size={14} aria-hidden="true" />
+                  </button>
+                </li>
+              ))}
+              {form.fotos.length < MAX_FOTOS && (
+                <li>
+                  <label className="ep-adicionar">
+                    <ImagePlus size={20} aria-hidden="true" />
+                    <span>Adicionar fotos</span>
+                    <input
+                      type="file"
+                      accept={TIPOS_FOTO.join(",")}
+                      multiple
+                      hidden
+                      onChange={(e) => {
+                        const arquivos = [...(e.target.files ?? [])];
+                        e.target.value = "";
+                        if (arquivos.length) adicionarFotos(arquivos);
+                      }}
+                    />
+                  </label>
+                </li>
+              )}
+            </ul>
+            {erros.fotos && <p className="pn-erro" role="alert">{erros.fotos}</p>}
+          </div>
+        </section>
+
+        {erros.envio && <p className="pn-erro" role="alert">{erros.envio}</p>}
         <div className="ep-barra">
           <Link to="/empresa/perfil" className="pn-botao pn-botao-contorno">Cancelar</Link>
           <button type="submit" className="pn-botao" disabled={salvando}>

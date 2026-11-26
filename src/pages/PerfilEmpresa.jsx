@@ -23,9 +23,8 @@ import {
 } from "lucide-react";
 import EmpresaLayout from "../layouts/EmpresaLayout.jsx";
 import Toast from "../components/Toast.jsx";
-import { quadrasEmpresa } from "../data/empresa.js";
 import { empresaAtual, obterEmpresa } from "../services/empresaService.js";
-import { contarSemResposta, resumoAvaliacoesDaEmpresa } from "../services/respostasService.js";
+import { contarSemResposta, listarAvaliacoesDaEmpresa, resumoAvaliacoesDaEmpresa } from "../services/respostasService.js";
 import { useDados } from "../hooks/useDados.js";
 import { idPublico, listarQuadras } from "../services/quadrasService.js";
 import { formatarData, formatarNota, formatarPreco, foto as fotoTamanho } from "../utils/formatadores.js";
@@ -64,15 +63,16 @@ export default function PerfilEmpresa() {
   const { dados: empresaSalva } = useDados(obterEmpresa);
   const empresa = empresaSalva ?? empresaAtual();
   const { rua, numero, bairro, cidade, estado, cep } = empresa.endereco;
-  const enderecoCompleto = `${rua}, ${numero}${bairro ? ` - ${bairro}` : ""}, ${cidade}/${estado}`;
+  const enderecoCompleto = `${rua}${numero ? `, ${numero}` : ""}${bairro ? ` - ${bairro}` : ""}, ${cidade}${estado ? `/${estado}` : ""}`;
   const checklist = montarChecklist(empresa);
   const completude = Math.round((checklist.filter((c) => c.feito).length / checklist.length) * 100);
 
   // Só as quadras que os jogadores podem ver (desativadas ficam de fora).
   const { dados } = useDados(listarQuadras);
-  const quadrasVisiveis = (dados ?? quadrasEmpresa).filter((q) => q.status !== "inativa");
+  const quadrasVisiveis = (dados ?? []).filter((q) => q.status !== "inativa");
   const { aberto, hoje } = situacaoAgora(empresa);
   // Nota calculada a partir das avaliações de todas as quadras da empresa.
+  useDados(listarAvaliacoesDaEmpresa);
   const avaliacoes = resumoAvaliacoesDaEmpresa();
 
   function fecharToast() {
@@ -122,12 +122,14 @@ export default function PerfilEmpresa() {
                   )}
                 </li>
                 <li>
-                  <MapPin size={15} aria-hidden="true" /> {bairro}, {cidade}/{estado}
+                  <MapPin size={15} aria-hidden="true" /> {[bairro, estado ? `${cidade}/${estado}` : cidade].filter(Boolean).join(", ")}
                 </li>
-                <li>
-                  <CalendarDays size={15} aria-hidden="true" /> No Bah Quadras desde{" "}
-                  {formatarData(empresa.membroDesde, { month: "long", year: "numeric" })}
-                </li>
+                {empresa.membroDesde && (
+                  <li>
+                    <CalendarDays size={15} aria-hidden="true" /> No Bah Quadras desde{" "}
+                    {formatarData(empresa.membroDesde, { month: "long", year: "numeric" })}
+                  </li>
+                )}
               </ul>
             </div>
             <span className={`pn-status ${aberto ? "ok" : "neutro"} pe-aberto`}>
@@ -281,8 +283,12 @@ export default function PerfilEmpresa() {
                   <span>
                     <small>Endereço</small>
                     {enderecoCompleto}
-                    <br />
-                    CEP {cep}
+                    {cep && (
+                      <>
+                        <br />
+                        CEP {cep}
+                      </>
+                    )}
                     <a
                       className="pn-link pe-mapa"
                       href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(enderecoCompleto)}`}

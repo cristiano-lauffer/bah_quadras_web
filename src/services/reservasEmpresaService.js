@@ -1,130 +1,99 @@
 // =========================================================
 // Serviço de RESERVAS RECEBIDAS PELA EMPRESA
 //
-// Hoje: reservas de exemplo geradas a partir da data de hoje, mais as reservas
-// que o jogador faz pelo app nas quadras ligadas à empresa.
-// Com o backend: troque o corpo das funções por chamadas à API, por exemplo:
-//   export const listarReservasEmpresa = (filtros) => api.get("/empresa/reservas", { params: filtros });
+// API (só empresa logada):
+//   GET  /empresa/reservas                 últimos 90 dias e próximos 60
+//   POST /empresa/reservas                 reserva de balcão { quadra_id, cliente_nome, data, hora_inicio, duracao }
+//   POST /empresa/reservas/:id/pagar       pagamento recebido (combinado pelo WhatsApp)
+//   POST /empresa/reservas/:id/cancelar    (também some da lista do jogador)
 // =========================================================
-import { agendaHoje } from "../data/empresa.js";
-import { usuarioDemo } from "../data/usuario.js";
-import { isoComDias } from "../utils/formatadores.js";
-import { lerSalvo, responder, salvar } from "./armazenamento.js";
-import { idPublico, listarQuadras } from "./quadrasService.js";
-import { cancelarReserva as cancelarReservaJogador, listarReservas } from "./reservasService.js";
-
-const CHAVE = "bahquadras:empresa:reservas";
-const DIAS_PASSADOS = 40;
-const DIAS_FUTUROS = 14;
+import { api } from "./api.js";
+import { aoTrocarConta } from "./sessaoService.js";
 
 export const formasPagamento = ["Pix", "Cartão", "Dinheiro"];
 
-const clientes = [
-  "Lucas Ferreira", "Mariana Costa", "Rafael Martins", "Camila Souza", "Bruno Almeida",
-  "Fernanda Lima", "Diego Santos", "Juliana Pereira", "Gustavo Ribeiro", "Aline Barbosa",
-  "Pelada de Quinta", "Time Amigos do Bairro", "Thiago Oliveira", "Patrícia Rocha", "Leonardo Dias",
-];
-const quadrasGeradas = [
-  { id: "society-1", preco: 80 },
-  { id: "society-2", preco: 90 },
-  { id: "futsal", preco: 70 },
-];
-
-// Gerador de números "aleatórios" fixo: os mesmos dados toda vez que a página abre.
-function sorteador(semente) {
-  let s = semente;
-  return () => {
-    s = (s * 16807) % 2147483647;
-    return (s - 1) / 2147483646;
+/** Reserva da API -> formato das telas da empresa. */
+function daApi(r) {
+  return {
+    id: r.id,
+    data: r.data,
+    hora: r.hora_inicio,
+    duracao: r.duracao_horas,
+    ...(r.baterias && { baterias: r.baterias, minutosBateria: r.minutos_bateria }),
+    quadraId: String(r.quadra.id),
+    cliente: r.cliente,
+    telefone: r.cliente_telefone,
+    valor: r.valor_total ?? 0,
+    pagamento: r.forma_pagamento ?? "Pix",
+    pago: r.pago,
+    status: r.status === "CANCELADA" ? "cancelada" : "confirmada",
+    canceladaPor: r.cancelada_por,
+    reembolso: r.reembolso, // null | "pendente" | "feito"
+    valorReembolsado: r.valor_reembolsado,
+    origem: r.origem,
+    criadaEm: r.criada_em,
+    canceladaEm: r.cancelada_em,
   };
 }
 
-function gerarReservas() {
-  const aleatorio = sorteador(42);
-  const lista = [];
-
-  for (let d = -DIAS_PASSADOS; d <= DIAS_FUTUROS; d++) {
-    if (d === 0) continue; // hoje vem da agenda do dashboard
-    const data = isoComDias(d);
-    for (const quadra of quadrasGeradas) {
-      // ~23% dos horários ocupados: perto das ~160 reservas/mês mostradas no Dashboard.
-      const horas = [8, 10, 14, 17, 18, 19, 20, 21].filter(() => aleatorio() < (d > 0 ? 0.25 : 0.23));
-      for (const h of horas) {
-        const duracao = aleatorio() < 0.2 ? 2 : 1;
-        const cancelada = aleatorio() < 0.07;
-        lista.push({
-          id: `g-${data}-${quadra.id}-${h}`,
-          data,
-          hora: `${String(h).padStart(2, "0")}:00`,
-          duracao,
-          quadraId: quadra.id,
-          cliente: clientes[Math.floor(aleatorio() * clientes.length)],
-          valor: quadra.preco * duracao,
-          pagamento: formasPagamento[Math.floor(aleatorio() * formasPagamento.length)],
-          pago: d < 0 ? !cancelada : aleatorio() < 0.65,
-          status: cancelada ? "cancelada" : d < 0 ? "concluida" : "confirmada",
-          origem: aleatorio() < 0.75 ? "app" : "balcao",
-        });
-      }
-    }
-  }
-
-  const hoje = isoComDias(0);
-  for (const r of agendaHoje) {
-    lista.push({ ...r, id: `hoje-${r.id}`, data: hoje, pagamento: "Pix", status: "confirmada", origem: "app" });
-  }
-  return lista;
-}
-
-const reservasGeradas = gerarReservas();
-const lerAlteracoes = () => lerSalvo(CHAVE) ?? {};
-
-/** Reservas do jogador (feitas pelo app) em quadras desta empresa. */
-async function reservasDoApp() {
-  const [doJogador, quadras] = await Promise.all([listarReservas(), listarQuadras()]);
-  return doJogador.flatMap((r) => {
-    const quadra = quadras.find((q) => idPublico(q) === r.quadraId);
-    if (!quadra) return [];
-    return [{
-      id: `app-${r.id}`,
-      idJogador: r.id,
-      data: r.data,
-      hora: r.hora,
-      duracao: r.duracao,
-      quadraId: quadra.id,
-      cliente: usuarioDemo.nome,
-      valor: r.valor,
-      pagamento: r.pagamento ?? "Pix",
-      pago: false,
-      status: r.status,
-      origem: "app",
-    }];
-  });
-}
+// Últimas reservas lidas (notificações e dashboard).
+let ultimas = [];
+aoTrocarConta(() => {
+  ultimas = [];
+});
 
 /* ---------------- Funções públicas ---------------- */
 
 export async function listarReservasEmpresa() {
-  const alteracoes = lerAlteracoes();
-  const lista = [...reservasGeradas, ...(await reservasDoApp())].map((r) => ({ ...r, ...alteracoes[r.id] }));
-  return responder(lista);
+  ultimas = (await api("/empresa/reservas")).map(daApi);
+  return ultimas;
 }
 
-function alterar(id, mudanca) {
-  const alteracoes = lerAlteracoes();
-  salvar(CHAVE, { ...alteracoes, [id]: { ...alteracoes[id], ...mudanca } });
-}
+/** Leitura imediata das últimas reservas carregadas. */
+export const reservasEmpresaAtuais = () => ultimas;
 
-export function marcarComoPaga(id) {
-  alterar(id, { pago: true });
-  return responder({ id, pago: true }, 300);
+export async function marcarComoPaga(id) {
+  const { reserva } = await api(`/empresa/reservas/${id}/pagar`, { metodo: "POST" });
+  return daApi(reserva);
 }
 
 export async function cancelarReservaEmpresa(reserva) {
-  alterar(reserva.id, { status: "cancelada" });
-  // Reserva feita pelo jogador no app: cancela também do lado dele.
-  if (reserva.idJogador) await cancelarReservaJogador(reserva.idJogador);
-  return responder({ id: reserva.id, status: "cancelada" }, 300);
+  const resposta = await api(`/empresa/reservas/${reserva.id}/cancelar`, { metodo: "POST" });
+  return daApi(resposta.reserva);
+}
+
+/** Registra que a empresa já devolveu o dinheiro. valor: quanto devolveu (o resto ela reteve). */
+export async function marcarComoReembolsada(id, valor) {
+  const { reserva } = await api(`/empresa/reservas/${id}/reembolso`, { metodo: "POST", corpo: { valor } });
+  return daApi(reserva);
+}
+
+/** Valor que a empresa ficou de uma reserva paga e cancelada (0 se devolveu tudo ou ainda não resolveu). */
+export const valorRetido = (r) =>
+  r.status === "cancelada" && r.reembolso === "feito" ? Math.max(0, r.valor - (r.valorReembolsado ?? r.valor)) : 0;
+
+/* ---------------- Bloqueios de horário ---------------- */
+
+export const listarBloqueios = () => api("/empresa/bloqueios");
+
+/** dados: { quadraId, data, horaInicio, horaFim, motivo } */
+export async function criarBloqueio({ quadraId, data, horaInicio, horaFim, motivo }) {
+  const { bloqueio } = await api("/empresa/bloqueios", {
+    metodo: "POST",
+    corpo: { quadra_id: Number(quadraId), data, hora_inicio: horaInicio, hora_fim: horaFim, motivo },
+  });
+  return bloqueio;
+}
+
+export const removerBloqueio = (id) => api(`/empresa/bloqueios/${id}`, { metodo: "DELETE" });
+
+/** Reserva feita no balcão (presencial ou por telefone). dados: { quadraId, cliente, data, hora, duracao, pagamento } */
+export async function criarReservaBalcao({ quadraId, cliente, data, hora, duracao, pagamento }) {
+  const { reserva } = await api("/empresa/reservas", {
+    metodo: "POST",
+    corpo: { quadra_id: Number(quadraId), cliente_nome: cliente, data, hora_inicio: hora, duracao, forma_pagamento: pagamento },
+  });
+  return daApi(reserva);
 }
 
 /* ---------------- Ajudantes ---------------- */
@@ -140,4 +109,28 @@ export function situacaoReserva(r, agora = new Date()) {
   if (fim <= agora) return "concluida";
   if (inicio <= agora) return "andamento";
   return "confirmada";
+}
+
+/**
+ * Números por mês a partir das reservas (faturamento = reservas não canceladas).
+ * Devolve os "meses" mais recentes, do mais antigo para o atual.
+ */
+export function historicoMensal(lista, meses = 6) {
+  const hoje = new Date();
+  return Array.from({ length: meses }, (_, i) => {
+    const data = new Date(hoje.getFullYear(), hoje.getMonth() - (meses - 1 - i), 1);
+    const chave = `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}`;
+    const doMes = lista.filter((r) => r.status !== "cancelada" && r.data.startsWith(chave));
+    return {
+      chave,
+      mes: data.toLocaleDateString("pt-BR", { month: "short" }).replace(".", ""),
+      mesLongo: data.toLocaleDateString("pt-BR", { month: "long", year: "numeric" }),
+      mesNome: data.toLocaleDateString("pt-BR", { month: "long" }),
+      // Faturamento = reservas não canceladas + o que a empresa reteve de reservas pagas e canceladas
+      faturamento:
+        doMes.reduce((s, r) => s + r.valor, 0) +
+        lista.filter((r) => r.data.startsWith(chave)).reduce((s, r) => s + valorRetido(r), 0),
+      reservas: doMes.length,
+    };
+  });
 }

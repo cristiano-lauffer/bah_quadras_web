@@ -18,17 +18,17 @@ import PaginaAgendamento from "../components/agendamento/PaginaAgendamento.jsx";
 import EscolherQuadra from "../components/agendamento/EscolherQuadra.jsx";
 import QuadraNaoEncontrada from "../components/agendamento/QuadraNaoEncontrada.jsx";
 import ReservaConfirmada from "../components/agendamento/ReservaConfirmada.jsx";
-import { buscarQuadraPublica } from "../services/catalogoService.js";
-import { buscarVinculoPublico, gradePadrao } from "../services/quadrasService.js";
+import { useQuadraPublica } from "../hooks/useQuadraPublica.js";
+import { buscarVinculoPublico } from "../services/quadrasService.js";
 import {
-  buscarReserva,
+  HORAS_PRAZO_CANCELAMENTO,
+  carregarReserva,
+  podeAlterarSozinho,
   criarReserva,
   horariosOcupados,
-  inicioDaReserva,
   remarcarReserva,
 } from "../services/reservasService.js";
 import { useSessao } from "../hooks/useSessao.js";
-import { empresaAtual } from "../services/empresaService.js";
 import {
   cobraPorBateria,
   descreverDuracao,
@@ -59,13 +59,32 @@ export default function Agendamento() {
   const { id } = useParams();
   const [params] = useSearchParams();
 
-  const quadra = id ? buscarQuadraPublica(id) : null;
+  const { quadra, carregando: carregandoQuadra } = useQuadraPublica(id);
   const remarcarId = params.get("remarcar");
+  // Remarcação: a reserva original vem da API (o link pode ter sido aberto direto).
+  const { dados: original, carregando: carregandoOriginal } = useDados(
+    () => (remarcarId ? carregarReserva(remarcarId).catch(() => null) : Promise.resolve(null)),
+    [remarcarId]
+  );
+  const carregando = carregandoQuadra || (Boolean(remarcarId) && carregandoOriginal);
   useTitulo(
-    !id ? "Escolha uma quadra" : !quadra ? "Quadra não encontrada" : `${remarcarId ? "Remarcar" : "Reservar"} ${quadra.nome}`
+    !id
+      ? "Escolha uma quadra"
+      : carregando
+        ? "Carregando quadra"
+        : !quadra
+          ? "Quadra não encontrada"
+          : `${remarcarId ? "Remarcar" : "Reservar"} ${quadra.nome}`
   );
 
   if (!id) return <EscolherQuadra />;
+  if (carregando) {
+    return (
+      <PaginaAgendamento>
+        <Esqueleto tipo="lista" quantidade={3} rotulo="Carregando quadra..." />
+      </PaginaAgendamento>
+    );
+  }
   if (!quadra) return <QuadraNaoEncontrada />;
 
   return (
@@ -77,6 +96,7 @@ export default function Agendamento() {
       duracaoInicial={Number(params.get("duracao")) || null}
       etapaInicial={params.get("etapa")}
       remarcarId={remarcarId}
+      original={original}
     />
   );
 }
@@ -85,7 +105,7 @@ export default function Agendamento() {
    RESERVA
    ================================================================ */
 
-function Reserva({ quadra, dataInicial, horaInicial, duracaoInicial, etapaInicial, remarcarId }) {
+function Reserva({ quadra, dataInicial, horaInicial, duracaoInicial, etapaInicial, remarcarId, original }) {
   const dias = Array.from({ length: DIAS_VISIVEIS }, (_, i) => isoComDias(i));
   const hoje = dias[0];
   const navigate = useNavigate();
@@ -95,9 +115,8 @@ function Reserva({ quadra, dataInicial, horaInicial, duracaoInicial, etapaInicia
   const logadoComoJogador = sessao?.tipo === "usuario";
 
   // Remarcação: /agendamento/:id?remarcar=<id da reserva>
-  const original = remarcarId ? buscarReserva(remarcarId) : null;
   const remarcando = Boolean(
-    original && original.quadraId === quadra.id && original.status === "confirmada" && inicioDaReserva(original) > new Date()
+    original && original.quadraId === quadra.id && podeAlterarSozinho(original)
   );
   const remarcacaoInvalida = Boolean(remarcarId) && !remarcando;
   const duracaoOriginal = remarcando ? original.baterias ?? original.duracao : 1;
@@ -106,7 +125,7 @@ function Reserva({ quadra, dataInicial, horaInicial, duracaoInicial, etapaInicia
   const { dados: vinculo, carregando: carregandoVinculo } = useDados(() => buscarVinculoPublico(quadra.id), [quadra.id]);
   const preco = vinculo?.preco ?? quadra.preco;
   const situacao = vinculo?.status ?? "ativa";
-  const grade = vinculo?.horarios ?? gradePadrao();
+  const grade = vinculo?.horarios ?? {};
 
   const [data, setData] = useState(
     dias.includes(dataInicial) ? dataInicial : remarcando && dias.includes(original.data) ? original.data : hoje
@@ -119,8 +138,9 @@ function Reserva({ quadra, dataInicial, horaInicial, duracaoInicial, etapaInicia
   const [aceite, setAceite] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [reserva, setReserva] = useState(null);
+  const [erroEnvio, setErroEnvio] = useState("");
 
-  const { dados: ocupados, carregando: carregandoHorarios } = useDados(
+  const { dados: ocupados, carregando: carregandoHorarios, recarregar: recarregarHorarios } = useDados(
     () => horariosOcupados(quadra.id, data, remarcando ? original.id : null),
     [quadra.id, data, remarcando]
   );
@@ -158,7 +178,8 @@ function Reserva({ quadra, dataInicial, horaInicial, duracaoInicial, etapaInicia
   const duracaoFinal = Math.min(duracao, Math.max(duracaoPossivel, 1));
   const total = preco * duracaoFinal;
   const fimEscolhido = (n) => (kart ? somarMinutos(hora, n * minBateria) : somarHoras(hora, n));
-  const politica = vinculo ? empresaAtual().politicaCancelamento : POLITICA_PADRAO;
+  // Política de cancelamento do perfil da empresa (ou a padrão, se ela não escreveu uma).
+  const politica = quadra.empresa?.politicaCancelamento ?? POLITICA_PADRAO;
   const livresNoDia = horarios.filter((h) => h.estado === "livre").length;
   const mesmoHorario =
     remarcando && data === original.data && hora === original.hora && duracaoFinal === duracaoOriginal;
@@ -187,36 +208,28 @@ function Reserva({ quadra, dataInicial, horaInicial, duracaoInicial, etapaInicia
   async function confirmar() {
     if (!logadoComoJogador) return irParaLogin();
     setEnviando(true);
+    setErroEnvio("");
 
-    if (remarcando) {
-      await remarcarReserva(original.id, {
-        data,
-        hora,
-        duracao: kart ? 1 : duracaoFinal,
-        ...(kart && { baterias: duracaoFinal, minutosBateria: minBateria }),
-        valor: total,
-      });
-      const quando = formatarData(data, { weekday: "short", day: "2-digit", month: "2-digit" });
-      navigate("/usuario/reservas", { state: { aviso: `Reserva na ${quadra.nome} remarcada para ${quando} às ${hora}.` } });
-      return;
+    // A API confere tudo de novo (grade, conflito, bloqueio). Kart manda as baterias; o resto, as horas.
+    const escolha = { data, hora, duracao: kart ? 1 : duracaoFinal, ...(kart && { baterias: duracaoFinal }) };
+    try {
+      if (remarcando) {
+        await remarcarReserva(original.id, escolha);
+        const quando = formatarData(data, { weekday: "short", day: "2-digit", month: "2-digit" });
+        navigate("/usuario/reservas", { state: { aviso: `Reserva na ${quadra.nome} remarcada para ${quando} às ${hora}.` } });
+        return;
+      }
+      const nova = await criarReserva({ quadraId: quadra.id, ...escolha, pagamento });
+      setReserva(nova);
+      setEtapa("concluido");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (erro) {
+      setErroEnvio(erro.message);
+      // Alguém pegou o horário antes (409): atualiza a disponibilidade para escolher outro.
+      if (erro.status === 409) recarregarHorarios();
+    } finally {
+      setEnviando(false);
     }
-
-    const nova = await criarReserva({
-      quadraId: quadra.id,
-      quadra: quadra.nome,
-      modalidade: quadra.modalidade,
-      endereco: `${quadra.bairro}, ${quadra.cidade}`,
-      data,
-      hora,
-      duracao: kart ? 1 : duracaoFinal, // horas que o horário fica ocupado
-      ...(kart && { baterias: duracaoFinal, minutosBateria: minBateria }),
-      valor: total,
-      pagamento,
-    });
-    setReserva(nova);
-    setEnviando(false);
-    setEtapa("concluido");
-    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   /* ---------- Reserva concluída ---------- */
@@ -265,7 +278,10 @@ function Reserva({ quadra, dataInicial, horaInicial, duracaoInicial, etapaInicia
       {remarcacaoInvalida && (
         <div className="ag-remarcar ag-remarcar-erro" role="alert">
           <CircleAlert size={20} aria-hidden="true" />
-          <p>Essa reserva não pode mais ser remarcada (já passou ou foi cancelada). Você pode fazer uma reserva nova abaixo.</p>
+          <p>
+            Essa reserva não pode ser remarcada pelo site (já passou, foi cancelada ou faltam menos de {HORAS_PRAZO_CANCELAMENTO}h
+            para o jogo: nesse caso, fale com a empresa). Você pode fazer uma reserva nova abaixo.
+          </p>
         </div>
       )}
 
@@ -419,7 +435,7 @@ function Reserva({ quadra, dataInicial, horaInicial, duracaoInicial, etapaInicia
                 </div>
               </div>
               <p className="ag-texto">
-                O pagamento continua no local ({original.pagamento ?? "na forma escolhida"}).
+                O pagamento continua combinado com a empresa pelo WhatsApp ({original.pagamento ?? "na forma escolhida"}).
                 {diferenca !== 0 &&
                   (diferenca > 0
                     ? ` Com a nova duração, o valor aumenta ${formatarPreco(diferenca, 2)}.`
@@ -429,10 +445,13 @@ function Reserva({ quadra, dataInicial, horaInicial, duracaoInicial, etapaInicia
             ) : (
             <section className="ag-card" aria-labelledby="ag-confirmar-titulo">
               <h2 id="ag-confirmar-titulo">Confirme sua reserva</h2>
-              <p className="ag-texto">Confira os dados e escolha como prefere pagar no local.</p>
+              <p className="ag-texto">
+                Confira os dados e escolha como prefere pagar. Depois de reservar, o pagamento é combinado com a empresa
+                pelo WhatsApp. A reserva fica "Confirmada" quando a empresa registrar o pagamento.
+              </p>
 
               <fieldset className="ag-pagamento">
-                <legend>Forma de pagamento (no local)</legend>
+                <legend>Forma de pagamento (combinada pelo WhatsApp)</legend>
                 <div>
                   {formasPagamento.map((f) => (
                     <label key={f} className={pagamento === f ? "marcado" : ""}>
@@ -446,6 +465,10 @@ function Reserva({ quadra, dataInicial, horaInicial, duracaoInicial, etapaInicia
               <div className="ag-politica">
                 <strong>Política de cancelamento</strong>
                 <p>{politica}</p>
+                <p>
+                  Pelo site, você cancela ou remarca até {HORAS_PRAZO_CANCELAMENTO}h antes do jogo. Depois disso, fale com a
+                  empresa pelo WhatsApp.
+                </p>
               </div>
 
               <label className="ag-aceite">
@@ -514,6 +537,11 @@ function Reserva({ quadra, dataInicial, horaInicial, duracaoInicial, etapaInicia
               </>
             ) : (
               <>
+                {erroEnvio && (
+                  <p className="ag-erro-envio" role="alert">
+                    <CircleAlert size={16} aria-hidden="true" /> {erroEnvio}
+                  </p>
+                )}
                 <button
                   type="button"
                   className="ag-botao"
@@ -537,7 +565,7 @@ function Reserva({ quadra, dataInicial, horaInicial, duracaoInicial, etapaInicia
             )}
 
             <p className="ag-nota">
-              <Clock size={14} aria-hidden="true" /> Cancelamento grátis até 24h antes.
+              <Clock size={14} aria-hidden="true" /> {politica}
             </p>
           </aside>
         )}

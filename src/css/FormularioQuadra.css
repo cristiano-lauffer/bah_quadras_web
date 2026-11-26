@@ -401,3 +401,8 @@
     max-width: none;
   }
 }
+
+/* Botão "Enviar foto" (label com input de arquivo escondido) */
+.fq-enviar-foto {
+  cursor: pointer;
+}

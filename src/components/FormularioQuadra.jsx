@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, Check, CircleCheck, CirclePause, ImagePlus, LoaderCircle, Wrench } from "lucide-react";
+import { ArrowRight, Check, CircleCheck, CirclePause, LoaderCircle, Wrench } from "lucide-react";
 import {
   comodidadesDisponiveis,
   modalidadesDisponiveis,
@@ -8,13 +8,13 @@ import {
   statusQuadra,
   tiposPiso,
 } from "../services/quadrasService.js";
-import { quadras as quadrasPublicas } from "../data/quadras.js";
+import { fotosSugeridas } from "../config/fotos.js";
+import { lerArquivo } from "../services/uploadService.js";
 import { formatarPreco, foto as fotoTamanho } from "../utils/formatadores.js";
 import "../css/FormularioQuadra.css";
 
-// Fotos prontas para a demonstração (sem precisar de upload).
-const fotosSugeridas = [...new Set(quadrasPublicas.flatMap((q) => q.imagens))].slice(0, 8);
-const TAMANHO_MAXIMO = 1024 * 1024; // 1 MB
+const TIPOS_FOTO = ["image/jpeg", "image/png", "image/webp"];
+const MAX_FOTO = 5 * 1024 * 1024;
 
 const vazio = {
   nome: "",
@@ -52,7 +52,13 @@ export default function FormularioQuadra({ inicial }) {
   const editando = Boolean(inicial?.id);
   const [form, setForm] = useState(() =>
     inicial
-      ? { ...vazio, ...inicial, preco: paraTexto(inicial.preco), capacidade: inicial.capacidade ? String(inicial.capacidade) : "" }
+      ? {
+          ...vazio,
+          ...inicial,
+          imagem: inicial.imagem || fotosSugeridas[0],
+          preco: paraTexto(inicial.preco),
+          capacidade: inicial.capacidade ? String(inicial.capacidade) : "",
+        }
       : vazio
   );
   const [erros, setErros] = useState({});
@@ -75,21 +81,6 @@ export default function FormularioQuadra({ inicial }) {
     }));
   }
 
-  function enviarFoto(e) {
-    const arquivo = e.target.files?.[0];
-    if (!arquivo) return;
-    if (arquivo.size > TAMANHO_MAXIMO) {
-      setErros((atual) => ({ ...atual, imagem: "A imagem precisa ter no máximo 1 MB." }));
-      return;
-    }
-    const leitor = new FileReader();
-    leitor.onload = () => {
-      setForm((f) => ({ ...f, imagem: leitor.result }));
-      setErros((atual) => ({ ...atual, imagem: "" }));
-    };
-    leitor.readAsDataURL(arquivo);
-  }
-
   function validar() {
     const novos = {};
     if (form.nome.trim().length < 3) novos.nome = "Dê um nome com pelo menos 3 letras.";
@@ -110,14 +101,22 @@ export default function FormularioQuadra({ inicial }) {
       return;
     }
     setSalvando(true);
-    const salva = await salvarQuadra({
-      ...form,
-      id: inicial?.id,
-      nome: form.nome.trim(),
-      descricao: form.descricao.trim(),
-      preco: precoNovo,
-      capacidade: form.capacidade ? Number(form.capacidade) : null,
-    });
+    setErros({});
+    let salva;
+    try {
+      salva = await salvarQuadra({
+        ...form,
+        id: inicial?.id,
+        nome: form.nome.trim(),
+        descricao: form.descricao.trim(),
+        preco: precoNovo,
+        capacidade: form.capacidade ? Number(form.capacidade) : null,
+      });
+    } catch (erro) {
+      setSalvando(false);
+      setErros({ envio: erro.message });
+      return;
+    }
     navigate("/empresa/quadras", {
       state: { aviso: editando ? `Alterações em ${salva.nome} salvas.` : `${salva.nome} cadastrada! Agora defina os horários.` },
     });
@@ -288,10 +287,33 @@ export default function FormularioQuadra({ inicial }) {
           <div className="pn-card-topo">
             <div>
               <h2>Foto de capa</h2>
-              <p>Escolha uma das sugestões ou envie a sua (até 1 MB).</p>
+              <p>Envie uma foto da sua quadra (JPG, PNG ou WebP, até 5 MB) ou escolha uma das sugestões.</p>
             </div>
+            <label className="pn-botao pn-botao-contorno fq-enviar-foto">
+              Enviar foto
+              <input
+                type="file"
+                accept={TIPOS_FOTO.join(",")}
+                hidden
+                onChange={async (e) => {
+                  const arquivo = e.target.files?.[0];
+                  e.target.value = "";
+                  if (!arquivo) return;
+                  if (!TIPOS_FOTO.includes(arquivo.type)) return setErros((a) => ({ ...a, imagem: "Use uma foto JPG, PNG ou WebP." }));
+                  if (arquivo.size > MAX_FOTO) return setErros((a) => ({ ...a, imagem: "A foto precisa ter até 5 MB." }));
+                  const dataUrl = await lerArquivo(arquivo);
+                  setErros((a) => ({ ...a, imagem: "" }));
+                  setForm((f) => ({ ...f, imagem: dataUrl }));
+                }}
+              />
+            </label>
           </div>
           <div className="fq-fotos" role="radiogroup" aria-label="Foto de capa">
+            {form.imagem && !fotosSugeridas.includes(form.imagem) && (
+              <button type="button" role="radio" aria-checked="true" aria-label="Foto enviada" className="fq-foto">
+                <img {...fotoTamanho(form.imagem, 160)} alt="" />
+              </button>
+            )}
             {fotosSugeridas.map((foto, i) => (
               <button
                 key={foto}
@@ -305,17 +327,6 @@ export default function FormularioQuadra({ inicial }) {
                 <img {...fotoTamanho(foto, 160)} alt="" loading="lazy" />
               </button>
             ))}
-            <label className="fq-foto fq-foto-enviar">
-              {form.imagem?.startsWith("data:") ? (
-                <img src={form.imagem} alt="" />
-              ) : (
-                <>
-                  <ImagePlus size={22} aria-hidden="true" />
-                  <span>Enviar</span>
-                </>
-              )}
-              <input type="file" accept="image/*" onChange={enviarFoto} aria-label="Enviar foto de capa" />
-            </label>
           </div>
           {erros.imagem && <p className="pn-erro">{erros.imagem}</p>}
         </section>
@@ -366,6 +377,12 @@ export default function FormularioQuadra({ inicial }) {
             </div>
           </div>
         </section>
+
+        {erros.envio && (
+          <p className="pn-erro" role="alert">
+            {erros.envio}
+          </p>
+        )}
 
         <div className="fq-botoes">
           <button type="submit" className="pn-botao" disabled={salvando}>

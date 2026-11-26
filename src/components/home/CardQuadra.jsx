@@ -1,10 +1,13 @@
 import { Link } from "react-router-dom";
 import { ArrowRight, Clock, Heart, MapPin, Star } from "lucide-react";
-import { horariosLivresHoje } from "../../data/quadras.js";
 import { formatarNota, formatarPreco, foto, semAvaliacoes, unidadePreco } from "../../utils/formatadores.js";
 
 /** Card de uma quadra na lista da Home. O card inteiro é clicável (link no nome). */
 export default function CardQuadra({ quadra: q, favorito, onFavoritar }) {
+  // Horários livres de hoje, vindos da API.
+  const livres = (q.livresHoje ?? []).slice(0, 3);
+  const local = [...new Set([q.bairro, q.cidade].filter(Boolean))].join(", ");
+
   return (
     <article className="home-card">
       <div className="home-card-foto">
@@ -41,16 +44,18 @@ export default function CardQuadra({ quadra: q, favorito, onFavoritar }) {
           )}
         </div>
 
-        <p className="home-card-local">
-          <MapPin size={14} aria-hidden="true" />
-          {q.bairro}, {q.cidade}
-        </p>
+        {local && (
+          <p className="home-card-local">
+            <MapPin size={14} aria-hidden="true" />
+            {local}
+          </p>
+        )}
 
         <div className="home-card-horarios">
           <span>
-            <Clock size={13} aria-hidden="true" /> Livre hoje:
+            <Clock size={13} aria-hidden="true" /> {livres.length ? "Livre hoje:" : "Sem horários livres hoje"}
           </span>
-          {horariosLivresHoje(q).map((h) => (
+          {livres.map((h) => (
             <span key={h} className="home-card-horario">
               {h}
             </span>

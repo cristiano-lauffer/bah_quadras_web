@@ -1,100 +1,135 @@
 // =========================================================
 // Serviço de RESERVAS DO JOGADOR
 //
-// Hoje: as reservas de exemplo (data/reservas.js) + as que o jogador cria
-// ou cancela, guardadas no navegador.
-// Com o backend: troque o corpo das funções por chamadas à API.
+// API (só jogador logado):
+//   GET  /reservas                 reservas do jogador
+//   POST /reservas                 { quadra_id, data, hora_inicio, duracao | baterias, forma_pagamento }
+//   PATCH /reservas/:id            remarca: { data, hora_inicio, duracao | baterias }
+//   POST /reservas/:id/cancelar
+// A API confere grade, conflito, bloqueio e horário passado; se alguém reservar
+// o mesmo horário antes, ela responde 409 e a tela mostra a mensagem.
 // =========================================================
-import { reservas as reservasExemplo } from "../data/reservas.js";
-import { lerSalvo, responder, salvar } from "./armazenamento.js";
+import { api } from "./api.js";
+import { nomeNaVitrine } from "./catalogoService.js";
+import { modalidadeDoTipo } from "./quadrasService.js";
+import { aoTrocarConta, sessaoAtual } from "./sessaoService.js";
 import { somarMinutos } from "../utils/formatadores.js";
-import { buscarQuadraPorId } from "../data/quadras.js";
 
-// Mostra a reserva com o nome atual da quadra (se a quadra mudar de nome, como o
-// "Velopark Kart", que hoje é "Autódromo FuelTech Velopark - Kart").
-// Quadras cadastradas pela empresa não estão em data/quadras.js e ficam como foram salvas.
-function atualizarQuadra(r) {
-  const nome = buscarQuadraPorId(r.quadraId)?.nome ?? r.quadra;
-  return nome === r.quadra ? r : { ...r, quadra: nome };
+const dataIso = (valor) => (valor ? new Date(valor).toISOString() : undefined);
+
+/** Reserva da API -> formato das telas. */
+function daApi(r) {
+  const empresa = r.quadra.empresa;
+  const local = [empresa.bairro, empresa.cidade].filter(Boolean).join(", ");
+  return {
+    id: r.id,
+    quadraId: String(r.quadra.id),
+    quadra: nomeNaVitrine(r.quadra.nome, empresa.nome),
+    imagem: r.quadra.imagem_url ?? "",
+    modalidade: modalidadeDoTipo(r.quadra.tipo_quadra),
+    endereco: local || empresa.endereco || "",
+    data: r.data,
+    hora: r.hora_inicio,
+    duracao: r.duracao_horas,
+    ...(r.baterias && { baterias: r.baterias, minutosBateria: r.minutos_bateria }),
+    valor: r.valor_total,
+    pagamento: r.forma_pagamento,
+    pago: r.pago,
+    status: r.status === "CANCELADA" ? "cancelada" : "confirmada",
+    canceladaPor: r.cancelada_por,
+    reembolso: r.reembolso, // null | "pendente" | "feito"
+    valorReembolsado: r.valor_reembolsado,
+    contatoEmpresa: empresa.whatsapp || empresa.telefone || null,
+    empresa: empresa.nome,
+    criadaEm: dataIso(r.criada_em),
+    canceladaEm: dataIso(r.cancelada_em),
+    remarcadaEm: dataIso(r.remarcada_em),
+    anterior: r.anterior ? { data: r.anterior.data, hora: r.anterior.hora_inicio } : null,
+  };
 }
 
-const CHAVE = "bahquadras:usuario:reservas";
-
-// Guardamos só o que mudou: reservas novas, ids cancelados e remarcações.
-// Assim as reservas de exemplo continuam com datas relativas a hoje.
-const lerAlteracoes = () => ({ criadas: [], canceladas: [], canceladasEm: {}, remarcadas: {}, ...lerSalvo(CHAVE) });
-
-function montarLista() {
-  const { criadas, canceladas, canceladasEm, remarcadas } = lerAlteracoes();
-  return [...reservasExemplo, ...criadas]
-    .map(atualizarQuadra)
-    .map((r) => (remarcadas[r.id] ? { ...r, ...remarcadas[r.id] } : r))
-    .map((r) => (canceladas.includes(r.id) ? { ...r, status: "cancelada", canceladaEm: canceladasEm[r.id] } : r));
-}
+// Últimas reservas lidas (para as leituras imediatas: menu, notificações, remarcação).
+let ultimas = [];
+aoTrocarConta(() => {
+  ultimas = [];
+});
+const guardar = (reserva) => {
+  ultimas = [reserva, ...ultimas.filter((r) => r.id !== reserva.id)];
+  return reserva;
+};
 
 /* ---------------- Funções públicas ---------------- */
 
 /** Leitura imediata (sem esperar), usada por contadores do menu e notificações. */
-export const reservasAtuais = () => montarLista();
+export const reservasAtuais = () => ultimas;
 
-export function listarReservas() {
-  return responder(montarLista());
+export async function listarReservas() {
+  if (sessaoAtual()?.tipo !== "usuario") return [];
+  ultimas = (await api("/reservas")).map(daApi);
+  return ultimas;
 }
 
-export function criarReserva(dados) {
-  const alteracoes = lerAlteracoes();
-  const nova = { ...dados, id: Date.now(), status: "confirmada", criadaEm: new Date().toISOString() };
-  salvar(CHAVE, { ...alteracoes, criadas: [...alteracoes.criadas, nova] });
-  return responder(nova, 600);
-}
+/** Corpo do pedido: kart manda baterias; as outras quadras, as horas. */
+const pedido = ({ data, hora, duracao, baterias }) => ({
+  data,
+  hora_inicio: hora,
+  ...(baterias ? { baterias } : { duracao }),
+});
 
-/** Uma reserva pelo id (leitura imediata). */
-export const buscarReserva = (id) => montarLista().find((r) => String(r.id) === String(id));
-
-/**
- * Troca o dia/horário (e a duração) de uma reserva confirmada.
- * novos: { data, hora, duracao, baterias?, valor }
- * Com o backend: api.patch(`/reservas/${id}`, novos)
- */
-export function remarcarReserva(id, novos) {
-  const alteracoes = lerAlteracoes();
-  const original = buscarReserva(id);
-  const anterior = original ? { data: original.data, hora: original.hora } : null;
-  const remarcacao = { ...novos, anterior, remarcadaEm: new Date().toISOString() };
-  salvar(CHAVE, { ...alteracoes, remarcadas: { ...alteracoes.remarcadas, [id]: remarcacao } });
-  return responder({ ...original, ...remarcacao }, 600);
-}
-
-export function cancelarReserva(id) {
-  const alteracoes = lerAlteracoes();
-  salvar(CHAVE, {
-    ...alteracoes,
-    canceladas: [...new Set([...alteracoes.canceladas, id])],
-    canceladasEm: { ...alteracoes.canceladasEm, [id]: new Date().toISOString() },
+/** dados: { quadraId, data, hora, duracao, baterias?, pagamento } */
+export async function criarReserva(dados) {
+  const { reserva } = await api("/reservas", {
+    metodo: "POST",
+    corpo: { quadra_id: Number(dados.quadraId), forma_pagamento: dados.pagamento, ...pedido(dados) },
   });
-  return responder({ id, status: "cancelada" }, 400);
+  return guardar(daApi(reserva));
 }
 
+/** Uma reserva pelo id (leitura imediata, das últimas carregadas). */
+export const buscarReserva = (id) => ultimas.find((r) => String(r.id) === String(id));
+
+/** Busca a reserva na API se ela ainda não foi carregada (ex.: link de remarcação aberto direto). */
+export async function carregarReserva(id) {
+  if (buscarReserva(id)) return buscarReserva(id);
+  await listarReservas();
+  return buscarReserva(id) ?? null;
+}
+
+/** Troca o dia/horário (e a duração) de uma reserva confirmada. novos: { data, hora, duracao, baterias? } */
+export async function remarcarReserva(id, novos) {
+  const { reserva } = await api(`/reservas/${id}`, { metodo: "PATCH", corpo: pedido(novos) });
+  return guardar(daApi(reserva));
+}
+
+/** Cancela. Devolve { reserva, mensagem } (a mensagem avisa quando há reembolso a combinar). */
+export async function cancelarReserva(id) {
+  const { reserva, mensagem } = await api(`/reservas/${id}/cancelar`, { metodo: "POST" });
+  return { reserva: guardar(daApi(reserva)), mensagem };
+}
+
+/** Prazo da política: com menos horas que isso até o jogo, só a empresa cancela ou remarca. */
+export const HORAS_PRAZO_CANCELAMENTO = 24;
+
+/** O jogador ainda pode cancelar ou remarcar sozinho? */
+export const podeAlterarSozinho = (r, agora = new Date()) =>
+  r.status === "confirmada" && inicioDaReserva(r) - agora >= HORAS_PRAZO_CANCELAMENTO * 3_600_000;
+
 /**
- * Horários já ocupados de uma quadra em uma data.
- * Junta as reservas do jogador com algumas reservas "de outras pessoas"
- * geradas de forma fixa para a demonstração ficar realista.
+ * Horários da grade ocupados numa data (reservas ativas e bloqueios do banco).
+ * ignorarId: ao remarcar, o horário atual da própria reserva conta como livre.
  */
-export function horariosOcupados(quadraId, data, ignorarId = null) {
-  // ignorarId: ao remarcar, o horário atual da própria reserva conta como livre.
-  const doJogador = montarLista()
-    .filter((r) => r.quadraId === quadraId && r.data === data && r.status === "confirmada" && String(r.id) !== String(ignorarId))
-    .flatMap((r) =>
-      Array.from({ length: r.duracao }, (_, i) => `${String(Number(r.hora.slice(0, 2)) + i).padStart(2, "0")}:00`)
-    );
+export async function horariosOcupados(quadraId, data, ignorarId = null) {
+  const q = await api(`/publico/quadras/${quadraId}?data=${data}`, { publico: true });
+  const dia = new Date(`${data}T12:00:00`).getDay();
+  const livres = new Set(q.horarios_livres.map((h) => h.hora_inicio));
+  let ocupados = q.grade.filter((s) => s.dia_semana === dia && !livres.has(s.hora_inicio)).map((s) => s.hora_inicio);
 
-  let semente = 0;
-  for (const c of `${quadraId}${data}`) semente = (semente * 31 + c.charCodeAt(0)) % 9973;
-  const deOutros = ["08:00", "10:00", "12:00", "17:00", "18:00", "19:00", "20:00", "21:00"].filter(
-    (_, i) => (semente >> i) % 3 === 0
-  );
-
-  return responder([...new Set([...doJogador, ...deOutros])], 150);
+  const propria = ignorarId ? buscarReserva(ignorarId) : null;
+  if (propria && propria.data === data && propria.status === "confirmada") {
+    const horas = Array.from({ length: propria.duracao }, (_, i) => `${String(Number(propria.hora.slice(0, 2)) + i).padStart(2, "0")}:00`);
+    ocupados = ocupados.filter((h) => !horas.includes(h));
+  }
+  return ocupados;
 }
 
 /* ---------------- Ajudantes de exibição ---------------- */
