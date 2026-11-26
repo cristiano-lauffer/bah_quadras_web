@@ -43,6 +43,16 @@ function gerar() {
         link: "/empresa/reservas",
       });
     }
+    if (r.reembolso === "pendente") {
+      lista.push({
+        id: `reembolso-${r.id}`,
+        tipo: "pagamento",
+        titulo: "Reembolso pendente",
+        texto: `${r.cliente} cancelou uma reserva já paga em ${nomeQuadra(r.quadraId)} (${quando(r)}). Devolva o valor e marque o reembolso.`,
+        quando: new Date(r.canceladaEm ?? Date.now()).toISOString(),
+        link: "/empresa/reservas",
+      });
+    }
     // Jogo de hoje ou que já passou e ainda não foi pago
     const inicio = new Date(`${r.data}T${r.hora}:00`);
     if (r.status !== "cancelada" && !r.pago && inicio <= new Date(agora + 3 * 3_600_000) && agora - inicio <= 3 * DIA) {

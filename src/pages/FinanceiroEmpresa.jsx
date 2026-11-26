@@ -14,6 +14,7 @@ import { listarQuadras } from "../services/quadrasService.js";
 import {
   fimReserva,
   formasPagamento,
+  valorRetido,
   historicoMensal,
   inicioReserva,
   listarReservasEmpresa,
@@ -52,7 +53,9 @@ export default function FinanceiroEmpresa() {
   const doMes = (reservas ?? []).filter((r) => r.data >= inicioMes && r.data.slice(0, 7) === hoje.slice(0, 7));
   const validas = doMes.filter((r) => r.status !== "cancelada");
   const canceladas = doMes.filter((r) => r.status === "cancelada");
-  const recebidas = validas.filter((r) => r.pago);
+  // Canceladas e pagas em que a empresa devolveu só parte: o que ela reteve conta como recebido.
+  const retidas = canceladas.filter((r) => valorRetido(r) > 0).map((r) => ({ ...r, valor: valorRetido(r) }));
+  const recebidas = [...validas.filter((r) => r.pago), ...retidas];
   const aReceber = validas.filter((r) => !r.pago);
 
   const soma = (lista) => lista.reduce((s, r) => s + r.valor, 0);

@@ -40,6 +40,11 @@ const Notificacoes = lazy(() => import("../pages/Notificacoes"));
 const PerfilEmpresa = lazy(() => import("../pages/PerfilEmpresa"));
 const EditarPerfilEmpresa = lazy(() => import("../pages/EditarPerfilEmpresa"));
 
+// Área do admin
+const AdminPainel = lazy(() => import("../pages/AdminPainel"));
+const AdminEmpresas = lazy(() => import("../pages/AdminEmpresas"));
+const AdminEmpresa = lazy(() => import("../pages/AdminEmpresa"));
+
 export default function AppRoutes() {
   return (
     <BrowserRouter>
@@ -95,6 +100,14 @@ function Paginas() {
             <Route path="/empresa/perfil" element={<PerfilEmpresa />} />
             <Route path="/empresa/editar" element={<EditarPerfilEmpresa />} />
             <Route path="/perfil" element={<Navigate to="/empresa/perfil" replace />} />
+          </Route>
+
+          {/* Área do admin (só com login de admin) */}
+          <Route element={<RotaProtegida tipo="admin" />}>
+            <Route path="/admin" element={<AdminPainel />} />
+            <Route path="/admin/empresas" element={<AdminEmpresas />} />
+            <Route path="/admin/empresas/nova" element={<AdminEmpresa />} />
+            <Route path="/admin/empresas/:id" element={<AdminEmpresa />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />

@@ -26,7 +26,7 @@ export function eventoDaReserva(reserva) {
   return {
     id: `reserva-${reserva.id}@bahquadras`,
     titulo: `Jogo na ${reserva.quadra}`,
-    descricao: `Reserva feita pelo Bah Quadras.${reserva.pagamento ? ` Pagamento: ${reserva.pagamento} no local.` : ""}`,
+    descricao: `Reserva feita pelo Bah Quadras.${reserva.pagamento ? ` Pagamento: ${reserva.pagamento}, combinado com a empresa pelo WhatsApp.` : ""}`,
     local: reserva.endereco ?? "",
     inicio,
     fim,
@@ -85,3 +85,21 @@ export function linkGoogleAgenda(evento) {
 
 /** Link do WhatsApp com uma mensagem pronta (a pessoa escolhe para quem enviar). */
 export const linkWhatsApp = (mensagem) => `https://wa.me/?text=${encodeURIComponent(mensagem)}`;
+
+/**
+ * Link do WhatsApp direto para a empresa. telefone: com ou sem máscara, com DDD
+ * (o 55 do Brasil é colocado se faltar). Sem telefone, devolve null.
+ */
+export function linkWhatsAppEmpresa(telefone, mensagem) {
+  const digitos = String(telefone ?? "").replace(/\D/g, "");
+  if (digitos.length < 10) return null;
+  const numero = digitos.length <= 11 ? `55${digitos}` : digitos;
+  return `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
+}
+
+/** Mensagem pronta para o jogador falar com a empresa sobre uma reserva. */
+export function mensagemParaEmpresa(reserva, assunto = "combinar o pagamento") {
+  const dia = new Date(`${reserva.data}T12:00:00`).toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
+  const valor = reserva.valor?.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  return `Olá! Tenho uma reserva pelo Bah Quadras: ${reserva.quadra}, ${dia}, às ${reserva.hora}${valor ? ` (${valor})` : ""}. Gostaria de ${assunto}.`;
+}

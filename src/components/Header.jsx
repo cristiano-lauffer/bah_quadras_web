@@ -27,6 +27,12 @@ const links = [
 
 /** Atalhos do menu da conta, conforme o tipo de conta. */
 function atalhosDa(sessao) {
+  if (sessao.tipo === "admin") {
+    return [
+      { to: "/admin", texto: "Painel do admin", icone: LayoutDashboard },
+      { to: "/admin/empresas", texto: "Empresas", icone: Building2 },
+    ];
+  }
   if (sessao.tipo === "empresa") {
     return [
       { to: "/empresa/dashboard", texto: "Painel da empresa", icone: LayoutDashboard },

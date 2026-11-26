@@ -4,7 +4,7 @@
 // API (só empresa logada):
 //   GET  /empresa/reservas                 últimos 90 dias e próximos 60
 //   POST /empresa/reservas                 reserva de balcão { quadra_id, cliente_nome, data, hora_inicio, duracao }
-//   POST /empresa/reservas/:id/pagar       pagamento recebido no local
+//   POST /empresa/reservas/:id/pagar       pagamento recebido (combinado pelo WhatsApp)
 //   POST /empresa/reservas/:id/cancelar    (também some da lista do jogador)
 // =========================================================
 import { api } from "./api.js";
@@ -27,6 +27,9 @@ function daApi(r) {
     pagamento: r.forma_pagamento ?? "Pix",
     pago: r.pago,
     status: r.status === "CANCELADA" ? "cancelada" : "confirmada",
+    canceladaPor: r.cancelada_por,
+    reembolso: r.reembolso, // null | "pendente" | "feito"
+    valorReembolsado: r.valor_reembolsado,
     origem: r.origem,
     criadaEm: r.criada_em,
     canceladaEm: r.cancelada_em,
@@ -59,7 +62,32 @@ export async function cancelarReservaEmpresa(reserva) {
   return daApi(resposta.reserva);
 }
 
-/** Reserva feita no balcão. dados: { quadraId, cliente, data, hora, duracao, pagamento } */
+/** Registra que a empresa já devolveu o dinheiro. valor: quanto devolveu (o resto ela reteve). */
+export async function marcarComoReembolsada(id, valor) {
+  const { reserva } = await api(`/empresa/reservas/${id}/reembolso`, { metodo: "POST", corpo: { valor } });
+  return daApi(reserva);
+}
+
+/** Valor que a empresa ficou de uma reserva paga e cancelada (0 se devolveu tudo ou ainda não resolveu). */
+export const valorRetido = (r) =>
+  r.status === "cancelada" && r.reembolso === "feito" ? Math.max(0, r.valor - (r.valorReembolsado ?? r.valor)) : 0;
+
+/* ---------------- Bloqueios de horário ---------------- */
+
+export const listarBloqueios = () => api("/empresa/bloqueios");
+
+/** dados: { quadraId, data, horaInicio, horaFim, motivo } */
+export async function criarBloqueio({ quadraId, data, horaInicio, horaFim, motivo }) {
+  const { bloqueio } = await api("/empresa/bloqueios", {
+    metodo: "POST",
+    corpo: { quadra_id: Number(quadraId), data, hora_inicio: horaInicio, hora_fim: horaFim, motivo },
+  });
+  return bloqueio;
+}
+
+export const removerBloqueio = (id) => api(`/empresa/bloqueios/${id}`, { metodo: "DELETE" });
+
+/** Reserva feita no balcão (presencial ou por telefone). dados: { quadraId, cliente, data, hora, duracao, pagamento } */
 export async function criarReservaBalcao({ quadraId, cliente, data, hora, duracao, pagamento }) {
   const { reserva } = await api("/empresa/reservas", {
     metodo: "POST",
@@ -98,7 +126,10 @@ export function historicoMensal(lista, meses = 6) {
       mes: data.toLocaleDateString("pt-BR", { month: "short" }).replace(".", ""),
       mesLongo: data.toLocaleDateString("pt-BR", { month: "long", year: "numeric" }),
       mesNome: data.toLocaleDateString("pt-BR", { month: "long" }),
-      faturamento: doMes.reduce((s, r) => s + r.valor, 0),
+      // Faturamento = reservas não canceladas + o que a empresa reteve de reservas pagas e canceladas
+      faturamento:
+        doMes.reduce((s, r) => s + r.valor, 0) +
+        lista.filter((r) => r.data.startsWith(chave)).reduce((s, r) => s + valorRetido(r), 0),
       reservas: doMes.length,
     };
   });

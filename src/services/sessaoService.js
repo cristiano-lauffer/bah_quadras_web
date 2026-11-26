@@ -62,10 +62,10 @@ function gravar(sessao, lembrar) {
 
 /**
  * Converte a resposta da API ({ token, usuario }) na sessão usada pelo site.
- * tipo: "usuario" (jogador) ou "empresa", como nas rotas /usuario e /empresa.
+ * tipo: "usuario" (jogador), "empresa" ou "admin", como nas rotas /usuario, /empresa e /admin.
  */
 function montarSessao({ token, usuario }) {
-  const tipo = usuario.papel === "empresa" ? "empresa" : "usuario";
+  const tipo = usuario.papel === "empresa" ? "empresa" : usuario.papel === "admin" ? "admin" : "usuario";
   return {
     tipo,
     papel: usuario.papel,
@@ -122,10 +122,6 @@ if (typeof window !== "undefined") {
 /** Entra na conta pela API. Devolve a sessão criada. */
 export async function entrar(email, senha, lembrar = false) {
   const resposta = await api("/auth/login", { metodo: "POST", corpo: { email: email.trim(), senha }, publico: true });
-  if (resposta.usuario.papel === "admin") {
-    // O site não tem área de administrador: o admin cadastra empresas pela API (Postman).
-    throw new Error("A conta de administrador não tem painel no site. Use a API para cadastrar empresas.");
-  }
   const sessao = montarSessao(resposta);
   gravar(sessao, lembrar);
   return sessao;
@@ -168,7 +164,8 @@ export function sair(paginaAtual = null) {
 export const acabouDeSair = (pagina) => saida.pagina === pagina && Date.now() - saida.em < 3000;
 
 /** Página inicial de cada tipo de conta depois do login. */
-export const inicioDaConta = (sessao) => (sessao?.tipo === "empresa" ? "/empresa/dashboard" : "/usuario/perfil");
+export const inicioDaConta = (sessao) =>
+  sessao?.tipo === "empresa" ? "/empresa/dashboard" : sessao?.tipo === "admin" ? "/admin" : "/usuario/perfil";
 
 // O api.js manda o token desta sessão e, se ele expirar, encerra a sessão.
 configurarSessaoDaApi({

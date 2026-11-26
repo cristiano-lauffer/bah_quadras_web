@@ -21,10 +21,11 @@ import ReservaConfirmada from "../components/agendamento/ReservaConfirmada.jsx";
 import { useQuadraPublica } from "../hooks/useQuadraPublica.js";
 import { buscarVinculoPublico } from "../services/quadrasService.js";
 import {
+  HORAS_PRAZO_CANCELAMENTO,
   carregarReserva,
+  podeAlterarSozinho,
   criarReserva,
   horariosOcupados,
-  inicioDaReserva,
   remarcarReserva,
 } from "../services/reservasService.js";
 import { useSessao } from "../hooks/useSessao.js";
@@ -115,7 +116,7 @@ function Reserva({ quadra, dataInicial, horaInicial, duracaoInicial, etapaInicia
 
   // Remarcação: /agendamento/:id?remarcar=<id da reserva>
   const remarcando = Boolean(
-    original && original.quadraId === quadra.id && original.status === "confirmada" && inicioDaReserva(original) > new Date()
+    original && original.quadraId === quadra.id && podeAlterarSozinho(original)
   );
   const remarcacaoInvalida = Boolean(remarcarId) && !remarcando;
   const duracaoOriginal = remarcando ? original.baterias ?? original.duracao : 1;
@@ -277,7 +278,10 @@ function Reserva({ quadra, dataInicial, horaInicial, duracaoInicial, etapaInicia
       {remarcacaoInvalida && (
         <div className="ag-remarcar ag-remarcar-erro" role="alert">
           <CircleAlert size={20} aria-hidden="true" />
-          <p>Essa reserva não pode mais ser remarcada (já passou ou foi cancelada). Você pode fazer uma reserva nova abaixo.</p>
+          <p>
+            Essa reserva não pode ser remarcada pelo site (já passou, foi cancelada ou faltam menos de {HORAS_PRAZO_CANCELAMENTO}h
+            para o jogo: nesse caso, fale com a empresa). Você pode fazer uma reserva nova abaixo.
+          </p>
         </div>
       )}
 
@@ -431,7 +435,7 @@ function Reserva({ quadra, dataInicial, horaInicial, duracaoInicial, etapaInicia
                 </div>
               </div>
               <p className="ag-texto">
-                O pagamento continua no local ({original.pagamento ?? "na forma escolhida"}).
+                O pagamento continua combinado com a empresa pelo WhatsApp ({original.pagamento ?? "na forma escolhida"}).
                 {diferenca !== 0 &&
                   (diferenca > 0
                     ? ` Com a nova duração, o valor aumenta ${formatarPreco(diferenca, 2)}.`
@@ -441,10 +445,13 @@ function Reserva({ quadra, dataInicial, horaInicial, duracaoInicial, etapaInicia
             ) : (
             <section className="ag-card" aria-labelledby="ag-confirmar-titulo">
               <h2 id="ag-confirmar-titulo">Confirme sua reserva</h2>
-              <p className="ag-texto">Confira os dados e escolha como prefere pagar no local.</p>
+              <p className="ag-texto">
+                Confira os dados e escolha como prefere pagar. Depois de reservar, o pagamento é combinado com a empresa
+                pelo WhatsApp. A reserva fica "Confirmada" quando a empresa registrar o pagamento.
+              </p>
 
               <fieldset className="ag-pagamento">
-                <legend>Forma de pagamento (no local)</legend>
+                <legend>Forma de pagamento (combinada pelo WhatsApp)</legend>
                 <div>
                   {formasPagamento.map((f) => (
                     <label key={f} className={pagamento === f ? "marcado" : ""}>
@@ -458,6 +465,10 @@ function Reserva({ quadra, dataInicial, horaInicial, duracaoInicial, etapaInicia
               <div className="ag-politica">
                 <strong>Política de cancelamento</strong>
                 <p>{politica}</p>
+                <p>
+                  Pelo site, você cancela ou remarca até {HORAS_PRAZO_CANCELAMENTO}h antes do jogo. Depois disso, fale com a
+                  empresa pelo WhatsApp.
+                </p>
               </div>
 
               <label className="ag-aceite">

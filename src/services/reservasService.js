@@ -36,6 +36,11 @@ function daApi(r) {
     pagamento: r.forma_pagamento,
     pago: r.pago,
     status: r.status === "CANCELADA" ? "cancelada" : "confirmada",
+    canceladaPor: r.cancelada_por,
+    reembolso: r.reembolso, // null | "pendente" | "feito"
+    valorReembolsado: r.valor_reembolsado,
+    contatoEmpresa: empresa.whatsapp || empresa.telefone || null,
+    empresa: empresa.nome,
     criadaEm: dataIso(r.criada_em),
     canceladaEm: dataIso(r.cancelada_em),
     remarcadaEm: dataIso(r.remarcada_em),
@@ -96,10 +101,18 @@ export async function remarcarReserva(id, novos) {
   return guardar(daApi(reserva));
 }
 
+/** Cancela. Devolve { reserva, mensagem } (a mensagem avisa quando há reembolso a combinar). */
 export async function cancelarReserva(id) {
-  const { reserva } = await api(`/reservas/${id}/cancelar`, { metodo: "POST" });
-  return guardar(daApi(reserva));
+  const { reserva, mensagem } = await api(`/reservas/${id}/cancelar`, { metodo: "POST" });
+  return { reserva: guardar(daApi(reserva)), mensagem };
 }
+
+/** Prazo da política: com menos horas que isso até o jogo, só a empresa cancela ou remarca. */
+export const HORAS_PRAZO_CANCELAMENTO = 24;
+
+/** O jogador ainda pode cancelar ou remarcar sozinho? */
+export const podeAlterarSozinho = (r, agora = new Date()) =>
+  r.status === "confirmada" && inicioDaReserva(r) - agora >= HORAS_PRAZO_CANCELAMENTO * 3_600_000;
 
 /**
  * Horários da grade ocupados numa data (reservas ativas e bloqueios do banco).

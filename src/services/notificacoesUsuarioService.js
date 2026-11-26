@@ -45,8 +45,10 @@ function gerar() {
     lista.push({
       id: `confirmada-${r.id}`,
       tipo: "reserva",
-      titulo: "Reserva confirmada",
-      texto: `${r.quadra} · ${quando} (${descreverDuracao(r)}). Pagamento no local.`,
+      titulo: r.pago ? "Reserva confirmada" : "Horário reservado",
+      texto: r.pago
+        ? `${r.quadra} · ${quando} (${descreverDuracao(r)}). Pagamento recebido pela empresa.`
+        : `${r.quadra} · ${quando} (${descreverDuracao(r)}). Combine o pagamento com a empresa pelo WhatsApp.`,
       quando: r.criadaEm ?? antesDeAgora(new Date(inicio - 4 * DIA), agora, (i + 1) * HORA).toISOString(),
       link: "/usuario/reservas",
     });

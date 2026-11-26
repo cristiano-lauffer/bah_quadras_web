@@ -302,3 +302,19 @@
   color: var(--info);
   font-weight: 600;
 }
+
+/* Reembolso de reserva paga e cancelada */
+.mr-reembolso.pendente {
+  color: #b45309;
+  font-weight: 600;
+}
+
+.mr-reembolso.feito {
+  color: var(--muted);
+}
+
+/* Dentro do prazo e sem WhatsApp da empresa */
+.mr-prazo {
+  font-size: 0.85rem;
+  color: var(--muted);
+}

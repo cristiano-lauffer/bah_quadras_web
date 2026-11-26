@@ -1,0 +1,84 @@
+/* Janela "Novo horário" da agenda da empresa (reserva presencial ou bloqueio) */
+.nh-modal {
+  width: min(560px, 100% - 32px);
+  max-height: calc(100% - 32px);
+  padding: 0;
+  border: 0;
+  border-radius: 20px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+}
+
+.nh-modal::backdrop {
+  background: rgba(3, 31, 24, 0.6);
+  backdrop-filter: blur(3px);
+}
+
+.nh {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+}
+
+.nh-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.nh-topo h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.nh-fechar {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.nh-ajuda {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+@media (max-width: 520px) {
+  .nh {
+    padding: 18px;
+  }
+}
+
+/* Selects no mesmo visual dos campos de texto do painel */
+.nh .pn-campo select {
+  height: 46px;
+  padding: 0 12px;
+  border: 1.5px solid var(--line);
+  border-radius: 11px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+}
+
+.nh .pn-campo select:focus {
+  outline: none;
+  border-color: var(--green-texto);
+  box-shadow: 0 0 0 4px rgba(7, 131, 78, 0.12);
+}
+
+/* Tipo escolhido (Reserva presencial / Bloquear horário) */
+.nh .pn-chip[aria-checked="true"] {
+  border-color: var(--green-texto);
+  background: var(--green-light);
+  color: var(--green-forte);
+}

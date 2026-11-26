@@ -9,6 +9,7 @@ import {
   CircleX,
   Clock,
   MapPin,
+  MessageCircle,
   Plus,
   RotateCcw,
   Star,
@@ -16,22 +17,43 @@ import {
 } from "lucide-react";
 import UsuarioLayout from "../layouts/UsuarioLayout.jsx";
 import Toast from "../components/Toast.jsx";
-import { baixarIcs, eventoDaReserva } from "../utils/agenda.js";
+import { baixarIcs, eventoDaReserva, linkWhatsAppEmpresa, mensagemParaEmpresa } from "../utils/agenda.js";
 import { useDados } from "../hooks/useDados.js";
 import { carregarMinhasAvaliacoes, jaAvaliou } from "../services/avaliacoesService.js";
-import { cancelarReserva, fimDaReserva, inicioDaReserva, listarReservas, separarReservas } from "../services/reservasService.js";
+import {
+  HORAS_PRAZO_CANCELAMENTO,
+  cancelarReserva,
+  fimDaReserva,
+  inicioDaReserva,
+  listarReservas,
+  podeAlterarSozinho,
+  separarReservas,
+} from "../services/reservasService.js";
 import { descreverDuracao, formatarData, formatarPreco, paraData, tempoRelativo, foto } from "../utils/formatadores.js";
 import "../css/MinhasReservas.css";
 import Esqueleto from "../components/Esqueleto.jsx";
 
 const statusReserva = {
   confirmada: { texto: "Confirmada", classe: "ok", icone: CircleCheck },
+  aguardando: { texto: "Aguardando pagamento", classe: "alerta", icone: Clock },
   concluida: { texto: "Concluída", classe: "info", icone: Trophy },
   cancelada: { texto: "Cancelada", classe: "erro", icone: CircleX },
 };
 
-const HORAS_CANCELAMENTO_GRATIS = 24;
-const HORAS_MINIMAS_REMARCAR = 2; // dá para remarcar até 2h antes do jogo
+
+/** Dentro do prazo da política: o jogador combina com a empresa pelo WhatsApp. */
+function FalarComEmpresa({ reserva, horasAte }) {
+  const link = linkWhatsAppEmpresa(reserva.contatoEmpresa, mensagemParaEmpresa(reserva, "cancelar ou remarcar esta reserva"));
+  const titulo = `Faltam menos de ${HORAS_PRAZO_CANCELAMENTO}h para o jogo: para cancelar ou remarcar, fale com a empresa.`;
+  if (horasAte <= 0) return null;
+  return link ? (
+    <a className="pn-botao pn-botao-contorno" href={link} target="_blank" rel="noopener noreferrer" title={titulo}>
+      <MessageCircle size={15} aria-hidden="true" /> Falar com a empresa
+    </a>
+  ) : (
+    <span className="mr-prazo" title={titulo}>Para cancelar, fale com {reserva.empresa}</span>
+  );
+}
 
 export default function MinhasReservas() {
   const { dados, carregando, recarregar } = useDados(listarReservas);
@@ -61,8 +83,8 @@ export default function MinhasReservas() {
     setConfirmando(null);
     setCancelando(reserva.id);
     try {
-      await cancelarReserva(reserva.id);
-      setToast(`Reserva na ${reserva.quadra} cancelada.`);
+      const { mensagem } = await cancelarReserva(reserva.id);
+      setToast(mensagem ?? `Reserva na ${reserva.quadra} cancelada.`);
     } catch (erro) {
       setToast(erro.message);
     } finally {
@@ -120,7 +142,8 @@ export default function MinhasReservas() {
           ) : (
             <ul className="mr-lista">
               {lista.map((r) => {
-                const status = statusReserva[r.status];
+                // Reservada mas ainda não paga: "Aguardando pagamento" até a empresa registrar o pagamento
+                const status = statusReserva[r.status === "confirmada" && !r.pago ? "aguardando" : r.status];
                 const horasAte = (inicioDaReserva(r) - new Date()) / 3_600_000;
                 const data = paraData(r.data);
 
@@ -164,6 +187,13 @@ export default function MinhasReservas() {
                         <li>
                           <MapPin size={15} aria-hidden="true" /> {r.endereco}
                         </li>
+                        {r.status === "cancelada" && r.reembolso && (
+                          <li className={`mr-reembolso ${r.reembolso}`}>
+                            {r.reembolso === "pendente"
+                              ? "Reembolso pendente: a empresa vai devolver o valor pago."
+                              : `Reembolso feito pela empresa: ${formatarPreco(r.valorReembolsado ?? r.valor, 2)}.`}
+                          </li>
+                        )}
                       </ul>
 
                       <div className="mr-rodape">
@@ -175,9 +205,9 @@ export default function MinhasReservas() {
                         {confirmando === r.id ? (
                           <div className="mr-confirmar" role="alert">
                             <p>
-                              {horasAte >= HORAS_CANCELAMENTO_GRATIS
-                                ? "Cancelar esta reserva? O cancelamento é gratuito."
-                                : "Faltam menos de 24h: pode haver cobrança de 50% do valor. Cancelar mesmo assim?"}
+                              {r.pago
+                                ? "Cancelar esta reserva? Como ela já está paga, a empresa devolve o valor integral (combine pelo WhatsApp)."
+                                : "Cancelar esta reserva? O cancelamento é gratuito."}
                             </p>
                             <div>
                               <button type="button" className="pn-botao pn-botao-contorno" onClick={() => setConfirmando(null)}>
@@ -203,23 +233,28 @@ export default function MinhasReservas() {
                                 >
                                   <CalendarPlus size={15} aria-hidden="true" /> Agenda
                                 </button>
-                                {horasAte >= HORAS_MINIMAS_REMARCAR && (
-                                  <Link
-                                    to={`/agendamento/${r.quadraId}?remarcar=${r.id}`}
-                                    className="pn-botao pn-botao-contorno"
-                                    title="Trocar o dia ou o horário desta reserva"
-                                  >
-                                    <CalendarClock size={15} aria-hidden="true" /> Remarcar
-                                  </Link>
+                                {podeAlterarSozinho(r) ? (
+                                  <>
+                                    <Link
+                                      to={`/agendamento/${r.quadraId}?remarcar=${r.id}`}
+                                      className="pn-botao pn-botao-contorno"
+                                      title="Trocar o dia ou o horário desta reserva"
+                                    >
+                                      <CalendarClock size={15} aria-hidden="true" /> Remarcar
+                                    </Link>
+                                    <button
+                                      type="button"
+                                      className="mr-cancelar"
+                                      disabled={cancelando === r.id}
+                                      onClick={() => setConfirmando(r.id)}
+                                    >
+                                      {cancelando === r.id ? "Cancelando..." : "Cancelar"}
+                                    </button>
+                                  </>
+                                ) : (
+                                  // Menos de 24h para o jogo: cancelar ou remarcar só falando com a empresa
+                                  <FalarComEmpresa reserva={r} horasAte={horasAte} />
                                 )}
-                                <button
-                                  type="button"
-                                  className="mr-cancelar"
-                                  disabled={cancelando === r.id}
-                                  onClick={() => setConfirmando(r.id)}
-                                >
-                                  {cancelando === r.id ? "Cancelando..." : "Cancelar"}
-                                </button>
                               </>
                             )}
                             {r.status === "concluida" &&
